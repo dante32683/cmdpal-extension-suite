@@ -17,6 +17,28 @@ dotnet build NpuCommandPaletteExtensions.sln -p:Platform=x64
 
 The Command Palette SDK can emit packaging warning `APPX1707` for winmd references. That warning is known and does not block development builds.
 
+## PowerToys Reference Checkout
+
+The monorepo keeps an ignored sparse clone of PowerToys at:
+
+```text
+references\PowerToys
+```
+
+It is intended for local reference only. The checked-out path is `src/modules/cmdpal`, which includes Microsoft-maintained extensions such as:
+
+```text
+references\PowerToys\src\modules\cmdpal\ext\Microsoft.CmdPal.Ext.TimeDate
+```
+
+Refresh it manually when needed:
+
+```powershell
+git -C references\PowerToys pull
+```
+
+If Git reports a dubious ownership warning from the sandbox, run the refresh from the normal user shell or mark the checkout as safe for that user.
+
 ## Per-Extension Dev Loop
 
 Use this after changing one extension:
