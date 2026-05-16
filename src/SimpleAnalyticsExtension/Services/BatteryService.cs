@@ -25,9 +25,9 @@ internal sealed class BatteryService
     // 15-second rolling average: 3 samples × 5 s each
     private const int SampleCount = 3;
     private readonly double[] _wattBuffer = new double[SampleCount];
-    private int _wattIdx    = 0;
-    private int _wattFilled = 0;
-    private bool _wattAvailable = false;   // false until first WinRT reading succeeds
+    private int _wattIdx;
+    private int _wattFilled;
+    private bool _wattAvailable;   // remains false until first WinRT reading succeeds
     private readonly object _lock = new();
     private readonly Timer _sampleTimer;
 
