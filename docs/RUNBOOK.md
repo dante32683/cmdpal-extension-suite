@@ -55,6 +55,25 @@ Then in Command Palette:
 Reload Command Palette extensions
 ```
 
+## Refresh Existing Local Registrations
+
+After moving projects or consolidating old repos into this monorepo, refresh local package registrations from the monorepo paths:
+
+```powershell
+.\scripts\Refresh-ExtensionRegistrations.ps1
+```
+
+After verifying Command Palette loads the monorepo registrations, move the old sibling folders to the Recycle Bin:
+
+```powershell
+.\scripts\Refresh-ExtensionRegistrations.ps1 -MoveOldFoldersToRecycleBin
+```
+
+The script stops extension processes, removes matching app packages for the current user, registers the `src\...\AppxManifest.xml` files produced by the x64 Debug build, and optionally recycles:
+
+- `C:\Portable\ActionCenterExtension`
+- `C:\Portable\SimpleAnalyticsExtension`
+
 Current extension process names:
 
 - `ActionCenterExtension`
