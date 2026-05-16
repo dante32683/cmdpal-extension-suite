@@ -37,7 +37,8 @@ Write-Host "Registering monorepo app manifests..."
 foreach ($name in $packageNames) {
     $manifest = Join-Path $repoRoot "src\$name\bin\x64\Debug\net9.0-windows10.0.26100.0\win-x64\AppxManifest.xml"
     if (-not (Test-Path $manifest)) {
-        throw "Missing build manifest: $manifest. Run dotnet build NpuCommandPaletteExtensions.sln -p:Platform=x64 first."
+        Write-Warning "Skipping $name - no build at $manifest. Build first if this extension should be registered."
+        continue
     }
 
     Write-Host "Registering $manifest"
