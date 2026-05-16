@@ -78,6 +78,11 @@ Publish artifacts are per extension. GitHub releases should attach one MSIX/arti
 - Do not commit `bin/` or `obj/`.
 - Preserve imported history by keeping old repo histories merged or tagged in this monorepo; do not keep nested `.git` directories under `src/`.
 
+Imported histories:
+
+- `imported/action-center` tag points at the old ActionCenter repo head that was merged into this monorepo as history.
+- Simple Analytics had no `.git` repository at migration time, so only its files and docs were imported.
+
 ## Common Failures
 
 ### Extension Does Not Appear
