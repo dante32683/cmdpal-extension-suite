@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "NPUToolsExtension (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "NPUToolsExtension (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
