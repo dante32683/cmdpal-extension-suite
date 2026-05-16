@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "SimpleAnalyticsExtension (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "SimpleAnalyticsExtension (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
