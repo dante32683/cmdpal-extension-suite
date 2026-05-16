@@ -228,7 +228,6 @@ Keep commonly reused glyphs in a visual helper class such as `AwakeVisuals` inst
 | `E73E` | Check / enabled |
 | `E701` | Wi-Fi |
 | `E837` | Ethernet |
-| `E945` | Sparkle / smart action |
 | `EB9F` | CPU / processor |
 
 ---

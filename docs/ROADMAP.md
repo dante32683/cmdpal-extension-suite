@@ -4,11 +4,11 @@
 
 Status: in progress
 
-1. Consolidate Action Center, Simple Analytics, and NPU tools into one monorepo. Status: in progress.
-2. Preserve available git history from old repos. Status: in progress for Action Center; Simple Analytics had no `.git` repo.
-3. Keep every extension separately packageable. Status: in progress; each project keeps its own package manifest.
-4. Apply shared conventions across all imported extensions. Status: in progress.
-5. Verify solution build and selected per-extension builds. Status: pending.
+1. Consolidate Action Center, Simple Analytics, and NPU tools into one monorepo. Status: done.
+2. Preserve available git history from old repos. Status: done for Action Center via `imported/action-center`; Simple Analytics had no `.git` repo.
+3. Keep every extension separately packageable. Status: done; each project keeps its own package manifest.
+4. Apply shared conventions across all imported extensions. Status: done for initial pass.
+5. Verify solution build. Status: done for `dotnet build NpuCommandPaletteExtensions.sln -p:Platform=x64`.
 
 ## Implemented Extensions
 
@@ -26,7 +26,7 @@ Status: in progress
 
 ## Next Work
 
-- Finish convention pass across imported extensions.
+- Decide whether to remove old sibling folders from `C:\Portable` after separate explicit approval.
 - Decide whether to retire `src/NPUToolsExtension` after replacement packages cover its purpose.
 - Add CI for restore/build.
 - Publish release artifacts per extension.
