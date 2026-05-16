@@ -34,6 +34,10 @@ Imported project docs live under `docs/extensions/`. Treat them as historical or
 - `docs/extensions/action-center`
 - `docs/extensions/simple-analytics`
 
+## Local Reference Checkouts
+
+- `references/PowerToys` - ignored sparse clone of `microsoft/PowerToys`, checked out to `src/modules/cmdpal`. Use it as the first source for fully correct Command Palette extension syntax and SDK usage examples.
+
 ## Planning Documents
 
 - `RAYCAST_MIGRATION_PLAN.md` - migration plan for Raycast tools into Command Palette extensions. This is planning material, not current architecture truth until implemented.
@@ -42,4 +46,4 @@ Imported project docs live under `docs/extensions/`. Treat them as historical or
 
 - Canonical: `ARCHITECTURE.md`, `RUNBOOK.md`, `CONVENTIONS.md`
 - Operational: `BUGS.md`, `ROADMAP.md`
-- Historical/reference: `docs/extensions/*`, copied PDFs, old extension docs
+- Historical/reference: `docs/extensions/*`, copied PDFs, old extension docs, `references/PowerToys`

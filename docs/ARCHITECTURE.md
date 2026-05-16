@@ -20,6 +20,8 @@ This repo targets .NET 9 and `Microsoft.CommandPalette.Extensions` SDK v0.9+. It
 │   └── NPUToolsExtension/                 # Original scaffold, temporary reference
 ├── tools/
 │   └── NpuAwakeKeeper/                    # Companion daemon copied into Awake package output
+├── references/
+│   └── PowerToys/                         # Ignored sparse checkout of PowerToys cmdpal sources
 ├── Directory.Build.props                  # Shared analyzer/platform defaults
 ├── Directory.Packages.props               # Central package versions
 └── NpuCommandPaletteExtensions.sln         # Monorepo solution
@@ -147,3 +149,21 @@ Use shared libraries when behavior is genuinely common:
 - Future cross-extension helpers should live in a neutral shared project only after at least two extensions need them.
 
 Avoid moving project-specific services into shared code too early. Shared code should reduce real duplication, not hide domain behavior.
+
+## Reference Source: PowerToys
+
+`references/PowerToys` is a local sparse clone of `https://github.com/microsoft/PowerToys` with `src/modules/cmdpal` checked out. It is ignored by git and should be treated as read-only reference material.
+
+Use it when implementation details are unclear, especially:
+
+- built-in extension provider patterns under `references/PowerToys/src/modules/cmdpal/ext`
+- syntax for pages, fallback commands, icons, settings, and command results
+- package/project patterns used by Microsoft-maintained Command Palette extensions
+
+Good starting points:
+
+- `references/PowerToys/src/modules/cmdpal/ext/Microsoft.CmdPal.Ext.TimeDate`
+- `references/PowerToys/src/modules/cmdpal/ext/SamplePagesExtension`
+- `references/PowerToys/src/modules/cmdpal/ext/Microsoft.CmdPal.Ext.System`
+
+Do not copy large blocks blindly. Prefer matching SDK usage and adapting structure to this repo's conventions.
