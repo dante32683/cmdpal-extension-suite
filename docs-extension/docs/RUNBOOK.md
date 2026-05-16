@@ -2,60 +2,61 @@
 
 ## Requirements
 
-- Windows 10 1809 or newer (Windows 11 recommended for dock feature).
-- .NET 8 SDK.
+- Windows 11 (recommended).
+- .NET 8 SDK or newer.
 - PowerToys v0.98.0 or newer (Command Palette dock support).
-- Visual Studio 2022 with the Windows App SDK workload (for MSIX deploy).
 - `Microsoft.CommandPalette.Extensions` SDK ≥ 0.9.260303001 (check `Directory.Packages.props`).
 
-## Build
+## Dev Loop (Build → Deploy → Reload)
+
+Visual Studio is not required. Run these three commands after every change:
 
 ```powershell
-dotnet build ActionCenterExtension\ActionCenterExtension.csproj
+# 1. Kill the running extension process so the binary can be overwritten
+Stop-Process -Name "ActionCenterExtension" -Force -ErrorAction SilentlyContinue
+
+# 2. Build
+dotnet build "ActionCenterExtension\ActionCenterExtension.csproj" -r win-x64
+
+# 3. Register with Windows (-ForceApplicationShutdown handles any lingering process)
+Add-AppxPackage -Register "ActionCenterExtension\bin\Debug\net9.0-windows10.0.26100.0\win-x64\AppxManifest.xml" -ForceApplicationShutdown
 ```
 
-A plain build verifies the code compiles but does not register the extension with PowerToys.
-
-## Deploy (Required To See Changes In PowerToys)
-
-In Visual Studio:
-
-1. Open `ActionCenterExtension.sln`.
-2. **Build > Deploy Solution** (or right-click the project → Deploy).
-
-This registers the MSIX package with the OS. Plain build/publish does not register it.
-
-After deploying, trigger a reload in Command Palette:
+Then in Command Palette:
 
 ```
-Command Palette → type "Reload" → select "Reload Command Palette extensions"
+type "Reload" → select "Reload Command Palette extensions"
 ```
 
-The extension will appear in the palette and, if `GetDockBands()` is implemented, in the dock.
+The extension appears in the palette immediately after reload. Dock bands appear after reload — if you added a band to the dock previously, it updates in place.
+
+**Always run all three steps.** A build without a deploy leaves the old version running. A deploy without a reload means the palette is still talking to the old process.
+
+## Avoiding Duplicate Dock Entries
+
+Each time you add a band to the dock via the dock's Add menu, it creates a new pinned entry. Only add it once. If you end up with duplicates, right-click each one in the dock and select **Remove**, then add it back once.
+
+Do not use the dock Add menu during development iterations — the band updates automatically once the extension is reloaded.
 
 ## Debug
 
-Run the project with F5 in Debug configuration. The COM server launches and attaches to the debugger. Output goes to the Output window (Ctrl+Alt+O).
+PowerToys logs extension activation failures to `%LocalAppData%\Microsoft\PowerToys\logs`.
 
-To see extension log output:
-- Check the Output window in Visual Studio while running in Debug.
-- PowerToys itself logs extension activation failures to `%LocalAppData%\Microsoft\PowerToys\logs`.
+For verbose output, add `Debug.WriteLine(...)` calls and attach a debugger, or write to a log file from the extension process directly.
 
 ## Publish (Release Build)
 
-Use the publish profiles under `Properties/PublishProfiles/`:
-
 ```powershell
-dotnet publish ActionCenterExtension\ActionCenterExtension.csproj -p:PublishProfile=win-x64
+dotnet publish "ActionCenterExtension\ActionCenterExtension.csproj" -p:PublishProfile=win-x64
 ```
 
-After publishing, deploy the resulting MSIX or use the publish profile's deployment step.
+After publishing, deploy the resulting MSIX or register it with `Add-AppxPackage`.
 
 ## Common Failures
 
 ### Extension Does Not Appear In Palette
 
-- Verify you used **Deploy**, not just Build.
+- Confirm you ran `Add-AppxPackage -Register` after building — a plain `dotnet build` does not register anything.
 - Run the `Reload` command in Command Palette.
 - Check `%LocalAppData%\Microsoft\PowerToys\logs` for activation errors.
 - Confirm the GUID in `ActionCenterExtension.cs` matches what is registered (check `Package.appxmanifest`).
@@ -80,4 +81,4 @@ After publishing, deploy the resulting MSIX or use the publish profile's deploym
 
 ## Source Control Notes
 
-The scaffold's `.gitignore` excludes `Properties/launchSettings.json` and `*.pubxml` by default. These files are needed for deployment. Either remove those exclusions from `.gitignore` or commit the files with `git add --force`.
+`Properties/launchSettings.json` and `*.pubxml` are committed — they are needed for deployment. The `.gitignore` in this repo already excludes them from the default exclusion list.
