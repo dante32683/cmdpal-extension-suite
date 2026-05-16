@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ActionCenterExtension (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "ActionCenterExtension (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
