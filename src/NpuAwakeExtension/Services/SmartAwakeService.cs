@@ -22,17 +22,30 @@ internal sealed partial class SmartAwakeService
             return SmartAwakeResult.Failure("Try: keep awake for 90 minutes.");
         }
 
+        // Local deterministic parser first — regex patterns are reliable and never hallucinate.
+        // Only fall through to Phi for phrasing the local parser cannot definitively map.
+        var localResult = ExecuteWithLocalParser(input, awakeService);
+        if (localResult.IsSuccess)
+        {
+            return localResult;
+        }
+
+        // Phi-Silica for ambiguous natural language the local parser returned Failure for.
         try
         {
             var intent = ExtractIntentWithPhiAsync(input).GetAwaiter().GetResult();
-            return ExecuteIntent(intent, awakeService);
+            var phiResult = ExecuteIntent(intent, awakeService);
+            if (phiResult.IsSuccess)
+            {
+                return phiResult;
+            }
         }
         catch
         {
-            // Fall back to deterministic parsing when Phi-Silica is not ready or unavailable.
+            // Phi unavailable — return local parser's failure message below.
         }
 
-        return ExecuteWithLocalParser(input, awakeService);
+        return localResult;
     }
 
     private static async Task<AwakeIntent> ExtractIntentWithPhiAsync(string input)
