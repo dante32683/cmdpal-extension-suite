@@ -1,11 +1,9 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NPUToolsExtension", "src\NPUToolsExtension\NPUToolsExtension.csproj", "{4026E7F0-FF21-488E-96DB-0044A250D951}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NpuTools.Shared", "src\NpuTools.Shared\NpuTools.Shared.csproj", "{8674A1E9-810E-4D24-B314-716E6E1FC61D}"
 EndProject
@@ -43,18 +41,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Debug|Any CPU.Build.0 = Debug|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Debug|x64.ActiveCfg = Debug|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Debug|x64.Build.0 = Debug|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Debug|x86.ActiveCfg = Debug|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Debug|x86.Build.0 = Debug|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Release|Any CPU.ActiveCfg = Release|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Release|Any CPU.Build.0 = Release|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Release|x64.ActiveCfg = Release|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Release|x64.Build.0 = Release|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Release|x86.ActiveCfg = Release|x64
-		{4026E7F0-FF21-488E-96DB-0044A250D951}.Release|x86.Build.0 = Release|x64
 		{8674A1E9-810E-4D24-B314-716E6E1FC61D}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{8674A1E9-810E-4D24-B314-716E6E1FC61D}.Debug|Any CPU.Build.0 = Debug|x64
 		{8674A1E9-810E-4D24-B314-716E6E1FC61D}.Debug|x64.ActiveCfg = Debug|x64
@@ -204,7 +190,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{4026E7F0-FF21-488E-96DB-0044A250D951} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{8674A1E9-810E-4D24-B314-716E6E1FC61D} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{BEFE4099-FC91-47C6-9410-2C2D31E235F0} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{83D38D0C-E346-4FA6-90A5-64C2280B32B9} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
