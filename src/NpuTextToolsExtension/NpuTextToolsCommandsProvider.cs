@@ -1,5 +1,6 @@
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
+using NpuTools.TextTools.Commands;
 using NpuTools.TextTools.Pages;
 using NpuTools.TextTools.Services;
 
@@ -58,6 +59,12 @@ internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
             {
                 Title    = "Custom Rewrite",
                 Subtitle = "Type your own rewrite instruction in the search box",
+                Icon     = TextToolsVisuals.Phi,
+            },
+            new CommandItem(new TestAiCommand(_service))
+            {
+                Title    = "Test AI Connection",
+                Subtitle = "Runs a quick Phi-Silica call and logs pass/fail",
                 Icon     = TextToolsVisuals.Phi,
             },
         ];

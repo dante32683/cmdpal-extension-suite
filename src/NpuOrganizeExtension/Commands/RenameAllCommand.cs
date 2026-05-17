@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Organize.Models;
+using NpuTools.Organize.Services;
 
 namespace NpuTools.Organize.Commands;
 
@@ -27,18 +27,18 @@ internal sealed partial class RenameAllCommand : InvokableCommand
         {
             try
             {
-                File.Move(p.OriginalPath, p.ProposedPath);
+                string destination = AiNamingService.BuildProposedPath(p.OriginalPath);
+                File.Move(p.OriginalPath, destination, overwrite: false);
                 success++;
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Organize rename failed '{p.OriginalPath}': {ex}");
                 failed++;
             }
         }
 
         string msg = failed > 0
-            ? $"Renamed {success} file(s). {failed} failed — check permissions."
+            ? $"Renamed {success} file(s). {failed} failed."
             : $"Renamed {success} file(s).";
         return CommandResult.ShowToast(msg);
     }

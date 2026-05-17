@@ -12,6 +12,9 @@
         <uap3:Extension Category="windows.appExtension"><uap3:AppExtension Name="com.microsoft.commandpalette" Id="NpuOrganize" PublicFolder="Public" DisplayName="NPU Organize" Description="NPU Organize"><uap3:Properties><CmdPalProvider><Activation><CreateInstance ClassId="2d0ece61-b197-48a0-a64f-622e7c38f04f" /></Activation><SupportedInterfaces><Commands /></SupportedInterfaces></CmdPalProvider></uap3:Properties></uap3:AppExtension></uap3:Extension>
       </Extensions>
     </Application>
+    <Application Id="Keeper" Executable="NpuOrganizeKeeper.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="NPU Organize Keeper" Description="Screenshot watcher daemon" BackgroundColor="transparent" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" />
+    </Application>
   </Applications>
-  <Capabilities><Capability Name="internetClient" /><rescap:Capability Name="runFullTrust" /></Capabilities>
+  <Capabilities><Capability Name="internetClient" /><rescap:Capability Name="systemAIModels" /><rescap:Capability Name="runFullTrust" /></Capabilities>
 </Package>

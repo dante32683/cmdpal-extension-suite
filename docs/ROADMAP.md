@@ -20,7 +20,7 @@ Status: in progress
 
 ## Implemented Extensions (continued)
 
-- NPU Organize: screenshot rename proposals with date-slug, dry-run mode, watcher dashboard (OrganizeKeeper stub), hub page.
+- NPU Organize: screenshot rename proposals using `ImageDescriptionGenerator` (BriefDescription vision model → stopword-filtered 5-token slug), dry-run mode, watcher dashboard stub, hub page. AI naming falls back to time-digit slug when model unavailable. Requires `Microsoft.WindowsAppSDK.AI` 1.8.47 and `systemAIModels` capability.
 - NPU Image Editor: OCR via OcrEngine, background removal via ImageObjectExtractor, 2x super-resolution via ImageScaler, hub + per-operation input pages.
 - NPU Text Tools: six rewrite modes (Fix Grammar, Make Formal, Make Concise, Bullet Points, Simplify, Custom) via Phi LanguageModel, hub + per-mode input pages.
 
@@ -35,5 +35,34 @@ Status: in progress
 - Publish release artifacts per extension.
 - Implement NPU Notes (add/browse/delete/find related/search per migration plan Phase 5).
 - Implement NPU Dev Toolbox (open workspace in Explorer/terminal/IDE per migration plan Phase 6).
-- Build OrganizeKeeper daemon companion exe for the watcher feature.
+- Build OrganizeKeeper daemon companion exe for the watcher feature. See design notes below.
 - Continue Raycast migration using `RAYCAST_MIGRATION_PLAN.md`.
+
+## OrganizeKeeper Design Notes
+
+OrganizeKeeper is a separate background daemon exe (not a Command Palette extension) that watches the Screenshots folder via `FileSystemWatcher` and automatically renames new files as they are created — without the user opening Command Palette.
+
+### Why it must be a separate exe
+Command Palette extensions only run while the palette is active. A file watcher must be always-on, so it needs its own process lifetime.
+
+### What it must do
+1. Watch `%UserProfile%\Pictures\Screenshots` (or configured folder).
+2. Debounce `Created`/`Changed` bursts (screenshots often fire both events).
+3. For each stable new file, call `ImageDescriptionGenerator` to get a brief description, slugify it (same rules as `AiNamingService`), and rename the file.
+4. Skip files already matching the `YYYY-MM-DD_` prefix.
+5. Write heartbeat + state to `%LocalAppData%\NpuOrganize\state.json` so the Watcher Dashboard can show live status without IPC.
+6. Honour a `stop.flag` file (written by `StartStopKeeperCommand`) for clean shutdown.
+
+### MSIX identity requirement
+`ImageDescriptionGenerator` requires MSIX packaged identity and the `systemAIModels` restricted capability. The keeper exe must be registered via `Add-AppxPackage -Register -ExternalLocation` with a `Package.appxmanifest` declaring `systemAIModels` — same pattern as the Raycast `NpuOrganizeBridge.Identity`.
+
+### Reference implementation
+The Raycast keeper at `C:\Portable\Raycast\npu-ext-suite\npu-organize-ext\keeper\` is a near-complete reference:
+- `Program.cs` — `watch`, `status`, `process-one`, `parity-check` modes
+- `Watcher.cs` — `FileSystemWatcher` + debounce logic
+- `StateStore.cs` — state.json + config.json + log file management
+- `SlugGenerator.cs` — C# port of slug.ts (already ported into `AiNamingService.Slugify`)
+- `BridgeClient.cs` — calls NpuBridge.exe; replace with direct `ImageDescriptionGenerator` call
+
+### WatcherDashboardPage current state
+`WatcherDashboardPage.cs` looks for `NpuOrganizeKeeper.exe` in `AppContext.BaseDirectory` (beside the extension exe). If absent, shows "OrganizeKeeper not installed". Once the exe is built and placed there, the dashboard will show running/stopped state and start/stop controls.

@@ -14,6 +14,7 @@
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4188" />
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools.MSIX" Version="1.7.20250829.1" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.260209005" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK.AI" Version="1.8.47" />
     <PackageVersion Include="Shmuelie.WinRTServer" Version="2.2.1" />
     <PackageVersion Include="Serilog" Version="4.3.0" />
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
