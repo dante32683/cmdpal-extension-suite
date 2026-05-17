@@ -9,9 +9,10 @@ namespace NpuTools.TextTools.Pages;
 /// The user types their rewrite instruction in the search box, then presses Enter
 /// to proceed to step 2 where they paste the text to rewrite.
 /// </summary>
-internal sealed partial class RewriteCustomInstructionPage : ListPage
+internal sealed partial class RewriteCustomInstructionPage : DynamicListPage
 {
     private readonly TextRewriteService _service;
+    private IListItem[] _items;
 
     public RewriteCustomInstructionPage(TextRewriteService service)
     {
@@ -21,12 +22,19 @@ internal sealed partial class RewriteCustomInstructionPage : ListPage
         Name            = "Custom Rewrite";
         Icon            = TextToolsVisuals.Phi;
         PlaceholderText = "Enter your rewrite instruction…";
+        _items          = BuildItems(string.Empty);
     }
 
-    public override IListItem[] GetItems()
+    public override void UpdateSearchText(string oldSearch, string newSearch)
     {
-        string instruction = (SearchText ?? string.Empty).Trim();
+        _items = BuildItems(newSearch.Trim());
+        RaiseItemsChanged(_items.Length);
+    }
 
+    public override IListItem[] GetItems() => _items;
+
+    private IListItem[] BuildItems(string instruction)
+    {
         if (instruction.Length == 0)
         {
             return
@@ -45,7 +53,7 @@ internal sealed partial class RewriteCustomInstructionPage : ListPage
             new ListItem(new RewriteCustomTextPage(instruction, _service))
             {
                 Title    = instruction.Length > 80 ? instruction[..80] + "…" : instruction,
-                Subtitle = "Press Enter to proceed — next step: paste the text to rewrite",
+                Subtitle = "Press Enter — next: paste the text to rewrite",
                 Icon     = TextToolsVisuals.Phi,
                 Tags     = [TextToolsVisuals.MutedTag("step 1 of 2")],
             },

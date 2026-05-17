@@ -6,9 +6,10 @@ namespace NpuTools.ImageEditor.Pages;
 
 internal enum ImageOperation { RemoveBackground, SuperResolution, Ocr }
 
-internal sealed partial class ImageInputPage : ListPage
+internal sealed partial class ImageInputPage : DynamicListPage
 {
     private readonly ImageOperation _operation;
+    private IListItem[] _items;
 
     public ImageInputPage(ImageOperation operation)
     {
@@ -18,11 +19,19 @@ internal sealed partial class ImageInputPage : ListPage
         Name            = "Run";
         Icon            = OperationIcon(operation);
         PlaceholderText = "Paste full image path here…";
+        _items          = BuildItems(string.Empty);
     }
 
-    public override IListItem[] GetItems()
+    public override void UpdateSearchText(string oldSearch, string newSearch)
     {
-        string path = (SearchText ?? string.Empty).Trim().Trim('"');
+        _items = BuildItems(newSearch.Trim().Trim('"'));
+        RaiseItemsChanged(_items.Length);
+    }
+
+    public override IListItem[] GetItems() => _items;
+
+    private IListItem[] BuildItems(string path)
+    {
         if (path.Length == 0)
         {
             return
@@ -30,7 +39,7 @@ internal sealed partial class ImageInputPage : ListPage
                 new ListItem(new NoOpCommand())
                 {
                     Title    = OperationLabel(_operation),
-                    Subtitle = "Paste the full path to an image file in the search box above, then press Enter",
+                    Subtitle = "Paste the full path to an image file above, then press Enter",
                     Icon     = OperationIcon(_operation),
                 },
             ];
