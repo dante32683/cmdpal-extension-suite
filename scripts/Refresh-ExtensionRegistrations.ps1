@@ -14,7 +14,8 @@ $packageNames = @(
     "NpuImageEditorExtension",
     "NpuTextToolsExtension",
     "NpuNotesExtension",
-    "NpuDevToolboxExtension"
+    "NpuDevToolboxExtension",
+    "TimeDateDockExtension"
 )
 
 $processNames = $packageNames + @("NpuAwakeKeeper")

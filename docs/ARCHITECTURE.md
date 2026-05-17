@@ -9,6 +9,7 @@ This repo targets .NET 9 and `Microsoft.CommandPalette.Extensions` SDK v0.9+. It
 ├── docs/                                  # Canonical repo docs and imported extension notes
 ├── src/
 │   ├── ActionCenterExtension/             # Quick Settings dock extension
+│   ├── TimeDateDockExtension/             # Configurable time/date dock extension
 │   ├── SimpleAnalyticsExtension/          # Battery/Wi-Fi/CPU dock analytics
 │   ├── NpuAwakeExtension/                 # Implemented NPU Awake extension
 │   ├── NpuOrganizeExtension/              # NPU Organize shell
