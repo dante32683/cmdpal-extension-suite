@@ -86,7 +86,7 @@ internal sealed partial class DockHeadItem : ListItemBase, IDisposable
         {
             if (mediaSource is not { HasProperties: true })
             {
-                this.Title = "";
+                this.Title = string.Empty;
                 this.Subtitle = "";
                 this.Icon = Icons.NoMedia;
                 this._lastIcon = null;
@@ -96,7 +96,8 @@ internal sealed partial class DockHeadItem : ListItemBase, IDisposable
             }
             else
             {
-                this.Title = mediaSource.Name;
+                this._primaryMediaCommand.Name = MediaDisplayText.TitleWithArtist(mediaSource);
+                this.Title = string.Empty;
                 this.Subtitle = string.Empty;
 
                 var iconBuildTask = BuildIcon(mediaSource, this._settingsManager.ShowThumbnails);

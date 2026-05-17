@@ -12,7 +12,7 @@ internal sealed partial class ActionCenterExtensionPage : ListPage
     {
         _settingsManager = settingsManager;
         Id = "com.dziad.actioncenterextension.main";
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon = new IconInfo("\uE713");
         Title = "Action Center";
         Name = "Open";
     }

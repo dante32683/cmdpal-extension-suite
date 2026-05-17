@@ -161,8 +161,7 @@ internal sealed class SettingsManager : JsonSettingsManager
         var directory = Utilities.BaseSettingsPath("Microsoft.CmdPal");
         Directory.CreateDirectory(directory);
 
-        // now, the state is just next to the exe
-        return Path.Combine(directory, "settings.json");
+        return Path.Combine(directory, "mediaControlsDock.settings.json");
     }
 }
 

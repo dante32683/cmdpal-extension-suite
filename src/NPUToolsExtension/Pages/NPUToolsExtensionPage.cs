@@ -12,7 +12,7 @@ internal sealed partial class NPUToolsExtensionPage : ListPage
     public NPUToolsExtensionPage()
     {
         Id = "com.local.nputools.status";
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon = new IconInfo("\uEB9F");
         Title = "NPU Tools";
         Name = "Open";
     }

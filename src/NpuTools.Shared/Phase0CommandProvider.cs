@@ -12,7 +12,7 @@ public sealed partial class Phase0CommandProvider : CommandProvider
     {
         Id = descriptor.ProviderId;
         DisplayName = descriptor.DisplayName;
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon = new IconInfo(descriptor.IconGlyph);
 
         _commands =
         [

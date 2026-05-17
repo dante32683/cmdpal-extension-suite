@@ -9,7 +9,7 @@ internal sealed partial class Phase0DockCommand : InvokableCommand
     {
         Id = descriptor.DockBandCommandId ?? $"{descriptor.ProviderId}.dock";
         Name = descriptor.DockBandTitle ?? descriptor.DisplayName;
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon = new IconInfo(descriptor.IconGlyph);
     }
 
     public override CommandResult Invoke()

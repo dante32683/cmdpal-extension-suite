@@ -44,6 +44,7 @@ internal sealed partial class StatusDockPage : ListPage
         _network  = network;
         _cpu      = cpu;
         _settings = settings;
+        _settings.Settings.SettingsChanged += SettingsOnSettingsChanged;
 
         Id   = "com.dziad.simpleanalyticsextension.statusdock";
         Name = "Status";
@@ -83,6 +84,11 @@ internal sealed partial class StatusDockPage : ListPage
         if (_settings.ShowWifi)    items.Add(_wifiItem);
         if (_settings.ShowCpu)     items.Add(_cpuItem);
         return [.. items];
+    }
+
+    private void SettingsOnSettingsChanged(object sender, Settings args)
+    {
+        RaiseItemsChanged();
     }
 
     // Battery

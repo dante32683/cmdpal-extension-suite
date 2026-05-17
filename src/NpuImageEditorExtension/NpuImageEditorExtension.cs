@@ -19,7 +19,8 @@ public sealed partial class NpuImageEditorExtension : IExtension, IDisposable
             "Super resolution",
             "OCR",
             "Image input settings",
-        ]);
+        ],
+        IconGlyph: "\uE8BA");
 
     private readonly ManualResetEvent _extensionDisposedEvent;
     private readonly Phase0CommandProvider _provider = new(Descriptor);

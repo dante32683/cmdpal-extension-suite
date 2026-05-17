@@ -77,7 +77,7 @@ internal sealed partial class MediaSourceListItem : ListItemBase, IDisposable
 
     private void UpdateCore(MediaSource mediaSource)
     {
-        this.Title = (mediaSource.IsPlaying && !this._asBand ? "▶️ " : "") + mediaSource.Name;
+        this.Title = (mediaSource.IsPlaying && !this._asBand ? "▶️ " : "") + MediaDisplayText.TitleWithArtist(mediaSource);
         this.Subtitle = BuildSubtitle(mediaSource);
         this._command.Name = mediaSource.IsPlaying ? Strings.Command_Pause : Strings.Command_Play;
         this.Tags = BuildTags();
@@ -109,7 +109,6 @@ internal sealed partial class MediaSourceListItem : ListItemBase, IDisposable
         static string BuildSubtitle(MediaSource mediaSource)
         {
             var subtitleBuilder = new StringBuilder();
-            subtitleBuilder.AppendWhenNotEmpty(" • ", mediaSource.Artist);
             subtitleBuilder.AppendWhenNotEmpty(" • ", mediaSource.ApplicationName);
 
 #if DEBUG

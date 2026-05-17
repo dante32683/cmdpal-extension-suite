@@ -21,7 +21,8 @@ public sealed partial class NpuNotesExtension : IExtension, IDisposable
             "Delete note",
             "Find related notes",
             "Semantic fallback search",
-        ]);
+        ],
+        IconGlyph: "\uE70B");
 
     private readonly ManualResetEvent _extensionDisposedEvent;
     private readonly Phase0CommandProvider _provider = new(Descriptor);

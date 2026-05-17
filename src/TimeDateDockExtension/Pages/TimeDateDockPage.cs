@@ -19,6 +19,7 @@ internal sealed partial class TimeDateDockPage : ListPage, IDisposable
     public TimeDateDockPage(SettingsManager settingsManager, NotificationCenterService notificationCenter)
     {
         _settingsManager = settingsManager;
+        _settingsManager.Settings.SettingsChanged += SettingsOnSettingsChanged;
         Id = "com.dziad.timedatedockextension.dock";
         Name = "Time Date";
 
@@ -60,7 +61,17 @@ internal sealed partial class TimeDateDockPage : ListPage, IDisposable
         return [.. items];
     }
 
-    public void Dispose() => _timer.Dispose();
+    public void Dispose()
+    {
+        _settingsManager.Settings.SettingsChanged -= SettingsOnSettingsChanged;
+        _timer.Dispose();
+    }
+
+    private void SettingsOnSettingsChanged(object sender, Settings args)
+    {
+        UpdateItems();
+        RaiseItemsChanged();
+    }
 
     private void Refresh(object? _)
     {
