@@ -30,6 +30,7 @@
 - Command ID: append the command or page name to the provider namespace, set in each command or page constructor.
 - Current namespaces:
   - `com.dziad.actioncenterextension`
+  - `com.dziad.timedatedockextension`
   - `com.dziad.simpleanalyticsextension`
   - `com.local.nputools.<extensionname>`
 - IDs must be non-empty. Missing IDs cause silent failures in the dock.
@@ -227,8 +228,8 @@ Keep commonly reused glyphs in a visual helper class such as `AwakeVisuals` inst
 | `E713` | Settings gear |
 | `E73E` | Check / enabled |
 | `E701` | Wi-Fi |
-| `E837` | Ethernet |
-| `EB9F` | CPU / processor |
+| `E839` | Ethernet |
+| `EEA1` | CPU chip |
 
 ---
 
