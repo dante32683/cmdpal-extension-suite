@@ -6,7 +6,7 @@ No open bugs filed.
 
 ## Resolved
 
-### BUG-001: GetItems() blocking on async AI (fixed 2025-05)
+### BUG-001: GetItems() blocking on async AI (fixed 2026-05)
 
 Extensions: NpuTextToolsExtension, NpuImageEditorExtension
 
@@ -19,7 +19,7 @@ Fix: lazy async start on first `GetItems()` call via `Interlocked` flag. Page sh
 "Processing…" placeholder and calls `RaiseItemsChanged()` when the task completes.
 See `CONVENTIONS.md § SDK Async Rules` for the canonical pattern.
 
-### BUG-002: FallbackCommands() returning empty array (fixed 2025-05)
+### BUG-002: FallbackCommands() returning empty array (fixed 2026-05)
 
 Extension: MediaControlsExtension
 
@@ -30,7 +30,7 @@ Returning `[]` signals "fallback system exists, no items" rather than "no fallba
 Fix: field initialized to `null` (implicit default); populated and `RaiseItemsChanged()`
 called once `InitializeFallbackCommandsAsync` completes.
 
-### BUG-003: new IconInfo() inside GetItems() and timer callbacks (fixed 2025-05)
+### BUG-003: new IconInfo() inside GetItems() and timer callbacks (fixed 2026-05)
 
 Extensions: ActionCenterExtension, SimpleAnalyticsExtension
 
@@ -41,7 +41,7 @@ timer tick (every 15–30 s). Icons are static values that should be allocated o
 Fix: `static readonly IconInfo` fields for single icons; `static readonly IconInfo[]`
 lookup tables populated in a `static` constructor for ranged battery/WiFi codepoints.
 
-### BUG-004: ContentPage missing RaiseItemsChanged on settings change (fixed 2025-05)
+### BUG-004: ContentPage missing RaiseItemsChanged on settings change (fixed 2026-05)
 
 Extension: ActionCenterExtension
 
@@ -54,7 +54,7 @@ Fix: constructor subscribes to `_settingsManager.Settings.SettingsChanged` and c
 `RaiseItemsChanged()` in the handler. `#pragma warning disable CA1001` added per the
 process-lifetime page convention.
 
-### BUG-005: Blocking AI call and silent exception swallow in rename (fixed 2025-05)
+### BUG-005: Blocking AI call and silent exception swallow in rename (fixed 2026-05)
 
 Extension: NpuOrganizeExtension
 
