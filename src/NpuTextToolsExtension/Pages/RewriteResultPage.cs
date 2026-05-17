@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.TextTools.Commands;
@@ -16,6 +18,7 @@ internal sealed partial class RewriteResultPage : ListPage
 
     private string? _result;
     private string? _errorMessage;
+    private int _started; // Interlocked flag: 0 = not started, 1 = started
 
     public RewriteResultPage(string inputText, TextRewriteMode mode, TextRewriteService service, string? customInstruction = null)
     {
@@ -27,21 +30,30 @@ internal sealed partial class RewriteResultPage : ListPage
         Title = $"Result — {TextRewriteService.ModeLabel(mode)}";
         Name  = "Result";
         Icon  = TextToolsVisuals.Check;
+        IsLoading = true;
     }
 
+    // GetItems() is only called after the user navigates to this page. Starting
+    // the rewrite task here (rather than in the constructor) prevents AI calls
+    // from firing for every keystroke in the input page that creates this page.
     public override IListItem[] GetItems()
     {
+        if (Interlocked.Exchange(ref _started, 1) == 0)
+        {
+            _ = Task.Run(RewriteAsync);
+        }
+
         if (_result == null && _errorMessage == null)
         {
-            try
-            {
-                _result = _service.RewriteAsync(_inputText, _mode, _customInstruction).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Text Tools rewrite failed: {ex}");
-                _errorMessage = ex.Message;
-            }
+            return
+            [
+                new ListItem(new NoOpCommand())
+                {
+                    Title    = "Processing…",
+                    Subtitle = TextRewriteService.ModeLabel(_mode),
+                    Icon     = TextToolsVisuals.Phi,
+                },
+            ];
         }
 
         if (_errorMessage is not null)
@@ -76,5 +88,23 @@ internal sealed partial class RewriteResultPage : ListPage
                 Icon     = TextToolsVisuals.Check,
             },
         ];
+    }
+
+    private async Task RewriteAsync()
+    {
+        try
+        {
+            _result = await _service.RewriteAsync(_inputText, _mode, _customInstruction);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Text Tools rewrite failed: {ex}");
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+            RaiseItemsChanged();
+        }
     }
 }

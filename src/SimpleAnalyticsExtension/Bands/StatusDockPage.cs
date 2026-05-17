@@ -38,6 +38,36 @@ internal sealed partial class StatusDockPage : ListPage
     private const string IconEthernet      = "\uE839"; // Ethernet
     private const string IconCpu           = "\uEEA1"; // CPU (chip)
 
+    // Pre-built icon tables -- one allocation at startup, zero per timer tick.
+    // Battery: EBA0 (0%) to EBAA (100%), 11 levels (one per 10%).
+    // Charging: EBAB (0%) to EBB5 (100%), 11 levels.
+    private static readonly IconInfo[] _batteryIcons;
+    private static readonly IconInfo[] _chargingIcons;
+    // WiFi: indexed by signal bars (0=none, 1=weak, 2=fair, 3=good, 4=full).
+    private static readonly IconInfo[] _wifiIcons;
+    private static readonly IconInfo _iconEthernet = new(IconEthernet);
+    private static readonly IconInfo _iconCpu      = new(IconCpu);
+
+    static StatusDockPage()
+    {
+        _batteryIcons  = new IconInfo[11];
+        _chargingIcons = new IconInfo[11];
+        for (int i = 0; i <= 10; i++)
+        {
+            _batteryIcons[i]  = new IconInfo(((char)(0xEBA0 + i)).ToString());
+            _chargingIcons[i] = new IconInfo(((char)(0xEBAB + i)).ToString());
+        }
+
+        _wifiIcons =
+        [
+            new IconInfo(IconNoWifi),
+            new IconInfo(IconWifi1),
+            new IconInfo(IconWifi2),
+            new IconInfo(IconWifi3),
+            new IconInfo(IconWifiFull),
+        ];
+    }
+
     public StatusDockPage(BatteryService battery, NetworkService network, CpuService cpu, SettingsManager settings)
     {
         _battery  = battery;
@@ -57,17 +87,17 @@ internal sealed partial class StatusDockPage : ListPage
         _batteryItem = new ListItem(batteryDetail)
         {
             Title = "Battery",
-            Icon  = new IconInfo(IconBattery0),
+            Icon  = _batteryIcons[0],
         };
         _wifiItem = new ListItem(wifiDetail)
         {
             Title = "WiFi",
-            Icon  = new IconInfo(IconWifiFull),
+            Icon  = _wifiIcons[4],
         };
         _cpuItem = new ListItem(new NoOpCommand())
         {
             Title = "CPU",
-            Icon  = new IconInfo(IconCpu),
+            Icon  = _iconCpu,
         };
 
         // items are assembled dynamically in GetItems() to honour settings
@@ -105,21 +135,15 @@ internal sealed partial class StatusDockPage : ListPage
         {
             Debug.WriteLine($"Simple Analytics battery refresh failed: {ex}");
             _batteryItem.Title = "Battery";
-            _batteryItem.Icon = new IconInfo(IconBattery0);
+            _batteryItem.Icon = _batteryIcons[0];
         }
     }
 
     private static IconInfo BatteryIcon(BatteryInfo info)
     {
-        if (!info.HasBattery) return new IconInfo(IconBattery0);
-        // \uEBA0 (empty) to \uEBAA (full): one glyph per 10%.
+        if (!info.HasBattery) return _batteryIcons[0];
         var level = Math.Clamp(info.Percent / 10, 0, 10);
-        // MobBatteryCharging0-10: EBAB-EBB5 (level-matched so 100% charging shows full)
-        if (info.IsCharging)
-            return new IconInfo(((char)(0xEBAB + level)).ToString());
-
-        // MobBattery0-10: EBA0-EBAA
-        return new IconInfo(((char)(0xEBA0 + level)).ToString());
+        return info.IsCharging ? _chargingIcons[level] : _batteryIcons[level];
     }
 
     // WiFi
@@ -133,7 +157,7 @@ internal sealed partial class StatusDockPage : ListPage
             if (!info.Connected && !info.IsLimited)
             {
                 _wifiItem.Title = "Offline";
-                _wifiItem.Icon = new IconInfo(IconNoWifi);
+                _wifiItem.Icon = _wifiIcons[0];
                 return;
             }
 
@@ -145,25 +169,18 @@ internal sealed partial class StatusDockPage : ListPage
             else
             {
                 _wifiItem.Title = "Wired";
-                _wifiItem.Icon = new IconInfo(IconEthernet);
+                _wifiItem.Icon = _iconEthernet;
             }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Simple Analytics network refresh failed: {ex}");
             _wifiItem.Title = "Network";
-            _wifiItem.Icon = new IconInfo(IconNoWifi);
+            _wifiItem.Icon = _wifiIcons[0];
         }
     }
 
-    private static IconInfo WifiIcon(int bars) => bars switch
-    {
-        0      => new IconInfo(IconNoWifi),
-        1      => new IconInfo(IconWifi1),
-        2      => new IconInfo(IconWifi2),
-        3      => new IconInfo(IconWifi3),
-        _      => new IconInfo(IconWifiFull),
-    };
+    private static IconInfo WifiIcon(int bars) => _wifiIcons[Math.Clamp(bars, 0, 4)];
 
     // CPU
 

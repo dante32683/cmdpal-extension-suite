@@ -16,7 +16,7 @@ public sealed partial class MediaControlsExtensionCommandsProvider : CommandProv
     private readonly CommandItem _mediaControlsPageItem;
     private readonly CommandItem _nowPlayingItem;
     private ICommandItem[] _commands = [];
-    private IFallbackCommandItem[]? _fallbackCommands = [];
+    private IFallbackCommandItem[]? _fallbackCommands;
     private readonly ICommandItem[] _bands;
 
     public MediaControlsExtensionCommandsProvider()

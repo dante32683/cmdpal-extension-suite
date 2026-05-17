@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Organize.Models;
 using NpuTools.Organize.Services;
@@ -19,15 +21,20 @@ internal sealed partial class RenameSingleCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
+        _ = Task.Run(RenameAsync);
+        return CommandResult.ShowToast("Renaming — AI description in progress…");
+    }
+
+    private async Task RenameAsync()
+    {
         try
         {
-            string destination = AiNamingService.BuildProposedPath(_proposal.OriginalPath);
+            string destination = await AiNamingService.BuildProposedPathAsync(_proposal.OriginalPath);
             File.Move(_proposal.OriginalPath, destination, overwrite: false);
-            return CommandResult.ShowToast($"Renamed: {Path.GetFileName(destination)}");
         }
         catch (Exception ex)
         {
-            return CommandResult.ShowToast($"Rename failed: {ex.Message}");
+            Debug.WriteLine($"Rename failed for '{_proposal.OriginalPath}': {ex.GetType().Name}: {ex.Message}");
         }
     }
 }
