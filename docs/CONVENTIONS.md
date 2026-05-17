@@ -387,3 +387,67 @@ This follows the `\uXXXX`-via-code convention (no pasted glyphs) while eliminati
   - `private readonly object _lock = new();` guards the buffer.
   - `IsCalculating` is `true` until the first sample lands.
 - AI services (`ImageDescriptionGenerator`, `LanguageModel`) must expose `async Task<T>` methods. Callers must `await` them — never `.GetAwaiter().GetResult()`. If the call site is `Invoke()` or `GetItems()`, use the async patterns documented above.
+
+---
+
+## NPU-Backed Content Search Pattern
+
+This pattern enables a Command Palette page to search through files by their *content* (OCR text) and *AI description* rather than just by filename. It was first implemented in `NpuOrganizeExtension` for screenshots and is designed to be reused in other extensions for any file type.
+
+### How it works
+
+Three components work together:
+
+1. **Index service** — holds a persistent, in-memory dictionary keyed by file path. Each entry stores the raw OCR text, the AI description, and the indexed timestamp. The dictionary is loaded from a JSON file at startup and written after every mutation. All public methods are guarded by a `lock` so background indexing tasks and the COM-thread search calls never race.
+
+2. **Index page** (`IndexAllPage` pattern, a `ListPage`) — scans the target folder, skips already-indexed files, and calls both NPU models concurrently per file via `Task.WhenAll`. Shows a progress/result summary row. Uses the standard lazy async `Interlocked` start so work only begins when the user navigates to the page.
+
+3. **Search page** (`ScreenshotSearchPage` pattern, a `DynamicListPage`) — holds the in-memory index service. `UpdateSearchText` filters the dictionary with `string.Contains` (case-insensitive) across both OCR text and AI description, then calls `RaiseItemsChanged`. Because the index is already in memory, every keystroke resolves in microseconds — no I/O, no AI calls.
+
+### NPU models used
+
+| Model | API | What it produces |
+|---|---|---|
+| `Windows.Media.Ocr.OcrEngine` | `OcrEngine.TryCreateFromUserProfileLanguages()` → `RecognizeAsync(bitmap)` | Raw text visible in the image — button labels, menu items, code, error messages |
+| `Microsoft.Windows.AI.Imaging.ImageDescriptionGenerator` | `CreateAsync()` → `DescribeAsync(buffer, BriefDescription, ...)` | A natural-language sentence describing what the image shows |
+
+Both run **concurrently** per file via `Task.WhenAll`. Either may fail silently (returns `string.Empty`) without aborting the other. Searching hits both fields, so a query like "menu" matches both OCR text that literally says "menu" and a description that says "shows a menu bar".
+
+`OcrEngine` is always available on Windows 11 (no restricted capability needed). `ImageDescriptionGenerator` requires the `systemAIModels` restricted capability in `Package.appxmanifest` and `Microsoft.WindowsAppSDK.AI`.
+
+### Auto-indexing on rename/write
+
+Rename or write operations that already call the AI pipeline should also upsert the index as a side effect. Pass the index service via constructor injection to the command or page that does the write:
+
+```csharp
+var (destination, description, ocrText) = await AiNamingService.BuildProposedPathWithDataAsync(originalPath);
+File.Move(originalPath, destination, overwrite: false);
+_indexService.Upsert(destination, description, ocrText);
+```
+
+This keeps the index current without requiring a separate "index all" run after every operation.
+
+### Applying to another extension
+
+To add this pattern to a new extension:
+
+1. Copy `Models/ScreenshotIndexEntry.cs` — rename as needed, keep the four fields (`FilePath`, `Description`, `OcrText`, `IndexedAt`).
+2. Copy `Services/ScreenshotIndexService.cs` — change the `IndexPath` constant to a new path under `%LocalAppData%\NpuYourExtension\index.json`. Add fields if the domain needs them (e.g., page count for documents).
+3. Create an `IndexAllPage` that enumerates the target folder and calls your AI pipeline per file, upserting to the index.
+4. Create a `DynamicListPage` search page that holds the index service and filters in `UpdateSearchText`.
+5. Instantiate one `YourIndexService` in `CommandProvider` and inject it wherever needed (rename commands, the search page, the index page).
+
+The index file path, supported file extensions, and AI pipeline are the only things that change between domains. The lock/load/save/search/upsert structure is identical.
+
+### JSON serialization (AOT)
+
+The index service uses `System.Text.Json` source generation for AOT compatibility. The containing class must be `partial` and the nested context class must also be `partial`:
+
+```csharp
+internal sealed partial class YourIndexService
+{
+    [JsonSerializable(typeof(List<YourIndexEntry>))]
+    [JsonSourceGenerationOptions(WriteIndented = false)]
+    private sealed partial class IndexJsonContext : JsonSerializerContext { }
+}
+```

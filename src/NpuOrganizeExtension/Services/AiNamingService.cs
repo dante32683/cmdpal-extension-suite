@@ -9,7 +9,9 @@ using Microsoft.Graphics.Imaging;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.ContentSafety;
 using Microsoft.Windows.AI.Imaging;
+using Windows.Globalization;
 using Windows.Graphics.Imaging;
+using Windows.Media.Ocr;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
@@ -56,6 +58,73 @@ internal static partial class AiNamingService
 
         // Fallback to time-digit slug when image description unavailable.
         return SlugService.BuildProposedPath(originalPath);
+    }
+
+    // Returns proposed path, AI description, and raw OCR text in one pass.
+    // Used by rename commands that also need to index the screenshot.
+    internal static async Task<(string ProposedPath, string Description, string OcrText)> BuildProposedPathWithDataAsync(string originalPath)
+    {
+        try
+        {
+            var (description, ocrText) = await GetScreenshotDataAsync(originalPath);
+            string slug = Slugify(description);
+            string proposedPath;
+            if (!string.IsNullOrEmpty(slug))
+            {
+                string dir  = Path.GetDirectoryName(originalPath) ?? string.Empty;
+                string ext  = Path.GetExtension(originalPath);
+                string date = File.GetCreationTime(originalPath).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                proposedPath = SlugService.CollisionSafe(dir, $"{date}_{slug}{ext}", ext);
+            }
+            else
+            {
+                proposedPath = SlugService.BuildProposedPath(originalPath);
+            }
+            return (proposedPath, description, ocrText);
+        }
+        catch
+        {
+            return (SlugService.BuildProposedPath(originalPath), string.Empty, string.Empty);
+        }
+    }
+
+    // Runs description and OCR concurrently; either may return empty on failure.
+    private static async Task<(string Description, string OcrText)> GetScreenshotDataAsync(string imagePath)
+    {
+        var descTask = SafeDescribeAsync(imagePath);
+        var ocrTask  = SafeOcrAsync(imagePath);
+        await Task.WhenAll(descTask, ocrTask);
+        return (descTask.Result, ocrTask.Result);
+    }
+
+    private static async Task<string> SafeDescribeAsync(string imagePath)
+    {
+        try   { return await DescribeAsync(imagePath); }
+        catch { return string.Empty; }
+    }
+
+    private static async Task<string> SafeOcrAsync(string imagePath)
+    {
+        try   { return await RunOcrAsync(imagePath); }
+        catch { return string.Empty; }
+    }
+
+    internal static async Task<string> RunOcrAsync(string imagePath)
+    {
+        var file = await StorageFile.GetFileFromPathAsync(imagePath);
+        SoftwareBitmap bitmap;
+        using (var stream = await file.OpenAsync(FileAccessMode.Read))
+        {
+            var decoder = await BitmapDecoder.CreateAsync(stream);
+            bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        }
+
+        var engine = OcrEngine.TryCreateFromUserProfileLanguages()
+            ?? OcrEngine.TryCreateFromLanguage(new Language("en-US"))
+            ?? throw new InvalidOperationException("OCR engine unavailable.");
+
+        var result = await engine.RecognizeAsync(bitmap);
+        return result.Text;
     }
 
     private static string GenerateSlug(string imagePath)

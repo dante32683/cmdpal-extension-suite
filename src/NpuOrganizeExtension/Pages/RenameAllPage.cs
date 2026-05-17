@@ -17,13 +17,15 @@ namespace NpuTools.Organize.Pages;
 internal sealed partial class RenameAllPage : ListPage
 {
     private readonly IReadOnlyList<RenameProposal> _proposals;
+    private readonly ScreenshotIndexService _indexService;
     private int _success = -1;
     private int _failed  = -1;
     private int _started; // Interlocked flag: 0 = not started, 1 = started
 
-    public RenameAllPage(IReadOnlyList<RenameProposal> proposals)
+    public RenameAllPage(IReadOnlyList<RenameProposal> proposals, ScreenshotIndexService indexService)
     {
-        _proposals = proposals;
+        _proposals    = proposals;
+        _indexService = indexService;
         Id    = "com.local.nputools.organize.rename-all";
         Title = $"Rename All ({proposals.Count})";
         Name  = "Rename All";
@@ -71,8 +73,9 @@ internal sealed partial class RenameAllPage : ListPage
         {
             try
             {
-                string destination = await AiNamingService.BuildProposedPathAsync(p.OriginalPath);
+                var (destination, description, ocrText) = await AiNamingService.BuildProposedPathWithDataAsync(p.OriginalPath);
                 File.Move(p.OriginalPath, destination, overwrite: false);
+                _indexService.Upsert(destination, description, ocrText);
                 success++;
             }
             catch (Exception ex)
