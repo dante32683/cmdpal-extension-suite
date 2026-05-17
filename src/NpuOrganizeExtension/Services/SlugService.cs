@@ -1,0 +1,54 @@
+using System;
+using System.Globalization;
+using System.IO;
+using System.Text.RegularExpressions;
+
+namespace NpuTools.Organize.Services;
+
+internal static partial class SlugService
+{
+    [GeneratedRegex(@"[^a-z0-9]+")]
+    private static partial Regex NonAlphanumeric();
+
+    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}")]
+    private static partial Regex AlreadyDatePrefixed();
+
+    internal static bool IsAlreadyOrganized(string fileName) =>
+        AlreadyDatePrefixed().IsMatch(fileName);
+
+    internal static string BuildProposedPath(string originalPath)
+    {
+        string dir      = Path.GetDirectoryName(originalPath) ?? string.Empty;
+        string stem     = Path.GetFileNameWithoutExtension(originalPath);
+        string ext      = Path.GetExtension(originalPath);
+        string date     = File.GetCreationTime(originalPath).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        string slug     = Slugify(stem);
+        string proposed = string.IsNullOrEmpty(slug)
+            ? $"{date}{ext}"
+            : $"{date}_{slug}{ext}";
+
+        return CollisionSafe(dir, proposed, ext);
+    }
+
+    private static string Slugify(string stem)
+    {
+        string lower = stem.ToLowerInvariant();
+        string clean = NonAlphanumeric().Replace(lower, "-").Trim('-');
+        return clean.Length > 80 ? clean[..80].TrimEnd('-') : clean;
+    }
+
+    private static string CollisionSafe(string dir, string proposed, string ext)
+    {
+        string candidate = Path.Combine(dir, proposed);
+        if (!File.Exists(candidate)) return candidate;
+
+        string nameNoExt = Path.GetFileNameWithoutExtension(proposed);
+        for (int i = 2; i < 1000; i++)
+        {
+            string next = Path.Combine(dir, $"{nameNoExt}-{i}{ext}");
+            if (!File.Exists(next)) return next;
+        }
+
+        return Path.Combine(dir, $"{nameNoExt}-{Guid.NewGuid():N}{ext}");
+    }
+}

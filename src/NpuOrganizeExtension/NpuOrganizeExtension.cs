@@ -2,31 +2,14 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CommandPalette.Extensions;
-using NpuTools.Common;
 
 namespace NpuTools.Organize;
 
 [Guid("2d0ece61-b197-48a0-a64f-622e7c38f04f")]
 public sealed partial class NpuOrganizeExtension : IExtension, IDisposable
 {
-    private static readonly ExtensionDescriptor Descriptor = new(
-        "organize",
-        "NPU Organize",
-        "com.local.nputools.organize",
-        "Organize",
-        [
-            "Rename new screenshots",
-            "Dry run screenshot rename",
-            "Screenshot watcher",
-            "Watcher settings",
-            "Dock watcher band",
-        ],
-        "com.local.nputools.organize.dock",
-        "Organize",
-        "\uE8B7");
-
     private readonly ManualResetEvent _extensionDisposedEvent;
-    private readonly Phase0CommandProvider _provider = new(Descriptor);
+    private readonly NpuOrganizeCommandsProvider _provider = new();
 
     public NpuOrganizeExtension(ManualResetEvent extensionDisposedEvent)
     {
