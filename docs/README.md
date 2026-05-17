@@ -17,6 +17,7 @@ The repo-level docs are the authoritative standards for all extensions in this w
 
 - `src/ActionCenterExtension` - Quick Settings / Action Center dock extension.
 - `src/TimeDateDockExtension` - configurable time/date dock buttons that open Notification Center.
+- `src/MediaControlsExtension` - media playback dock controls with compact dock fixes.
 - `src/SimpleAnalyticsExtension` - battery, Wi-Fi, CPU, and lightweight system analytics dock extension.
 - `src/NpuAwakeExtension` - implemented NPU Awake extension.
 - `src/NpuOrganizeExtension` - NPU Organize shell.
@@ -38,6 +39,7 @@ Imported project docs live under `docs/extensions/`. Treat them as historical or
 ## Local Reference Checkouts
 
 - `references/PowerToys` - ignored sparse clone of `microsoft/PowerToys`, checked out to `src/modules/cmdpal`. Use it as the first source for fully correct Command Palette extension syntax and SDK usage examples.
+- `references/MediaControlsExtension` - ignored clone of `jiripolasek/MediaControlsExtension`, used as the source reference for the local media-controls port.
 
 ## Planning Documents
 

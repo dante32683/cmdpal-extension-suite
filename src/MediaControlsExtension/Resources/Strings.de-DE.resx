@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Name" xml:space="preserve">
+    <value>Medienkontrollen</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Öffnen Sie</value>
+  </data>
+  <data name="TogglePlayPause" xml:space="preserve">
+    <value>Umschalten zwischen Wiedergabe und Pause</value>
+  </data>
+  <data name="TogglePlayPause_Comments" xml:space="preserve">
+    <value>Abspielen oder Anhalten des aktuellen Mediums</value>
+  </data>
+  <data name="Command_SwitchToApplication" xml:space="preserve">
+    <value>Zur Anwendung wechseln</value>
+  </data>
+  <data name="Command_NextTrack" xml:space="preserve">
+    <value>Nächster Track</value>
+  </data>
+  <data name="Command_PlayPause" xml:space="preserve">
+    <value>Wiedergabe/Pause</value>
+  </data>
+  <data name="Command_ToggleMute" xml:space="preserve">
+    <value>Stummschaltung umschalten</value>
+  </data>
+  <data name="Settings_ShowThumbnails_Title" xml:space="preserve">
+    <value>Miniaturansichten anzeigen</value>
+  </data>
+  <data name="Settings_ShowThumbnails_Subtitle" xml:space="preserve">
+    <value>Verwenden Sie Medienminiaturen (Albumcover) anstelle von Anwendungssymbolen in der Sitzungsliste.</value>
+  </data>
+  <data name="Command_PreviousTrack" xml:space="preserve">
+    <value>Vorheriger Titel</value>
+  </data>
+  <data name="Command_ToggleRepeat" xml:space="preserve">
+    <value>Wiederholung umschalten</value>
+  </data>
+  <data name="Command_ToggleShuffle" xml:space="preserve">
+    <value>Zufallswiedergabe umschalten</value>
+  </data>
+  <data name="Tags_Playing" xml:space="preserve">
+    <value>Spielen</value>
+  </data>
+  <data name="Command_Mute" xml:space="preserve">
+    <value>Stummschalten</value>
+  </data>
+  <data name="Command_Unmute" xml:space="preserve">
+    <value>Aufheben der Stummschaltung</value>
+  </data>
+  <data name="Command_Mute_Subtitle" xml:space="preserve">
+    <value>Systemlautstärke stummschalten</value>
+  </data>
+  <data name="Command_Unmute_Subtitle" xml:space="preserve">
+    <value>Stummschaltung der Systemlautstärke aufheben</value>
+  </data>
+  <data name="Command_NextTrack_Subtitle" xml:space="preserve">
+    <value>Zum nächsten Titel in der aktiven Mediensitzung springen</value>
+  </data>
+  <data name="Command_PreviousTrack_Subtitle" xml:space="preserve">
+    <value>Kehrt zum vorherigen Titel in der aktiven Mediensitzung zurück</value>
+  </data>
+  <data name="MediaControls_Subtitle" xml:space="preserve">
+    <value>Verwalten Sie die Wiedergabe und wechseln Sie mühelos zwischen Medienanwendungen</value>
+  </data>
+  <data name="Settings_GlobalCommands_Title" xml:space="preserve">
+    <value>Globale Befehle</value>
+  </data>
+  <data name="Settings_GlobalCommands_Subtitle" xml:space="preserve">
+    <value>Steuert zusätzliche Mediensteuerungsbefehle in der globalen Suche</value>
+  </data>
+  <data name="Settings_GlobalCommands_Option_Enabled" xml:space="preserve">
+    <value>Aktiviert</value>
+  </data>
+  <data name="Settings_GlobalCommands_Option_Disabled" xml:space="preserve">
+    <value>Behinderte</value>
+  </data>
+  <data name="Settings_KeepOpen_Title" xml:space="preserve">
+    <value>Befehlspalette geöffnet lassen</value>
+  </data>
+  <data name="Settings_KeepOpen_Subtitle" xml:space="preserve">
+    <value>Lassen Sie die Befehlspalette nach der Ausführung eines Befehls geöffnet, damit Sie mehrere Aktionen hintereinander ausführen können.
+Halten Sie die Umschalttaste gedrückt, während Sie einen Befehl aktivieren, um vorübergehend das Gegenteil zu tun.</value>
+  </data>
+  <data name="Command_Play" xml:space="preserve">
+    <value>Spielen</value>
+  </data>
+  <data name="Command_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Command_Stop" xml:space="preserve">
+    <value>Stopp</value>
+  </data>
+  <data name="Command_NextApp" xml:space="preserve">
+    <value>Nächste Anwendung</value>
+  </data>
+  <data name="Command_PreviousApp" xml:space="preserve">
+    <value>Vorherige Anwendung</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Medienbefehle oder Sitzungen suchen...</value>
+  </data>
+  <data name="EmptyContent_Title" xml:space="preserve">
+    <value>Keine Medienquellen verfügbar</value>
+  </data>
+  <data name="EmptyContent_Subtitle" xml:space="preserve">
+    <value>Derzeit sind keine Medienquellen verfügbar. Bitte stellen Sie sicher, dass Sie Medienanwendungen ausführen, die die Mediensteuerung unterstützen.</value>
+  </data>
+  <data name="NowPlaying_NothingPlaying" xml:space="preserve">
+    <value>Im Moment wird nichts gespielt</value>
+  </data>
+  <data name="NowPlaying_Subtitle" xml:space="preserve">
+    <value>Jetzt spielen</value>
+  </data>
+  <data name="NowPlaying_Pause" xml:space="preserve">
+    <value>Pause {0}</value>
+  </data>
+  <data name="NowPlaying_Stop" xml:space="preserve">
+    <value>Stopp {0}</value>
+  </data>
+  <data name="NowPlaying_Play" xml:space="preserve">
+    <value>Spielen {0}</value>
+  </data>
+  <data name="NowPlaying_NowPlaying" xml:space="preserve">
+    <value>Jetzt spielen {0}</value>
+  </data>
+  <data name="Toast_Muted" xml:space="preserve">
+    <value>Gedämpft</value>
+  </data>
+  <data name="Toast_Unmuted" xml:space="preserve">
+    <value>Ungestört</value>
+  </data>
+  <data name="Toast_CantChangeVolume" xml:space="preserve">
+    <value>Kann die Lautstärke nicht ändern</value>
+  </data>
+  <data name="Toast_Paused" xml:space="preserve">
+    <value>Pausiert</value>
+  </data>
+  <data name="Toast_CouldNotPause" xml:space="preserve">
+    <value>Wiedergabe kann nicht angehalten werden</value>
+  </data>
+  <data name="Toast_Playing" xml:space="preserve">
+    <value>Spielen</value>
+  </data>
+  <data name="Toast_CouldNotPlay" xml:space="preserve">
+    <value>Titel kann nicht abgespielt werden</value>
+  </data>
+  <data name="Toast_SkippedNext" xml:space="preserve">
+    <value>Zum nächsten Titel gesprungen</value>
+  </data>
+  <data name="Toast_CouldNotSkipNext" xml:space="preserve">
+    <value>Kann nicht zum nächsten Titel springen</value>
+  </data>
+  <data name="Toast_SkippedPrevious" xml:space="preserve">
+    <value>Zurück zum vorherigen Titel</value>
+  </data>
+  <data name="Toast_CouldNotSkipPrevious" xml:space="preserve">
+    <value>Konnte nicht zum vorherigen Titel wechseln</value>
+  </data>
+  <data name="Toast_RepeatNotAvailable" xml:space="preserve">
+    <value>Die Wiederholungskontrolle ist für diese Sitzung nicht verfügbar</value>
+  </data>
+  <data name="Toast_RepeatChanged" xml:space="preserve">
+    <value>Wiederholungsmodus auf {0} geändert</value>
+  </data>
+  <data name="Toast_CouldNotChangeRepeat" xml:space="preserve">
+    <value>Wiederholungsmodus kann nicht geändert werden</value>
+  </data>
+  <data name="Toast_ShuffleNotAvailable" xml:space="preserve">
+    <value>Die Zufallswiedergabe ist für diese Sitzung nicht verfügbar</value>
+  </data>
+  <data name="Toast_ShuffleDisabled" xml:space="preserve">
+    <value>Zufallswiedergabe deaktiviert</value>
+  </data>
+  <data name="Toast_ShuffleEnabled" xml:space="preserve">
+    <value>Zufallswiedergabe aktiviert</value>
+  </data>
+  <data name="Toast_CouldNotToggleShuffle" xml:space="preserve">
+    <value>Zufallswiedergabe kann nicht umgeschaltet werden</value>
+  </data>
+  <data name="Toast_NothingPlaying" xml:space="preserve">
+    <value>Nichts wird gespielt</value>
+  </data>
+  <data name="Toast_NoSessionManager" xml:space="preserve">
+    <value>Kein Mediensitzungsmanager gefunden</value>
+  </data>
+  <data name="Toast_NoCurrentSession" xml:space="preserve">
+    <value>Keine aktuelle Mediensitzung gefunden</value>
+  </data>
+  <data name="Toast_NothingHappened" xml:space="preserve">
+    <value>Nichts passiert</value>
+  </data>
+  <data name="Toast_NotCurrentSession" xml:space="preserve">
+    <value>Nicht die aktuelle Sitzung</value>
+  </data>
+  <data name="Toast_NoOtherSessions" xml:space="preserve">
+    <value>Keine anderen Sitzungen zum Wechseln</value>
+  </data>
+  <data name="Toast_NoNextSession" xml:space="preserve">
+    <value>Keine nächste Sitzung gefunden</value>
+  </data>
+  <data name="Toast_SwitchedTo" xml:space="preserve">
+    <value>Umgeschaltet auf {0} und {1}</value>
+  </data>
+  <data name="Toast_CouldNotSwitchTo" xml:space="preserve">
+    <value>Konnte nicht zu {0} wechseln: {1}</value>
+  </data>
+  <data name="Toast_PlayingName" xml:space="preserve">
+    <value>Spielend {0}</value>
+  </data>
+  <data name="Settings_ShowToastMessages_Title" xml:space="preserve">
+    <value>Toast-Nachrichten anzeigen</value>
+  </data>
+  <data name="Settings_ShowToastMessages_Subtitle" xml:space="preserve">
+    <value>Zeigen Sie nach jeder Medienaktion eine Bestätigungsmeldung an.</value>
+  </data>
+  <data name="Settings_PauseOthersOnPlay_Title" xml:space="preserve">
+    <value>Andere Sitzungen während der Wiedergabe unterbrechen</value>
+  </data>
+  <data name="Settings_PauseOthersOnPlay_Subtitle" xml:space="preserve">
+    <value>Beim Abspielen einer Sitzung werden automatisch alle anderen Sitzungen angehalten.</value>
+  </data>
+  <data name="Settings_ShowCurrentMediaAtTopLevel_Title" xml:space="preserve">
+    <value>Aktuelle Mediensitzung auf der Startseite anzeigen</value>
+  </data>
+  <data name="Settings_ShowCurrentMediaAtTopLevel_Subtitle" xml:space="preserve">
+    <value>Fügt auf der Startseite ein Element "Now Playing" hinzu, um den Zugriff auf die aktuelle Sitzung zu erleichtern.</value>
+  </data>
+  <data name="Settings_ShowSkipCommands_Title" xml:space="preserve">
+    <value>Befehle zum Überspringen von Titeln anzeigen</value>
+  </data>
+  <data name="Settings_ShowSkipCommands_Subtitle" xml:space="preserve">
+    <value>Zeigen Sie "Nächster" und "Vorheriger Titel" als Elemente der obersten Ebene auf der Seite "Mediensteuerung" an.</value>
+  </data>
+  <data name="Settings_ShowSkipCommandsInDock_Title" xml:space="preserve">
+    <value>Befehle zum Überspringen von Titeln im Dock anzeigen</value>
+  </data>
+  <data name="Settings_ShowSkipCommandsInDock_Subtitle" xml:space="preserve">
+    <value>Anzeige von "Nächster" und "Vorheriger Titel" im Dock.</value>
+  </data>
+  <data name="Settings_HideAfterPlayPause" xml:space="preserve">
+    <value>Ausblenden nach Wiedergabe/Pause</value>
+  </data>
+  <data name="Settings_HideAfterChangingTracks" xml:space="preserve">
+    <value>Ausblenden nach Spurwechsel</value>
+  </data>
+  <data name="Settings_HideAfterTogglePlayPause" xml:space="preserve">
+    <value>Ausblenden nach Umschalten von Wiedergabe/Pause bei Mediensitzung</value>
+  </data>
+</root>

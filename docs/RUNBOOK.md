@@ -78,6 +78,7 @@ Current extension process names:
 
 - `ActionCenterExtension`
 - `TimeDateDockExtension`
+- `MediaControlsExtension`
 - `SimpleAnalyticsExtension`
 - `NpuAwakeExtension`
 - `NpuOrganizeExtension`
