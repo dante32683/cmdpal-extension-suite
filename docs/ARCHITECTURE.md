@@ -10,6 +10,7 @@ This repo targets .NET 9 and `Microsoft.CommandPalette.Extensions` SDK v0.9+. It
 ├── src/
 │   ├── ActionCenterExtension/             # Quick Settings dock extension
 │   ├── TimeDateDockExtension/             # Configurable time/date dock extension
+│   ├── MediaControlsExtension/            # Media playback dock controls
 │   ├── SimpleAnalyticsExtension/          # Battery/Wi-Fi/CPU dock analytics
 │   ├── NpuAwakeExtension/                 # Implemented NPU Awake extension
 │   ├── NpuOrganizeExtension/              # NPU Organize shell
@@ -22,7 +23,8 @@ This repo targets .NET 9 and `Microsoft.CommandPalette.Extensions` SDK v0.9+. It
 ├── tools/
 │   └── NpuAwakeKeeper/                    # Companion daemon copied into Awake package output
 ├── references/
-│   └── PowerToys/                         # Ignored sparse checkout of PowerToys cmdpal sources
+│   ├── PowerToys/                         # Ignored sparse checkout of PowerToys cmdpal sources
+│   └── MediaControlsExtension/            # Ignored upstream reference clone
 ├── Directory.Build.props                  # Shared analyzer/platform defaults
 ├── Directory.Packages.props               # Central package versions
 └── NpuCommandPaletteExtensions.sln         # Monorepo solution
@@ -168,3 +170,5 @@ Good starting points:
 - `references/PowerToys/src/modules/cmdpal/ext/Microsoft.CmdPal.Ext.System`
 
 Do not copy large blocks blindly. Prefer matching SDK usage and adapting structure to this repo's conventions.
+
+`references/MediaControlsExtension` is an ignored clone of `https://github.com/jiripolasek/MediaControlsExtension`. The local `src/MediaControlsExtension` package is the adapted copy with separate package/provider identities and dock-specific fixes.
