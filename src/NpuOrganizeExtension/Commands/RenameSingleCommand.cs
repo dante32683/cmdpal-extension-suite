@@ -11,12 +11,14 @@ namespace NpuTools.Organize.Commands;
 internal sealed partial class RenameSingleCommand : InvokableCommand
 {
     private readonly RenameProposal _proposal;
+    private readonly ScreenshotIndexService _indexService;
 
-    public RenameSingleCommand(RenameProposal proposal)
+    public RenameSingleCommand(RenameProposal proposal, ScreenshotIndexService indexService)
     {
-        _proposal = proposal;
-        Name      = "Rename";
-        Icon      = OrganizeVisuals.Rename;
+        _proposal     = proposal;
+        _indexService = indexService;
+        Name          = "Rename";
+        Icon          = OrganizeVisuals.Rename;
     }
 
     public override CommandResult Invoke()
@@ -29,8 +31,9 @@ internal sealed partial class RenameSingleCommand : InvokableCommand
     {
         try
         {
-            string destination = await AiNamingService.BuildProposedPathAsync(_proposal.OriginalPath);
+            var (destination, description, ocrText) = await AiNamingService.BuildProposedPathWithDataAsync(_proposal.OriginalPath);
             File.Move(_proposal.OriginalPath, destination, overwrite: false);
+            _indexService.Upsert(destination, description, ocrText);
         }
         catch (Exception ex)
         {
