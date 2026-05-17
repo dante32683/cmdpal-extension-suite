@@ -5,7 +5,7 @@ namespace SimpleAnalyticsExtension;
 
 public partial class SimpleAnalyticsExtensionCommandsProvider : CommandProvider
 {
-    private static readonly IconInfo ProviderIcon = new("\uEB9F");
+    private static readonly IconInfo ProviderIcon = new("\uE701");
     private readonly SettingsManager _settingsManager = new();
     private readonly ICommandItem[] _commands;
     private readonly ICommandItem[] _bands;
