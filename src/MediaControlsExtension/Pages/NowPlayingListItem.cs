@@ -100,32 +100,33 @@ internal sealed partial class NowPlayingListItem : ListItemBase, IDisposable
             {
                 IconInfo icon;
                 string cmdName;
+                var displayTitle = MediaDisplayText.TitleWithArtist(mediaSource);
 
                 if (mediaSource.IsPlaying)
                 {
                     if (mediaSource.Session.GetPlaybackInfo().Controls.IsPauseEnabled)
                     {
-                        this.Title = this._isBandPage ? string.Empty : string.Format(CultureInfo.CurrentCulture, s_pauseFormat, mediaSource.Name);
+                        this.Title = this._isBandPage ? string.Empty : string.Format(CultureInfo.CurrentCulture, s_pauseFormat, displayTitle);
                         cmdName = Strings.Command_Pause;
                     }
                     else if (mediaSource.Session.GetPlaybackInfo().Controls.IsStopEnabled)
                     {
-                        this.Title = this._isBandPage ? string.Empty : string.Format(CultureInfo.CurrentCulture, s_stopFormat, mediaSource.Name);
+                        this.Title = this._isBandPage ? string.Empty : string.Format(CultureInfo.CurrentCulture, s_stopFormat, displayTitle);
                         cmdName = Strings.Command_Stop;
                     }
                     else
                     {
-                        this.Title = this._isBandPage ? string.Empty : string.Format(CultureInfo.CurrentCulture, s_pauseFormat, mediaSource.Name);
+                        this.Title = this._isBandPage ? string.Empty : string.Format(CultureInfo.CurrentCulture, s_pauseFormat, displayTitle);
                         cmdName = Strings.Command_Pause;
                     }
 
                     icon = Icons.PauseColorful;
-                    this.Subtitle = this._isBandPage ? string.Empty : StringHelper.JoinNonEmpty(" • ", string.Format(CultureInfo.CurrentCulture, s_nowPlayingFormat, mediaSource.Name), mediaSource.Artist, mediaSource.ApplicationName);
+                    this.Subtitle = this._isBandPage ? string.Empty : StringHelper.JoinNonEmpty(" • ", string.Format(CultureInfo.CurrentCulture, s_nowPlayingFormat, displayTitle), mediaSource.ApplicationName);
                 }
                 else
                 {
-                    this.Title = this._isBandPage ? string.Empty : string.Format(CultureInfo.CurrentCulture, s_playFormat, mediaSource.Name);
-                    this.Subtitle = this._isBandPage ? string.Empty : StringHelper.JoinNonEmpty(" • ", string.Format(CultureInfo.CurrentCulture, s_nowPlayingFormat, mediaSource.Name), mediaSource.Artist, mediaSource.ApplicationName);
+                    this.Title = this._isBandPage ? string.Empty : string.Format(CultureInfo.CurrentCulture, s_playFormat, displayTitle);
+                    this.Subtitle = this._isBandPage ? string.Empty : StringHelper.JoinNonEmpty(" • ", string.Format(CultureInfo.CurrentCulture, s_nowPlayingFormat, displayTitle), mediaSource.ApplicationName);
                     icon = Icons.PlayColorful;
                     cmdName = Strings.Command_Play;
                 }

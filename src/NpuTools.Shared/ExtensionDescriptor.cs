@@ -7,4 +7,5 @@ public sealed record ExtensionDescriptor(
     string SettingsDirectoryName,
     string[] PlannedFeatures,
     string? DockBandCommandId = null,
-    string? DockBandTitle = null);
+    string? DockBandTitle = null,
+    string IconGlyph = "\uE945");

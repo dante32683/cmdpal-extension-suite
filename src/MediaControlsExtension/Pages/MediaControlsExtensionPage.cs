@@ -83,6 +83,7 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
         this._mediaService.CurrentMediaPlaybackChanged += (_, _) => this.UpdateCurrentMediaItems();
 
         this._mediaService.LoadingStatusChanged += (_, _) => this.IsLoading = this._mediaService.IsLoading;
+        this._settingsManager.Settings.SettingsChanged += this.SettingsOnSettingsChanged;
 
         this.EmptyContent = new CommandItem
         {
@@ -123,6 +124,11 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
             this._prevTrackCurrentSessionItem.UpdateIcon(prevTrackCommand.CanExecute() ? Icons.SkipPreviousTrack : Icons.SkipPreviousTrackDisabled);
         }
 
+        this.RebuildAndRaiseIfChanged();
+    }
+
+    private void SettingsOnSettingsChanged(object sender, Settings args)
+    {
         this.RebuildAndRaiseIfChanged();
     }
 
@@ -236,6 +242,7 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
 
     public void Dispose()
     {
+        this._settingsManager.Settings.SettingsChanged -= this.SettingsOnSettingsChanged;
         this._playPauseCurrentSessionItem?.Dispose();
         this._bandFirstItem?.Dispose();
     }

@@ -6,6 +6,7 @@ namespace ActionCenterExtension;
 
 public partial class ActionCenterExtensionCommandsProvider : CommandProvider
 {
+    private static readonly IconInfo ProviderIcon = new("\uE713");
     private readonly SettingsManager _settingsManager = new();
     private readonly ICommandItem[] _commands;
     private readonly ICommandItem[] _dockBands;
@@ -14,11 +15,11 @@ public partial class ActionCenterExtensionCommandsProvider : CommandProvider
     {
         Id = "com.dziad.actioncenterextension";
         DisplayName = "Action Center";
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon = ProviderIcon;
         Settings = _settingsManager.Settings;
 
         _commands = [
-            new CommandItem(new ActionCenterExtensionPage(_settingsManager)) { Title = DisplayName },
+            new CommandItem(new ActionCenterExtensionPage(_settingsManager)) { Title = DisplayName, Icon = Icon },
         ];
 
         var quickSettings = new QuickSettingsCommand(_settingsManager);

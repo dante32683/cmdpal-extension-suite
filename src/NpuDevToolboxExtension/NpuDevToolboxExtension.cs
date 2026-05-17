@@ -19,7 +19,8 @@ public sealed partial class NpuDevToolboxExtension : IExtension, IDisposable
             "Open workspace in terminal",
             "Open workspace in IDE",
             "Workspace detection settings",
-        ]);
+        ],
+        IconGlyph: "\uE943");
 
     private readonly ManualResetEvent _extensionDisposedEvent;
     private readonly Phase0CommandProvider _provider = new(Descriptor);

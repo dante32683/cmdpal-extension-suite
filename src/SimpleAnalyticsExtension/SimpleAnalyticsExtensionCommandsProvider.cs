@@ -5,6 +5,7 @@ namespace SimpleAnalyticsExtension;
 
 public partial class SimpleAnalyticsExtensionCommandsProvider : CommandProvider
 {
+    private static readonly IconInfo ProviderIcon = new("\uEB9F");
     private readonly SettingsManager _settingsManager = new();
     private readonly ICommandItem[] _commands;
     private readonly ICommandItem[] _bands;
@@ -13,7 +14,7 @@ public partial class SimpleAnalyticsExtensionCommandsProvider : CommandProvider
     {
         Id          = "com.dziad.simpleanalyticsextension";
         DisplayName = "Simple Analytics";
-        Icon        = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon        = ProviderIcon;
         Settings    = _settingsManager.Settings;
 
         var battery = new BatteryService();
@@ -21,11 +22,11 @@ public partial class SimpleAnalyticsExtensionCommandsProvider : CommandProvider
         var cpu     = new CpuService();
 
         _commands = [
-            new CommandItem(new SimpleAnalyticsExtensionPage(_settingsManager)) { Title = DisplayName },
+            new CommandItem(new SimpleAnalyticsExtensionPage(_settingsManager)) { Title = DisplayName, Icon = Icon },
         ];
 
         _bands = [
-            new CommandItem(new StatusDockPage(battery, network, cpu, _settingsManager)),
+            new CommandItem(new StatusDockPage(battery, network, cpu, _settingsManager)) { Title = "Status", Icon = Icon },
         ];
     }
 

@@ -22,7 +22,8 @@ public sealed partial class NpuTextToolsExtension : IExtension, IDisposable
             "Simplify",
             "Custom rewrite",
             "Selected text quick rewrite",
-        ]);
+        ],
+        IconGlyph: "\uE8D2");
 
     private readonly ManualResetEvent _extensionDisposedEvent;
     private readonly Phase0CommandProvider _provider = new(Descriptor);

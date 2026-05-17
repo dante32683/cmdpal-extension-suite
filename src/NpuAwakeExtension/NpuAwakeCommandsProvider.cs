@@ -17,7 +17,7 @@ internal sealed partial class NpuAwakeCommandsProvider : CommandProvider
         _awakeService = awakeService;
         Id = "com.local.nputools.awake";
         DisplayName = "NPU Awake";
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon = AwakeVisuals.Power;
 
         _commands =
         [

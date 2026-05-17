@@ -22,7 +22,8 @@ public sealed partial class NpuOrganizeExtension : IExtension, IDisposable
             "Dock watcher band",
         ],
         "com.local.nputools.organize.dock",
-        "Organize");
+        "Organize",
+        "\uE8B7");
 
     private readonly ManualResetEvent _extensionDisposedEvent;
     private readonly Phase0CommandProvider _provider = new(Descriptor);
