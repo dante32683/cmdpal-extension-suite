@@ -23,18 +23,31 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CommandPalette.Extensions" />
     <PackageReference Include="Microsoft.Windows.CsWinRT" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.AI" />
     <PackageReference Include="Shmuelie.WinRTServer" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.MSIX">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <ProjectReference Include="..\NpuTools.Shared\NpuTools.Shared.csproj" />
+    <ProjectReference Include="..\NpuOrganizeKeeper\NpuOrganizeKeeper.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
+
+  <Target Name="CopyOrganizeKeeper" AfterTargets="Build">
+    <PropertyGroup>
+      <KeeperOutDir>..\NpuOrganizeKeeper\bin\$(Platform)\$(Configuration)\net9.0-windows10.0.26100.0\$(RuntimeIdentifier)\</KeeperOutDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <_KeeperFiles Include="$(KeeperOutDir)NpuOrganizeKeeper.*" Condition="Exists('$(KeeperOutDir)')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_KeeperFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
   <PropertyGroup>
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile>false</PublishSingleFile>
     <IsAotCompatible>true</IsAotCompatible>
     <CsWinRTAotOptimizerEnabled>true</CsWinRTAotOptimizerEnabled>
     <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>

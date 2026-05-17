@@ -1,8 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Organize.Models;
+using NpuTools.Organize.Services;
 
 namespace NpuTools.Organize.Commands;
 
@@ -21,8 +21,9 @@ internal sealed partial class RenameSingleCommand : InvokableCommand
     {
         try
         {
-            File.Move(_proposal.OriginalPath, _proposal.ProposedPath, overwrite: false);
-            return CommandResult.ShowToast($"Renamed: {_proposal.ProposedName}");
+            string destination = AiNamingService.BuildProposedPath(_proposal.OriginalPath);
+            File.Move(_proposal.OriginalPath, destination, overwrite: false);
+            return CommandResult.ShowToast($"Renamed: {Path.GetFileName(destination)}");
         }
         catch (Exception ex)
         {

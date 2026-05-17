@@ -62,10 +62,12 @@ internal sealed partial class ScreenshotRenameListPage : ListPage
 
         foreach (var proposal in proposals)
         {
+            string date    = System.IO.File.GetCreationTime(proposal.OriginalPath).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+            string preview = _dryRun ? $"→ {date}_[OCR title].png" : $"→ {date}_[NPU reads on rename].png";
             var item = new ListItem(_dryRun ? new NoOpCommand() : new RenameSingleCommand(proposal))
             {
                 Title    = proposal.OriginalName,
-                Subtitle = $"→ {proposal.ProposedName}",
+                Subtitle = preview,
                 Icon     = OrganizeVisuals.File,
                 Tags     = [OrganizeVisuals.MutedTag(_dryRun ? "preview" : "rename")],
             };

@@ -46,7 +46,7 @@ internal static partial class SlugService
         return clean.Length > 80 ? clean[..80].TrimEnd('-') : clean;
     }
 
-    private static string CollisionSafe(string dir, string proposed, string ext)
+    internal static string CollisionSafe(string dir, string proposed, string ext)
     {
         string candidate = Path.Combine(dir, proposed);
         if (!File.Exists(candidate)) return candidate;

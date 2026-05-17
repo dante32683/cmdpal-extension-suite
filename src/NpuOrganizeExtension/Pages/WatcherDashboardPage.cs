@@ -1,6 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Organize.Commands;
@@ -11,6 +14,11 @@ internal sealed partial class WatcherDashboardPage : ListPage
 {
     private static readonly string KeeperPath = Path.Combine(
         AppContext.BaseDirectory, "NpuOrganizeKeeper.exe");
+
+    private static readonly string StatePath = Path.Combine(
+        Environment.GetEnvironmentVariable("LOCALAPPDATA")
+            ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "NpuOrganize", "state.json");
 
     public WatcherDashboardPage()
     {
@@ -33,19 +41,22 @@ internal sealed partial class WatcherDashboardPage : ListPage
                 new ListItem(new NoOpCommand())
                 {
                     Title    = "OrganizeKeeper not installed",
-                    Subtitle = "The watcher daemon (NpuOrganizeKeeper.exe) is not present alongside this extension.",
+                    Subtitle = "Build the solution first — NpuOrganizeKeeper.exe is copied to this extension's output on build.",
                     Icon     = OrganizeVisuals.Warning,
                     Tags     = [OrganizeVisuals.MutedTag("not available")],
                 },
             ];
         }
 
-        return
-        [
+        var state = TryLoadState();
+        var items = new System.Collections.Generic.List<IListItem>
+        {
             new ListItem(new NoOpCommand())
             {
                 Title    = running ? $"Running — PID {keeperPid}" : "Stopped",
-                Subtitle = running ? "OrganizeKeeper is active and watching for screenshots." : "OrganizeKeeper is not running.",
+                Subtitle = running
+                    ? $"Watching: {state?.WatchFolder ?? "unknown"}"
+                    : "OrganizeKeeper is not running.",
                 Icon     = running ? OrganizeVisuals.Start : OrganizeVisuals.Stop,
                 Tags     = [OrganizeVisuals.MutedTag(running ? "running" : "stopped")],
             },
@@ -54,7 +65,31 @@ internal sealed partial class WatcherDashboardPage : ListPage
                 Title = running ? "Stop Watcher" : "Start Watcher",
                 Icon  = running ? OrganizeVisuals.Stop : OrganizeVisuals.Start,
             },
-        ];
+        };
+
+        if (state is not null)
+        {
+            items.Add(new ListItem(new NoOpCommand())
+            {
+                Title    = $"Renamed: {state.Processed}   Skipped: {state.Skipped}   Errors: {state.Errors}",
+                Subtitle = state.LastProcessedPath is not null
+                    ? $"Last: {Path.GetFileName(state.LastProcessedPath)}"
+                    : "No files renamed yet.",
+                Tags     = [OrganizeVisuals.MutedTag("stats")],
+            });
+
+            if (state.LastError is not null)
+            {
+                items.Add(new ListItem(new NoOpCommand())
+                {
+                    Title = state.LastError,
+                    Icon  = OrganizeVisuals.Warning,
+                    Tags  = [OrganizeVisuals.MutedTag("last error")],
+                });
+            }
+        }
+
+        return [.. items];
     }
 
     private static int? FindKeeperPid()
@@ -62,15 +97,41 @@ internal sealed partial class WatcherDashboardPage : ListPage
         try
         {
             foreach (var proc in Process.GetProcessesByName("NpuOrganizeKeeper"))
-            {
                 return proc.Id;
-            }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Organize watcher pid check failed: {ex}");
         }
-
         return null;
     }
+
+    private static WatcherState? TryLoadState()
+    {
+        try
+        {
+            if (!File.Exists(StatePath)) return null;
+            string json = File.ReadAllText(StatePath);
+            return JsonSerializer.Deserialize(json, WatcherStateContext.Default.WatcherState);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Organize state.json read failed: {ex}");
+            return null;
+        }
+    }
+
+    private sealed class WatcherState
+    {
+        [JsonPropertyName("processed")]         public int     Processed         { get; set; }
+        [JsonPropertyName("skipped")]           public int     Skipped           { get; set; }
+        [JsonPropertyName("errors")]            public int     Errors            { get; set; }
+        [JsonPropertyName("watchFolder")]       public string? WatchFolder       { get; set; }
+        [JsonPropertyName("lastProcessedPath")] public string? LastProcessedPath { get; set; }
+        [JsonPropertyName("lastError")]         public string? LastError         { get; set; }
+    }
+
+    [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
+    [JsonSerializable(typeof(WatcherState))]
+    private sealed partial class WatcherStateContext : JsonSerializerContext { }
 }
