@@ -7,9 +7,10 @@ using NpuTools.Awake.Services;
 
 namespace NpuTools.Awake.Pages;
 
-internal sealed partial class AwakeForPage : ListPage
+internal sealed partial class AwakeForPage : DynamicListPage
 {
     private readonly AwakeService _awakeService;
+    private IListItem[] _items;
 
     public AwakeForPage(AwakeService awakeService)
     {
@@ -19,12 +20,20 @@ internal sealed partial class AwakeForPage : ListPage
         Name = "Open";
         Icon = AwakeVisuals.Clock;
         PlaceholderText = "Type minutes, then press Enter";
+        _items = BuildItems(string.Empty);
     }
 
-    public override IListItem[] GetItems()
+    public override void UpdateSearchText(string oldSearch, string newSearch)
+    {
+        _items = BuildItems(newSearch.Trim());
+        RaiseItemsChanged(_items.Length);
+    }
+
+    public override IListItem[] GetItems() => _items;
+
+    private IListItem[] BuildItems(string query)
     {
         var items = new List<IListItem>();
-        string query = SearchText?.Trim() ?? "";
         if (int.TryParse(query, out int minutes) && minutes > 0)
         {
             items.Add(new ListItem(new AwakeForMinutesCommand(_awakeService, minutes))
@@ -111,9 +120,10 @@ internal sealed partial class AwakeForForm : FormContent
     }
 }
 
-internal sealed partial class AwakeUntilPage : ListPage
+internal sealed partial class AwakeUntilPage : DynamicListPage
 {
     private readonly AwakeService _awakeService;
+    private IListItem[] _items;
 
     public AwakeUntilPage(AwakeService awakeService)
     {
@@ -123,12 +133,20 @@ internal sealed partial class AwakeUntilPage : ListPage
         Name = "Open";
         Icon = AwakeVisuals.Calendar;
         PlaceholderText = "Type a time like 17:30, then press Enter";
+        _items = BuildItems(string.Empty);
     }
 
-    public override IListItem[] GetItems()
+    public override void UpdateSearchText(string oldSearch, string newSearch)
+    {
+        _items = BuildItems(newSearch.Trim());
+        RaiseItemsChanged(_items.Length);
+    }
+
+    public override IListItem[] GetItems() => _items;
+
+    private IListItem[] BuildItems(string query)
     {
         var items = new List<IListItem>();
-        string query = SearchText?.Trim() ?? "";
         if (!string.IsNullOrWhiteSpace(query))
         {
             long? epoch = AwakeTime.ParseUntilToEpoch(query);
@@ -316,9 +334,20 @@ internal sealed partial class AddScheduleForm : FormContent
     }
 }
 
-internal sealed partial class SmartAwakePage : ListPage
+internal sealed partial class SmartAwakePage : DynamicListPage
 {
     private readonly AwakeService _awakeService;
+    private IListItem[] _items;
+
+    private static readonly string[] _examples =
+    [
+        "keep awake",
+        "keep awake for 90 minutes",
+        "until 17:30",
+        "weekdays 09:00 to 17:00",
+        "stop schedules",
+        "status",
+    ];
 
     public SmartAwakePage(AwakeService awakeService)
     {
@@ -328,39 +357,38 @@ internal sealed partial class SmartAwakePage : ListPage
         Name = "Open";
         Icon = AwakeVisuals.Sparkle;
         PlaceholderText = "Type an Awake request, then press Enter";
+        _items = BuildItems(string.Empty);
     }
 
-    public override IListItem[] GetItems()
+    public override void UpdateSearchText(string oldSearch, string newSearch)
+    {
+        _items = BuildItems(newSearch.Trim());
+        RaiseItemsChanged(_items.Length);
+    }
+
+    public override IListItem[] GetItems() => _items;
+
+    private IListItem[] BuildItems(string query)
     {
         var items = new List<IListItem>();
-        string query = SearchText?.Trim() ?? "";
+
         if (!string.IsNullOrWhiteSpace(query))
         {
             items.Add(new ListItem(new SmartAwakeQueryCommand(_awakeService, query))
             {
-                Title = $"Run: {query}",
-                Subtitle = "Press Enter to submit typed request",
+                Title = query,
+                Subtitle = "Press Enter to run this Smart Awake request",
                 Icon = AwakeVisuals.Sparkle,
-                Tags = [AwakeVisuals.StatusTag("typed")],
+                Tags = [AwakeVisuals.StatusTag("run")],
             });
         }
 
-        string[] examples =
-        [
-            "keep awake",
-            "keep awake for 90 minutes",
-            "until 17:30",
-            "weekdays 09:00 to 17:00",
-            "stop schedules",
-            "status",
-        ];
-
-        foreach (string example in examples)
+        foreach (string example in _examples)
         {
             items.Add(new ListItem(new SmartAwakeQueryCommand(_awakeService, example))
             {
                 Title = example,
-                Subtitle = "Example request",
+                Subtitle = "Example — press Enter to run",
                 Icon = AwakeVisuals.Sparkle,
                 Tags = [AwakeVisuals.MutedTag("example")],
                 TextToSuggest = example,
