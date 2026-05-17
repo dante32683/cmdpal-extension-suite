@@ -20,9 +20,16 @@ Status: in progress
 
 ## Implemented Extensions (continued)
 
-- NPU Organize: screenshot rename proposals using `ImageDescriptionGenerator` (BriefDescription vision model → stopword-filtered 5-token slug), dry-run mode, watcher dashboard stub, hub page. AI naming falls back to time-digit slug when model unavailable. Requires `Microsoft.WindowsAppSDK.AI` 1.8.47 and `systemAIModels` capability.
-- NPU Image Editor: OCR via OcrEngine, background removal via ImageObjectExtractor, 2x super-resolution via ImageScaler, hub + per-operation input pages.
-- NPU Text Tools: six rewrite modes (Fix Grammar, Make Formal, Make Concise, Bullet Points, Simplify, Custom) via Phi LanguageModel, hub + per-mode input pages.
+- NPU Organize: screenshot rename proposals using `ImageDescriptionGenerator` (BriefDescription vision model → stopword-filtered 5-token slug), dry-run mode, watcher dashboard stub, hub page. AI naming falls back to time-digit slug when model unavailable. OrganizeKeeper daemon built and integrated — WatcherDashboardPage shows live state. Requires `Microsoft.WindowsAppSDK.AI` 1.8.47 and `systemAIModels` capability.
+- NPU Image Editor: OCR via OcrEngine, background removal via ImageObjectExtractor, 2x super-resolution via ImageScaler, hub + per-operation input pages. Uses built-in SDK `CopyTextCommand` and `OpenFileCommand` from the Toolkit namespace.
+- NPU Text Tools: six rewrite modes (Fix Grammar, Make Formal, Make Concise, Bullet Points, Simplify, Custom) via Phi LanguageModel, hub + per-mode input pages. Custom mode uses two-step flow (instruction page → text page) matching Raycast UX. TestAiCommand removed from top-level command list.
+
+## Tests
+
+- `NpuTools.Tests`: xunit project targeting net9.0-windows10.0.26100.0. 37 tests covering:
+  - `SlugServiceTests`: Slugify algorithm, BuildTargetFilename, ResolveCollision, IsAlreadyDateNamed, NormalizeExtension against Raycast parity fixtures.
+  - `TextRewriteServiceTests`: all six rewrite-mode prompts validated for instruction text and format.
+  - All tests pass with `dotnet test src/NpuTools.Tests/NpuTools.Tests.csproj`.
 
 ## Shell Projects
 
@@ -35,7 +42,6 @@ Status: in progress
 - Publish release artifacts per extension.
 - Implement NPU Notes (add/browse/delete/find related/search per migration plan Phase 5).
 - Implement NPU Dev Toolbox (open workspace in Explorer/terminal/IDE per migration plan Phase 6).
-- Build OrganizeKeeper daemon companion exe for the watcher feature. See design notes below.
 - Continue Raycast migration using `RAYCAST_MIGRATION_PLAN.md`.
 
 ## OrganizeKeeper Design Notes
