@@ -2,7 +2,76 @@
 
 This is the active issue ledger for the monorepo.
 
-No open bugs filed yet.
+No open bugs filed.
+
+## Resolved
+
+### BUG-001: GetItems() blocking on async AI (fixed 2026-05)
+
+Extensions: NpuTextToolsExtension, NpuImageEditorExtension
+
+`RewriteResultPage` and `ImageResultPage` were calling `.GetAwaiter().GetResult()` on
+AI service calls inside `GetItems()`. `GetItems()` runs on the COM apartment thread;
+blocking it froze the entire Command Palette UI for the duration of the AI call
+(typically 3–15 seconds for a vision or language model).
+
+Fix: lazy async start on first `GetItems()` call via `Interlocked` flag. Page shows a
+"Processing…" placeholder and calls `RaiseItemsChanged()` when the task completes.
+See `CONVENTIONS.md § SDK Async Rules` for the canonical pattern.
+
+### BUG-002: FallbackCommands() returning empty array (fixed 2026-05)
+
+Extension: MediaControlsExtension
+
+`_fallbackCommands` was initialized to `[]` (empty array) before fallbacks loaded.
+SDK contract: `FallbackCommands()` must return `null` until actual fallbacks are ready.
+Returning `[]` signals "fallback system exists, no items" rather than "no fallbacks".
+
+Fix: field initialized to `null` (implicit default); populated and `RaiseItemsChanged()`
+called once `InitializeFallbackCommandsAsync` completes.
+
+### BUG-003: new IconInfo() inside GetItems() and timer callbacks (fixed 2026-05)
+
+Extensions: ActionCenterExtension, SimpleAnalyticsExtension
+
+`ActionCenterExtensionPage.GetItems()` created `new IconInfo("")` on every call.
+`StatusDockPage.RefreshBattery/RefreshWifi` created new `IconInfo` objects on every
+timer tick (every 15–30 s). Icons are static values that should be allocated once.
+
+Fix: `static readonly IconInfo` fields for single icons; `static readonly IconInfo[]`
+lookup tables populated in a `static` constructor for ranged battery/WiFi codepoints.
+
+### BUG-004: ContentPage missing RaiseItemsChanged on settings change (fixed 2026-05)
+
+Extension: ActionCenterExtension
+
+`SettingsPage` (a `ContentPage`) did not subscribe to `SettingsChanged` and never
+called `RaiseItemsChanged()`. The SDK only re-calls `GetContent()` when told content
+changed. Without the subscription, reopening the settings page after a change could
+show stale content.
+
+Fix: constructor subscribes to `_settingsManager.Settings.SettingsChanged` and calls
+`RaiseItemsChanged()` in the handler. `#pragma warning disable CA1001` added per the
+process-lifetime page convention.
+
+### BUG-005: Blocking AI call and silent exception swallow in rename (fixed 2026-05)
+
+Extension: NpuOrganizeExtension
+
+`RenameAllCommand.Invoke()` called `AiNamingService.BuildProposedPath()` synchronously
+(which itself called `DescribeAsync().GetAwaiter().GetResult()`) inside a loop over all
+proposals. For a batch of 10 files this could block the COM thread for 1–2 minutes.
+`catch { failed++; }` swallowed all exceptions without logging.
+
+Fix:
+- `AiNamingService` gains `BuildProposedPathAsync` / `GenerateSlugAsync` using proper
+  `await`. Sync overload retained for callers that don't need AI.
+- `RenameAllCommand` replaced by `RenameAllPage` (a `ListPage`). User navigates into
+  it to confirm the rename; the async loop starts on first `GetItems()` call.
+  Exceptions are logged with `Debug.WriteLine` including type and path.
+- `RenameSingleCommand` updated to fire-and-forget with `Task.Run`.
+
+---
 
 ## Known Risks
 
@@ -50,3 +119,12 @@ Area: Repository migration
 Old repos may have history that does not line up perfectly with the new `src/` paths.
 
 Mitigation: merge old histories into the monorepo so commits remain reachable, and document any imported histories in `RUNBOOK.md` or migration commits.
+
+### RISK-006: COM Thread Starvation From Blocking Async Calls
+
+Priority: High
+Area: SDK correctness
+
+`GetItems()` and `Invoke()` run on the COM apartment thread. Any `.GetAwaiter().GetResult()` or `Task.Wait()` on the COM thread deadlocks or stalls the palette. This is especially dangerous with AI services (`LanguageModel`, `ImageDescriptionGenerator`) that can take 3–15 seconds.
+
+Mitigation: enforce the async patterns in `CONVENTIONS.md § SDK Async Rules`. Never call `.GetAwaiter().GetResult()` from `GetItems()`, `UpdateSearchText()`, or `Invoke()`. AI service calls must always be awaited from a `Task.Run` background task.

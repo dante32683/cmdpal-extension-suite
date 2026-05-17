@@ -1,4 +1,4 @@
-using ActionCenterExtension.Pages;
+﻿using ActionCenterExtension.Pages;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
@@ -6,13 +6,15 @@ namespace ActionCenterExtension;
 
 internal sealed partial class ActionCenterExtensionPage : ListPage
 {
+    private static readonly IconInfo SettingsIcon = new("\uE713");
+
     private readonly SettingsManager _settingsManager;
 
     public ActionCenterExtensionPage(SettingsManager settingsManager)
     {
         _settingsManager = settingsManager;
         Id = "com.dziad.actioncenterextension.main";
-        Icon = new IconInfo("\uE713");
+        Icon = SettingsIcon;
         Title = "Action Center";
         Name = "Open";
     }
@@ -24,7 +26,7 @@ internal sealed partial class ActionCenterExtensionPage : ListPage
             {
                 Title = "Settings",
                 Subtitle = "Configure Action Center options",
-                Icon = new IconInfo("\uE713"),
+                Icon = SettingsIcon,
             },
         ];
     }

@@ -48,14 +48,14 @@ internal sealed partial class TimeDateDockPage : ListPage, IDisposable
     public override IListItem[] GetItems()
     {
         var items = new List<IListItem>(2);
-        if (_settingsManager.ShowTime)
-        {
-            items.Add(_timeItem);
-        }
-
         if (_settingsManager.ShowDate)
         {
             items.Add(_dateItem);
+        }
+
+        if (_settingsManager.ShowTime)
+        {
+            items.Add(_timeItem);
         }
 
         return [.. items];

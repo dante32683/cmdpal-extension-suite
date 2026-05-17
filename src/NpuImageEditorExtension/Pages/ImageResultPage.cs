@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.ImageEditor.Services;
@@ -14,6 +16,7 @@ internal sealed partial class ImageResultPage : ListPage
 
     private string? _result;
     private string? _errorMessage;
+    private int _started; // Interlocked flag: 0 = not started, 1 = started
 
     public ImageResultPage(string path, ImageOperation operation)
     {
@@ -25,26 +28,30 @@ internal sealed partial class ImageResultPage : ListPage
         Title = $"Result — {ImageInputPage.OperationLabel(operation)}";
         Name  = "Result";
         Icon  = ImageEditorVisuals.Check;
+        IsLoading = true;
     }
 
+    // GetItems() is only called after the user navigates to this page. Starting
+    // the operation here prevents AI tasks from firing while the user is still
+    // typing a path in the input page.
     public override IListItem[] GetItems()
     {
+        if (Interlocked.Exchange(ref _started, 1) == 0)
+        {
+            _ = Task.Run(RunOperationAsync);
+        }
+
         if (_result == null && _errorMessage == null)
         {
-            try
-            {
-                _result = _operation switch
+            return
+            [
+                new ListItem(new NoOpCommand())
                 {
-                    ImageOperation.RemoveBackground => ImageEditorService.RemoveBackgroundAsync(_path).GetAwaiter().GetResult(),
-                    ImageOperation.SuperResolution  => ImageEditorService.SuperResolutionAsync(_path).GetAwaiter().GetResult(),
-                    ImageOperation.Ocr              => ImageEditorService.RunOcrAsync(_path).GetAwaiter().GetResult(),
-                    _                               => throw new ArgumentOutOfRangeException(nameof(_operation)),
-                };
-            }
-            catch (Exception ex)
-            {
-                _errorMessage = ex.Message;
-            }
+                    Title    = "Processing…",
+                    Subtitle = ImageInputPage.OperationLabel(_operation),
+                    Icon     = ImageInputPage.OperationIcon(_operation),
+                },
+            ];
         }
 
         if (_errorMessage is not null)
@@ -98,5 +105,28 @@ internal sealed partial class ImageResultPage : ListPage
                 Icon     = ImageEditorVisuals.Copy,
             },
         ];
+    }
+
+    private async Task RunOperationAsync()
+    {
+        try
+        {
+            _result = _operation switch
+            {
+                ImageOperation.RemoveBackground => await ImageEditorService.RemoveBackgroundAsync(_path),
+                ImageOperation.SuperResolution  => await ImageEditorService.SuperResolutionAsync(_path),
+                ImageOperation.Ocr              => await ImageEditorService.RunOcrAsync(_path),
+                _                               => throw new ArgumentOutOfRangeException(nameof(_operation)),
+            };
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+            RaiseItemsChanged();
+        }
     }
 }

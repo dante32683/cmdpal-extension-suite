@@ -45,7 +45,7 @@ internal sealed partial class ScreenshotRenameListPage : ListPage
 
         if (!_dryRun)
         {
-            items.Add(new ListItem(new RenameAllCommand(proposals))
+            items.Add(new ListItem(new RenameAllPage(proposals))
             {
                 Title    = $"Rename All ({proposals.Count})",
                 Subtitle = "Rename every proposal below",
