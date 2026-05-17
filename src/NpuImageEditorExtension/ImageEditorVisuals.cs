@@ -8,7 +8,7 @@ internal static class ImageEditorVisuals
     internal static readonly IconInfo Camera  = new("\uE8BA"); // Photo
     internal static readonly IconInfo Crop    = new("\uE7A8"); // Crop
     internal static readonly IconInfo Eraser  = new("\uED60"); // Eraser
-    internal static readonly IconInfo Scale   = new("\uE9A0"); // ZoomIn
+    internal static readonly IconInfo Scale   = new("\uE8A3"); // ResizeTouchLarger
     internal static readonly IconInfo Ocr     = new("\uE8F4"); // ScanQR
     internal static readonly IconInfo Copy    = new("\uE8C8"); // Copy
     internal static readonly IconInfo Folder  = new("\uE8DA"); // FolderOpen
