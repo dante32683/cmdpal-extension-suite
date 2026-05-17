@@ -17,7 +17,7 @@ public sealed partial class TimeDateDockCommandsProvider : CommandProvider, Syst
     {
         Id = "com.dziad.timedatedockextension";
         DisplayName = "Time Date Dock";
-        Icon = new IconInfo("\uE121");
+        Icon = new IconInfo("\uE916");
         Settings = _settingsManager.Settings;
 
         _dockPage = new TimeDateDockPage(_settingsManager, _notificationCenter);

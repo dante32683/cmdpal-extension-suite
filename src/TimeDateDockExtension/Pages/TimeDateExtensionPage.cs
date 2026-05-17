@@ -16,7 +16,7 @@ internal sealed partial class TimeDateExtensionPage : ListPage
         _settingsManager = settingsManager;
         _notificationCenter = notificationCenter;
         Id = "com.dziad.timedatedockextension.main";
-        Icon = new IconInfo("\uE121");
+        Icon = new IconInfo("\uE916");
         Title = "Time Date Dock";
         Name = "Open";
     }
@@ -30,12 +30,12 @@ internal sealed partial class TimeDateExtensionPage : ListPage
             new ListItem(new NotificationCenterCommand(
                 "com.dziad.timedatedockextension.preview.time",
                 "Open Notification Center",
-                "\uE121",
+                "\uE916",
                 _notificationCenter))
             {
                 Title = TimeDateFormatService.FormatTime(now, _settingsManager),
                 Subtitle = $"Time format: {TimeDateFormatService.TimeFormat(_settingsManager)}",
-                Icon = new IconInfo("\uE121"),
+                Icon = new IconInfo("\uE916"),
             },
             new ListItem(new NotificationCenterCommand(
                 "com.dziad.timedatedockextension.preview.date",
