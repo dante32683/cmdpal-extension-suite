@@ -13,8 +13,8 @@ internal static partial class SlugService
     [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}")]
     private static partial Regex AlreadyDatePrefixed();
 
-    // Strips leading date/time noise from Windows screenshot filenames like "Screenshot 2025-11-15 013016"
-    [GeneratedRegex(@"^(screenshot\s+)?\d{4}[-\s]\d{2}[-\s]\d{2}\s*\d{0,6}\s*", RegexOptions.IgnoreCase)]
+    // Strips "Screenshot YYYY-MM-DD " prefix; time digits (013016) are intentionally kept as slug
+    [GeneratedRegex(@"^(screenshot\s+)?\d{4}[-\s]\d{2}[-\s]\d{2}\s*", RegexOptions.IgnoreCase)]
     private static partial Regex LeadingDateNoise();
 
     internal static bool IsAlreadyOrganized(string fileName) =>
