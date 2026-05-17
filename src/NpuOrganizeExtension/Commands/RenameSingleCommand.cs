@@ -21,13 +21,12 @@ internal sealed partial class RenameSingleCommand : InvokableCommand
     {
         try
         {
-            File.Move(_proposal.OriginalPath, _proposal.ProposedPath);
+            File.Move(_proposal.OriginalPath, _proposal.ProposedPath, overwrite: false);
+            return CommandResult.ShowToast($"Renamed: {_proposal.ProposedName}");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Organize rename failed: {ex}");
+            return CommandResult.ShowToast($"Rename failed: {ex.Message}");
         }
-
-        return CommandResult.Dismiss();
     }
 }
