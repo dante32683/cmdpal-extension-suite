@@ -4,11 +4,12 @@ using NpuTools.TextTools.Services;
 
 namespace NpuTools.TextTools.Pages;
 
-internal sealed partial class RewriteInputPage : ListPage
+internal sealed partial class RewriteInputPage : DynamicListPage
 {
     private readonly TextRewriteMode _mode;
     private readonly TextRewriteService _service;
     private readonly string? _customInstruction;
+    private IListItem[] _items;
 
     public RewriteInputPage(TextRewriteMode mode, TextRewriteService service, string? customInstruction = null)
     {
@@ -20,11 +21,19 @@ internal sealed partial class RewriteInputPage : ListPage
         Name            = "Rewrite";
         Icon            = TextToolsVisuals.Phi;
         PlaceholderText = "Paste or type your text here…";
+        _items          = BuildItems(string.Empty);
     }
 
-    public override IListItem[] GetItems()
+    public override void UpdateSearchText(string oldSearch, string newSearch)
     {
-        string text = (SearchText ?? string.Empty).Trim();
+        _items = BuildItems(newSearch.Trim());
+        RaiseItemsChanged(_items.Length);
+    }
+
+    public override IListItem[] GetItems() => _items;
+
+    private IListItem[] BuildItems(string text)
+    {
         if (text.Length == 0)
         {
             return
@@ -32,7 +41,7 @@ internal sealed partial class RewriteInputPage : ListPage
                 new ListItem(new NoOpCommand())
                 {
                     Title    = TextRewriteService.ModeLabel(_mode),
-                    Subtitle = "Type or paste text in the search box above, then press Enter to rewrite",
+                    Subtitle = "Type or paste text above, then press Enter to rewrite",
                     Icon     = TextToolsVisuals.Phi,
                 },
             ];

@@ -8,10 +8,11 @@ namespace NpuTools.TextTools.Pages;
 /// Step 2 of the Custom Rewrite two-step flow.
 /// The rewrite instruction is fixed from step 1; the user pastes the text to rewrite here.
 /// </summary>
-internal sealed partial class RewriteCustomTextPage : ListPage
+internal sealed partial class RewriteCustomTextPage : DynamicListPage
 {
     private readonly string _instruction;
     private readonly TextRewriteService _service;
+    private IListItem[] _items;
 
     public RewriteCustomTextPage(string instruction, TextRewriteService service)
     {
@@ -22,12 +23,19 @@ internal sealed partial class RewriteCustomTextPage : ListPage
         Name            = "Next";
         Icon            = TextToolsVisuals.Phi;
         PlaceholderText = "Now paste or type the text to rewrite…";
+        _items          = BuildItems(string.Empty);
     }
 
-    public override IListItem[] GetItems()
+    public override void UpdateSearchText(string oldSearch, string newSearch)
     {
-        string text = (SearchText ?? string.Empty).Trim();
+        _items = BuildItems(newSearch.Trim());
+        RaiseItemsChanged(_items.Length);
+    }
 
+    public override IListItem[] GetItems() => _items;
+
+    private IListItem[] BuildItems(string text)
+    {
         if (text.Length == 0)
         {
             return
