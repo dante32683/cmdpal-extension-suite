@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using NpuTools.Awake.Models;
 
 namespace NpuTools.Awake.Services;
 
 internal sealed class AwakeService
 {
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public AwakeSettings GetSettings()
     {
         var settings = AwakeJson.Read(AwakePaths.SettingsPath, new AwakeSettings());
@@ -13,6 +15,7 @@ internal sealed class AwakeService
         return settings;
     }
 
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public void SaveSettings(AwakeSettings settings)
     {
         AwakeJson.AtomicWrite(AwakePaths.SettingsPath, settings);
@@ -38,6 +41,7 @@ internal sealed class AwakeService
         };
     }
 
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public IReadOnlyList<AwakeSchedule> GetSchedules()
     {
         return AwakeJson.Read(AwakePaths.SchedulesPath, new List<AwakeSchedule>())
@@ -119,6 +123,7 @@ internal sealed class AwakeService
         SetSchedules(GetSchedules().Where(s => s.Id != id));
     }
 
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public bool EnsureDaemonRunning()
     {
         int? currentPid = ReadDaemonPid();
@@ -155,6 +160,7 @@ internal sealed class AwakeService
         return true;
     }
 
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public void StopDaemon()
     {
         File.WriteAllText(AwakePaths.StopFlagPath, "stop");

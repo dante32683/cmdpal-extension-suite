@@ -13,6 +13,7 @@ namespace NpuTools.Awake.Services;
 
 internal sealed partial class SmartAwakeService
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public SmartAwakeResult Execute(string text, AwakeService awakeService)
     {
         string input = text.Trim();
