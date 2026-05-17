@@ -40,7 +40,7 @@ internal sealed class TextRewriteService
         _                            => mode.ToString(),
     };
 
-    private static string BuildPrompt(string text, TextRewriteMode mode, string? customInstruction)
+    internal static string BuildPrompt(string text, TextRewriteMode mode, string? customInstruction)
     {
         string instruction = mode switch
         {

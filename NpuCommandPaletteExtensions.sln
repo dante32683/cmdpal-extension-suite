@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -32,6 +32,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeDateDockExtension", "src\TimeDateDockExtension\TimeDateDockExtension.csproj", "{B361B9BA-071A-4E15-B44C-1DE40343EA97}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaControlsExtension", "src\MediaControlsExtension\MediaControlsExtension.csproj", "{5B43AD5A-F467-4482-BDD0-DAF91BB2786B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NpuTools.Tests", "src\NpuTools.Tests\NpuTools.Tests.csproj", "{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -199,6 +201,18 @@ Global
 		{5B43AD5A-F467-4482-BDD0-DAF91BB2786B}.Release|x64.Build.0 = Release|x64
 		{5B43AD5A-F467-4482-BDD0-DAF91BB2786B}.Release|x86.ActiveCfg = Release|x64
 		{5B43AD5A-F467-4482-BDD0-DAF91BB2786B}.Release|x86.Build.0 = Release|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Debug|Any CPU.Build.0 = Debug|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Debug|x64.ActiveCfg = Debug|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Debug|x64.Build.0 = Debug|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Debug|x86.ActiveCfg = Debug|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Debug|x86.Build.0 = Debug|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Release|Any CPU.ActiveCfg = Release|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Release|Any CPU.Build.0 = Release|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Release|x64.ActiveCfg = Release|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Release|x64.Build.0 = Release|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Release|x86.ActiveCfg = Release|x64
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -217,5 +231,6 @@ Global
 		{1BCC7073-EC31-4E2F-8A5D-BAC44EE76DD2} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{B361B9BA-071A-4E15-B44C-1DE40343EA97} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{5B43AD5A-F467-4482-BDD0-DAF91BB2786B} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{1E7E6B7B-A9A7-4A9D-B03E-408B830BA4C8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal
