@@ -20,18 +20,17 @@ internal sealed partial class TextToolsHubPage : ListPage
 
     public override IListItem[] GetItems()
     {
-        var modes = new List<(TextRewriteMode Mode, string Subtitle)>
+        var standardModes = new List<(TextRewriteMode Mode, string Subtitle)>
         {
             (TextRewriteMode.FixGrammar,   "Correct grammar and spelling"),
             (TextRewriteMode.MakeFormal,   "Professional tone"),
             (TextRewriteMode.MakeConcise,  "Shorter while preserving meaning"),
             (TextRewriteMode.BulletPoints, "Convert prose to bullet list"),
             (TextRewriteMode.Simplify,     "Plain language for any audience"),
-            (TextRewriteMode.Custom,       "Type your own rewrite instruction"),
         };
 
-        var items = new List<IListItem>(modes.Count);
-        foreach (var (mode, subtitle) in modes)
+        var items = new List<IListItem>(6);
+        foreach (var (mode, subtitle) in standardModes)
         {
             items.Add(new ListItem(new RewriteInputPage(mode, _service))
             {
@@ -41,6 +40,15 @@ internal sealed partial class TextToolsHubPage : ListPage
                 Tags     = [TextToolsVisuals.MutedTag("type text")],
             });
         }
+
+        // Custom mode uses a two-step flow: instruction page → text page → result.
+        items.Add(new ListItem(new RewriteCustomInstructionPage(_service))
+        {
+            Title    = TextRewriteService.ModeLabel(TextRewriteMode.Custom),
+            Subtitle = "Two steps: enter instruction, then paste text",
+            Icon     = TextToolsVisuals.Phi,
+            Tags     = [TextToolsVisuals.MutedTag("type instruction")],
+        });
 
         return items.ToArray();
     }
