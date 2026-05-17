@@ -10,12 +10,14 @@ namespace NpuTools.Organize.Pages;
 internal sealed partial class ScreenshotRenameListPage : ListPage
 {
     private readonly ScreenshotScannerService _scanner;
+    private readonly ScreenshotIndexService _indexService;
     private readonly bool _dryRun;
 
-    public ScreenshotRenameListPage(ScreenshotScannerService scanner, bool dryRun = false)
+    public ScreenshotRenameListPage(ScreenshotScannerService scanner, ScreenshotIndexService indexService, bool dryRun = false)
     {
-        _scanner = scanner;
-        _dryRun  = dryRun;
+        _scanner      = scanner;
+        _indexService = indexService;
+        _dryRun       = dryRun;
         Id       = dryRun
             ? "com.local.nputools.organize.dryrun"
             : "com.local.nputools.organize.rename";
@@ -45,7 +47,7 @@ internal sealed partial class ScreenshotRenameListPage : ListPage
 
         if (!_dryRun)
         {
-            items.Add(new ListItem(new RenameAllPage(proposals))
+            items.Add(new ListItem(new RenameAllPage(proposals, _indexService))
             {
                 Title    = $"Rename All ({proposals.Count})",
                 Subtitle = "Rename every proposal below",
@@ -64,7 +66,7 @@ internal sealed partial class ScreenshotRenameListPage : ListPage
         {
             string date    = System.IO.File.GetCreationTime(proposal.OriginalPath).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
             string preview = _dryRun ? $"→ {date}_[OCR title].png" : $"→ {date}_[NPU reads on rename].png";
-            var item = new ListItem(_dryRun ? new NoOpCommand() : new RenameSingleCommand(proposal))
+            var item = new ListItem(_dryRun ? new NoOpCommand() : new RenameSingleCommand(proposal, _indexService))
             {
                 Title    = proposal.OriginalName,
                 Subtitle = preview,
