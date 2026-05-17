@@ -18,18 +18,22 @@ Status: in progress
 - Simple Analytics: battery, Wi-Fi/network, CPU dock/status views.
 - NPU Awake: toggle, timed duration, until local time, schedules, dashboard, Smart Awake, fallback commands, and daemon integration.
 
+## Implemented Extensions (continued)
+
+- NPU Organize: screenshot rename proposals with date-slug, dry-run mode, watcher dashboard (OrganizeKeeper stub), hub page.
+- NPU Image Editor: OCR via OcrEngine, background removal via ImageObjectExtractor, 2x super-resolution via ImageScaler, hub + per-operation input pages.
+- NPU Text Tools: six rewrite modes (Fix Grammar, Make Formal, Make Concise, Bullet Points, Simplify, Custom) via Phi LanguageModel, hub + per-mode input pages.
+
 ## Shell Projects
 
-- NPU Organize
-- NPU Image Editor
-- NPU Text Tools
 - NPU Notes
 - NPU Dev Toolbox
 
 ## Next Work
 
-- Decide whether to remove old sibling folders from `C:\Portable` after separate explicit approval.
-- Decide whether to retire `src/NPUToolsExtension` after replacement packages cover its purpose.
 - Add CI for restore/build.
 - Publish release artifacts per extension.
+- Implement NPU Notes (add/browse/delete/find related/search per migration plan Phase 5).
+- Implement NPU Dev Toolbox (open workspace in Explorer/terminal/IDE per migration plan Phase 6).
+- Build OrganizeKeeper daemon companion exe for the watcher feature.
 - Continue Raycast migration using `RAYCAST_MIGRATION_PLAN.md`.
