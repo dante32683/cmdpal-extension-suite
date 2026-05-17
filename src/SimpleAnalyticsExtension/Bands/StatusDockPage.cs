@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
@@ -9,7 +10,7 @@ namespace SimpleAnalyticsExtension;
 // One ListPage returned from GetDockBands(). The dock renders each ListItem
 // as a separate button. Battery and WiFi items wrap their detail ListPage so
 // clicking navigates into it; CPU wraps NoOpCommand (display-only readout).
-#pragma warning disable CA1001  // timers are process-lifetime — extension exits with the host
+#pragma warning disable CA1001  // timers are process-lifetime; extension exits with the host
 internal sealed partial class StatusDockPage : ListPage
 {
     private readonly BatteryService _battery;
@@ -25,7 +26,7 @@ internal sealed partial class StatusDockPage : ListPage
     private readonly Timer _wifiTimer;
     private readonly Timer _cpuTimer;
 
-    // Segoe Fluent Icons — always explicit \uXXXX escapes, never paste glyphs
+    // Segoe Fluent Icons: always explicit \uXXXX escapes, never paste glyphs.
     // MobBattery0-10: EBA0-EBAA  |  MobBatteryCharging0: EBAB
     private const string IconBattery0      = "\uEBA0"; // Battery0 (empty)
     private const string IconBatteryCharge = "\uEBAB"; // BatteryCharging0
@@ -84,19 +85,28 @@ internal sealed partial class StatusDockPage : ListPage
         return [.. items];
     }
 
-    // ── Battery ──────────────────────────────────────────────────────────────
+    // Battery
 
     private void RefreshBattery(object? _)
     {
-        var info = _battery.GetBatteryInfo();
-        _batteryItem.Title = info.HasBattery ? $"{info.Percent}%" : "—"; // em-dash
-        _batteryItem.Icon  = BatteryIcon(info);
+        try
+        {
+            var info = _battery.GetBatteryInfo();
+            _batteryItem.Title = info.HasBattery ? $"{info.Percent}%" : "-";
+            _batteryItem.Icon = BatteryIcon(info);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Simple Analytics battery refresh failed: {ex}");
+            _batteryItem.Title = "Battery";
+            _batteryItem.Icon = new IconInfo(IconBattery0);
+        }
     }
 
     private static IconInfo BatteryIcon(BatteryInfo info)
     {
         if (!info.HasBattery) return new IconInfo(IconBattery0);
-        // \uEBA0 (empty) … \uEBAA (full): one glyph per 10 %
+        // \uEBA0 (empty) to \uEBAA (full): one glyph per 10%.
         var level = Math.Clamp(info.Percent / 10, 0, 10);
         // MobBatteryCharging0-10: EBAB-EBB5 (level-matched so 100% charging shows full)
         if (info.IsCharging)
@@ -106,28 +116,37 @@ internal sealed partial class StatusDockPage : ListPage
         return new IconInfo(((char)(0xEBA0 + level)).ToString());
     }
 
-    // ── WiFi ─────────────────────────────────────────────────────────────────
+    // WiFi
 
     private void RefreshWifi(object? _)
     {
-        var info = _network.GetNetworkInfo();
+        try
+        {
+            var info = _network.GetNetworkInfo();
 
-        if (!info.Connected && !info.IsLimited)
-        {
-            _wifiItem.Title = "Offline";
-            _wifiItem.Icon  = new IconInfo(IconNoWifi);
-            return;
-        }
+            if (!info.Connected && !info.IsLimited)
+            {
+                _wifiItem.Title = "Offline";
+                _wifiItem.Icon = new IconInfo(IconNoWifi);
+                return;
+            }
 
-        if (info.IsWifi && !string.IsNullOrEmpty(info.Ssid))
-        {
-            _wifiItem.Title = info.Ssid.Length > 14 ? info.Ssid[..14] + "…" : info.Ssid;
-            _wifiItem.Icon  = WifiIcon(info.SignalBars);
+            if (info.IsWifi && !string.IsNullOrEmpty(info.Ssid))
+            {
+                _wifiItem.Title = info.Ssid.Length > 14 ? info.Ssid[..14] + "..." : info.Ssid;
+                _wifiItem.Icon = WifiIcon(info.SignalBars);
+            }
+            else
+            {
+                _wifiItem.Title = "Wired";
+                _wifiItem.Icon = new IconInfo(IconEthernet);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _wifiItem.Title = "Wired";
-            _wifiItem.Icon  = new IconInfo(IconEthernet);
+            Debug.WriteLine($"Simple Analytics network refresh failed: {ex}");
+            _wifiItem.Title = "Network";
+            _wifiItem.Icon = new IconInfo(IconNoWifi);
         }
     }
 
@@ -140,11 +159,19 @@ internal sealed partial class StatusDockPage : ListPage
         _      => new IconInfo(IconWifiFull),
     };
 
-    // ── CPU ──────────────────────────────────────────────────────────────────
+    // CPU
 
     private void RefreshCpu(object? _)
     {
-        var pct = _cpu.GetCpuPercent();
-        _cpuItem.Title = $"{pct:F0}%";
+        try
+        {
+            var pct = _cpu.GetCpuPercent();
+            _cpuItem.Title = $"{pct:F0}%";
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Simple Analytics CPU refresh failed: {ex}");
+            _cpuItem.Title = "CPU";
+        }
     }
 }

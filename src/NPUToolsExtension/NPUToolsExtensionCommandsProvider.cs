@@ -13,6 +13,7 @@ public partial class NPUToolsExtensionCommandsProvider : CommandProvider
 
     public NPUToolsExtensionCommandsProvider()
     {
+        Id = "com.local.nputools";
         DisplayName = "NPU Tools";
         Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
         _commands = [

@@ -10,6 +10,7 @@ internal sealed partial class SettingsPage : ContentPage
     public SettingsPage(SettingsManager settingsManager)
     {
         _settingsManager = settingsManager;
+        Id = "com.dziad.simpleanalyticsextension.settings";
         Name  = "Settings";
         Icon  = new IconInfo("\uE713");
         Title = "Simple Analytics Settings";

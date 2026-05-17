@@ -11,6 +11,7 @@ internal sealed partial class ActionCenterExtensionPage : ListPage
     public ActionCenterExtensionPage(SettingsManager settingsManager)
     {
         _settingsManager = settingsManager;
+        Id = "com.dziad.actioncenterextension.main";
         Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
         Title = "Action Center";
         Name = "Open";
