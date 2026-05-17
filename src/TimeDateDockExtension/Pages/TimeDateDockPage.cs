@@ -21,26 +21,23 @@ internal sealed partial class TimeDateDockPage : ListPage, IDisposable
         _settingsManager = settingsManager;
         Id = "com.dziad.timedatedockextension.dock";
         Name = "Time Date";
-        Icon = new IconInfo("\uE121");
 
         _timeItem = new ListItem(new NotificationCenterCommand(
             "com.dziad.timedatedockextension.dock.time",
             "Open Notification Center",
-            "\uE121",
+            null,
             notificationCenter))
         {
             Title = "Time",
-            Icon = new IconInfo("\uE121"),
         };
 
         _dateItem = new ListItem(new NotificationCenterCommand(
             "com.dziad.timedatedockextension.dock.date",
             "Open Notification Center",
-            "\uE787",
+            null,
             notificationCenter))
         {
             Title = "Date",
-            Icon = new IconInfo("\uE787"),
         };
 
         UpdateItems();

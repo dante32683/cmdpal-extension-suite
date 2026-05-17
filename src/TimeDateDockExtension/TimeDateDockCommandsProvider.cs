@@ -35,7 +35,6 @@ public sealed partial class TimeDateDockCommandsProvider : CommandProvider, Syst
             new CommandItem(_dockPage)
             {
                 Title = "Time Date Dock",
-                Icon = Icon,
             },
         ];
     }
