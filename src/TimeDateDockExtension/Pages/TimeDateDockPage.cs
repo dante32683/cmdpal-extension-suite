@@ -79,9 +79,7 @@ internal sealed partial class TimeDateDockPage : ListPage, IDisposable
         var now = DateTime.Now;
 
         _timeItem.Title = TimeDateFormatService.FormatTime(now, _settingsManager);
-        _timeItem.Subtitle = TimeDateFormatService.TimeFormat(_settingsManager);
 
         _dateItem.Title = TimeDateFormatService.FormatDate(now, _settingsManager);
-        _dateItem.Subtitle = TimeDateFormatService.DateFormat(_settingsManager);
     }
 }
