@@ -8,12 +8,15 @@ internal sealed partial class NotificationCenterCommand : InvokableCommand
 {
     private readonly NotificationCenterService _notificationCenter;
 
-    public NotificationCenterCommand(string id, string name, string icon, NotificationCenterService notificationCenter)
+    public NotificationCenterCommand(string id, string name, string? icon, NotificationCenterService notificationCenter)
     {
         _notificationCenter = notificationCenter;
         Id = id;
         Name = name;
-        Icon = new IconInfo(icon);
+        if (icon is not null)
+        {
+            Icon = new IconInfo(icon);
+        }
     }
 
     public override CommandResult Invoke()
