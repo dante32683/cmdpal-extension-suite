@@ -26,6 +26,7 @@ internal sealed partial class WifiPage : ListPage
     public WifiPage(NetworkService service)
     {
         _service = service;
+        Id = "com.dziad.simpleanalyticsextension.network";
         Icon  = new IconInfo("\uE701");
         Title = "Network";
         Name  = "Network Details";

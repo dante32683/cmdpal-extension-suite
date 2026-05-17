@@ -11,6 +11,7 @@ internal sealed partial class Phase0StatusPage : ListPage
     public Phase0StatusPage(ExtensionDescriptor descriptor)
     {
         _descriptor = descriptor;
+        Id = $"{descriptor.ProviderId}.status";
         Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
         Title = descriptor.DisplayName;
         Name = "Open";

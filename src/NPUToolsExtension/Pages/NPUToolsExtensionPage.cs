@@ -11,6 +11,7 @@ internal sealed partial class NPUToolsExtensionPage : ListPage
 {
     public NPUToolsExtensionPage()
     {
+        Id = "com.local.nputools.status";
         Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
         Title = "NPU Tools";
         Name = "Open";
@@ -19,7 +20,7 @@ internal sealed partial class NPUToolsExtensionPage : ListPage
     public override IListItem[] GetItems()
     {
         return [
-            new ListItem(new NoOpCommand()) { Title = "TODO: Implement your extension here" }
+            new ListItem(new NoOpCommand()) { Title = "Original NPU Tools scaffold retained as reference" }
         ];
     }
 }

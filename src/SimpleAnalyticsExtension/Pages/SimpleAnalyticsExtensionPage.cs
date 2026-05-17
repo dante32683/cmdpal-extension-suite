@@ -10,6 +10,7 @@ internal sealed partial class SimpleAnalyticsExtensionPage : ListPage
     public SimpleAnalyticsExtensionPage(SettingsManager settingsManager)
     {
         _settingsManager = settingsManager;
+        Id = "com.dziad.simpleanalyticsextension.main";
         Icon  = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
         Title = "Simple Analytics";
         Name  = "Open";
