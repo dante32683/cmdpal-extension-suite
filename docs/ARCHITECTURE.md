@@ -138,6 +138,55 @@ internal sealed partial class MyCommand : InvokableCommand
 - `ContentPage` hosts richer content such as SDK settings or adaptive-card forms.
 - Searchable typed workflows use `SearchText`, generated typed rows, presets, and fallback commands.
 
+### DynamicListPage (search-as-input)
+
+Any page where the user types to filter or provide input MUST extend `DynamicListPage` and override `UpdateSearchText(string oldSearch, string newSearch)`. The SDK does NOT call `GetItems()` when the user types — it calls `UpdateSearchText()`. Failing to override it means typing does nothing and pressing Enter hits the empty-state `NoOpCommand`.
+
+```csharp
+internal sealed partial class MyInputPage : DynamicListPage
+{
+    public override void UpdateSearchText(string oldSearch, string newSearch)
+    {
+        _items = BuildItems(newSearch.Trim());
+        RaiseItemsChanged(_items.Length);
+    }
+
+    public override IListItem[] GetItems() => _items;
+}
+```
+
+### Async Result Pages
+
+When an operation takes time and needs to show results, model it as a `ListPage` rather than an `InvokableCommand`. The page is the command of the triggering list item. Async work starts on the first `GetItems()` call (not in the constructor — the input page recreates result pages on every keystroke, so the constructor must be cheap):
+
+```csharp
+internal sealed partial class MyResultPage : ListPage
+{
+    private int _started;
+    private string? _result;
+
+    public MyResultPage(string input) { _input = input; IsLoading = true; }
+
+    public override IListItem[] GetItems()
+    {
+        if (Interlocked.Exchange(ref _started, 1) == 0)
+            _ = Task.Run(RunAsync);
+        return _result == null
+            ? [new ListItem(new NoOpCommand()) { Title = "Processing…" }]
+            : [new ListItem(new CopyResultCommand(_result)) { Title = _result }];
+    }
+
+    private async Task RunAsync()
+    {
+        try   { _result = await _service.ProcessAsync(_input); }
+        catch (Exception ex) { _result = $"Error: {ex.Message}"; }
+        finally { IsLoading = false; RaiseItemsChanged(); }
+    }
+}
+```
+
+See `RewriteResultPage`, `ImageResultPage`, and `RenameAllPage` for real examples.
+
 ## Dock Pattern
 
 Prefer one `CommandItem` from `GetDockBands()` wrapping one `ListPage`. The dock renders each `ListItem` inside it as a button. Single-button bands can use an `InvokableCommand` when there is no detail view, but page-backed bands scale better.
