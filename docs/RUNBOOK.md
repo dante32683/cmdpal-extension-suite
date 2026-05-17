@@ -77,6 +77,7 @@ The script stops extension processes, removes matching app packages for the curr
 Current extension process names:
 
 - `ActionCenterExtension`
+- `TimeDateDockExtension`
 - `SimpleAnalyticsExtension`
 - `NpuAwakeExtension`
 - `NpuOrganizeExtension`
