@@ -89,7 +89,7 @@ Subclass `CommandProvider`, set `Id`, `DisplayName`, `Icon`, and optionally `Set
 ```csharp
 Id = "com.local.nputools.awake";
 DisplayName = "NPU Awake";
-Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+Icon = new IconInfo("\uE7E8"); // Power glyph
 ```
 
 Override:
@@ -122,7 +122,7 @@ internal sealed partial class MyCommand : InvokableCommand
     {
         Id = "com.local.nputools.example.mycommand";
         Name = "My Command";
-        Icon = new IconInfo("\uE713");
+        Icon = new IconInfo(""); // always use \uXXXX escapes, never paste glyphs
     }
 
     public override CommandResult Invoke()
