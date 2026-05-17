@@ -37,10 +37,11 @@
 
 ## Icons
 
-- Always use explicit Unicode escapes for glyphs: `new IconInfo("\uE713")`.
+- Always use explicit Unicode escapes for glyphs: `new IconInfo("")`.
 - Do not paste glyph characters directly into source — they can be silently corrupted.
 - The default icon font is Segoe Fluent Icons. Verify codepoints against that font, not Segoe MDL2 Assets (they overlap but are not identical).
 - Use `IconHelpers.FromRelativePath("Assets\\MyIcon.png")` for file-based icons.
+- **Never create `new IconInfo()` inside `GetItems()`, `UpdateSearchText()`, or timer callbacks.** Declare icons as `private static readonly IconInfo` fields or in a `static readonly` lookup table. One allocation at startup, zero per render/tick. See `StatusDockPage` for the lookup-table pattern with programmatic codepoint ranges.
 
 ## SendInput vs keybd_event
 
@@ -51,7 +52,7 @@
 ## Error Handling
 
 - WinRT callbacks and timer handlers must have top-level exception guards. Unhandled exceptions in these contexts crash the COM server.
-- Do not swallow exceptions silently.
+- Do not swallow exceptions silently. At minimum log with `Debug.WriteLine($"Context failed: {ex.GetType().Name}: {ex.Message}")`.
 - Retain WinRT source objects (battery, network, SMTC) as instance fields for process lifetime. Short-lived WinRT wrappers that are GC'd while the OS-side object is active cause `AccessViolationException` in `WinRT.IObjectReference.Finalize`.
 - Unsubscribe all WinRT events and cancel timers in `Dispose`.
 
@@ -72,6 +73,130 @@
 - `BUGS.md` — active issues. Add on discovery, resolve when fixed.
 - `ROADMAP.md` — planned work. Update as features are completed or reprioritized.
 - Update the smallest relevant doc when something changes — do not leave stale docs.
+
+---
+
+## SDK Async Rules (Critical)
+
+### GetItems() must never block
+
+`GetItems()` is called synchronously on the COM apartment thread. Blocking it freezes the entire Command Palette UI — no input, no rendering, no dismiss — for the duration of the block.
+
+**Do not do this:**
+```csharp
+public override IListItem[] GetItems()
+{
+    _result = _service.DoWorkAsync().GetAwaiter().GetResult(); // BLOCKS COM THREAD
+    return [...];
+}
+```
+
+**Correct pattern — lazy async start on first call:**
+```csharp
+private int _started; // Interlocked flag
+
+public MyResultPage(...) { IsLoading = true; }
+
+public override IListItem[] GetItems()
+{
+    if (Interlocked.Exchange(ref _started, 1) == 0)
+        _ = Task.Run(RunAsync);                // fires once, on first call
+
+    if (_result == null && _errorMessage == null)
+        return [/* loading placeholder */];
+
+    // return real items
+}
+
+private async Task RunAsync()
+{
+    try   { _result = await _service.DoWorkAsync(); }
+    catch (Exception ex) { _errorMessage = ex.Message; }
+    finally { IsLoading = false; RaiseItemsChanged(); }
+}
+```
+
+Use `Interlocked.Exchange` instead of starting work in the constructor. The input page creates result pages every keystroke — starting in the constructor would fire an AI call for every character the user types. The page is only navigated to when the user presses Enter, which is when `GetItems()` is first called.
+
+### Invoke() must also not block long-running AI
+
+`Invoke()` runs on the COM thread. For quick operations (file open, clipboard write, system call) blocking is fine. For AI calls or batch file operations, fire-and-forget with `Task.Run`:
+
+```csharp
+public override CommandResult Invoke()
+{
+    _ = Task.Run(DoWorkAsync);
+    return CommandResult.ShowToast("Working in background…");
+}
+```
+
+If you need to show a result, convert the command to a `ListPage` instead (see Result Page Pattern below).
+
+### Result Page Pattern (for async operations that show output)
+
+When an operation takes long and needs to display results, model it as a `ListPage`, not an `InvokableCommand`. The page becomes the command of the list item:
+
+```csharp
+// In the list page that offers the action:
+new ListItem(new MyResultPage(input)) { Title = "Run Operation" }
+
+// MyResultPage:
+internal sealed partial class MyResultPage : ListPage
+{
+    private int _started;
+    private string? _result;
+
+    public MyResultPage(string input) { IsLoading = true; /* store input */ }
+
+    public override IListItem[] GetItems()
+    {
+        if (Interlocked.Exchange(ref _started, 1) == 0)
+            _ = Task.Run(RunAsync);
+        return _result == null ? [LoadingItem] : [ResultItem(_result)];
+    }
+
+    private async Task RunAsync()
+    {
+        _result = await _service.ProcessAsync(input);
+        IsLoading = false;
+        RaiseItemsChanged();
+    }
+}
+```
+
+The result page is created at list-render time (when the list page's `GetItems()` runs) but the async work only starts when the user navigates to the result page (first `GetItems()` call on that page). This is safe because the input page rebuilds its items on each keystroke.
+
+### FallbackCommands() must return null, not empty array
+
+```csharp
+private IFallbackCommandItem[]? _fallbackCommands;  // null until loaded
+
+private async Task InitializeFallbackCommandsAsync()
+{
+    _fallbackCommands = [/* ... */];
+    RaiseItemsChanged();
+}
+
+public override IFallbackCommandItem[]? FallbackCommands() => _fallbackCommands;
+```
+
+Never initialize to `[]`. `null` = no fallbacks. `[]` = fallback system exists but is empty, which can confuse host-side allocation.
+
+### RaiseItemsChanged() in ContentPage
+
+`ContentPage.GetContent()` is only re-called when the SDK is told content changed. Subscribe to the relevant change event and call `RaiseItemsChanged()`:
+
+```csharp
+public MySettingsPage(SettingsManager mgr)
+{
+    _mgr = mgr;
+    _mgr.Settings.SettingsChanged += OnSettingsChanged;
+}
+
+public override IContent[] GetContent() => _mgr.Settings.ToContent();
+
+private void OnSettingsChanged(object sender, Settings args) => RaiseItemsChanged();
+```
 
 ---
 
@@ -231,6 +356,23 @@ Keep commonly reused glyphs in a visual helper class such as `AwakeVisuals` inst
 | `E839` | Ethernet |
 | `EEA1` | CPU chip |
 
+### Icon lookup tables for ranged codepoints
+
+When icons span a contiguous codepoint range (e.g., battery levels EBA0–EBAA), pre-build a `static readonly IconInfo[]` in a `static` constructor rather than constructing icons dynamically per tick:
+
+```csharp
+private static readonly IconInfo[] _batteryIcons;
+
+static MyPage()
+{
+    _batteryIcons = new IconInfo[11];
+    for (int i = 0; i <= 10; i++)
+        _batteryIcons[i] = new IconInfo(((char)(0xEBA0 + i)).ToString());
+}
+```
+
+This follows the `\uXXXX`-via-code convention (no pasted glyphs) while eliminating per-tick allocations.
+
 ---
 
 ## Services
@@ -244,3 +386,4 @@ Keep commonly reused glyphs in a visual helper class such as `AwakeVisuals` inst
   - Ring buffer of 3 slots gives a 15 s window.
   - `private readonly object _lock = new();` guards the buffer.
   - `IsCalculating` is `true` until the first sample lands.
+- AI services (`ImageDescriptionGenerator`, `LanguageModel`) must expose `async Task<T>` methods. Callers must `await` them — never `.GetAwaiter().GetResult()`. If the call site is `Invoke()` or `GetItems()`, use the async patterns documented above.

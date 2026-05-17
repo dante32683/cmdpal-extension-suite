@@ -47,6 +47,14 @@ The NPU projects are the migration target for tools previously built elsewhere, 
 
 ## Key Gotchas
 
+### GetItems() and Invoke() Must Not Block
+
+`GetItems()` is called on the COM apartment thread. Blocking it — including with `.GetAwaiter().GetResult()` on async AI operations — freezes the entire Command Palette UI for the duration of the block. For AI model calls this is 3–15 seconds of a completely unresponsive palette.
+
+Use the lazy async pattern: fire `Task.Run` on first `GetItems()` call via `Interlocked.Exchange`, return a placeholder immediately, call `RaiseItemsChanged()` when the task completes. See `CONVENTIONS.md § SDK Async Rules` for the full pattern with code.
+
+`Invoke()` has the same constraint for long-running work: use fire-and-forget with `Task.Run` or convert the command to a `ListPage` (the Result Page Pattern) when results need to be displayed.
+
 ### Build, Deploy, Reload
 
 `dotnet build` does not register an extension with Windows. After changing an extension, build it, register its generated `AppxManifest.xml`, then run "Reload Command Palette extensions" in PowerToys.
