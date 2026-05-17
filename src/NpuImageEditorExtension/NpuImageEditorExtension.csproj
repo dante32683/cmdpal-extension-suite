@@ -22,11 +22,12 @@
     <PackageReference Include="Microsoft.CommandPalette.Extensions" />
     <PackageReference Include="Microsoft.Windows.CsWinRT" />
     <PackageReference Include="Shmuelie.WinRTServer" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.MSIX"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets></PackageReference>
     <ProjectReference Include="..\NpuTools.Shared\NpuTools.Shared.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'"><HasPackageAndPublishMenu>true</HasPackageAndPublishMenu></PropertyGroup>
-  <PropertyGroup><PublishSingleFile>true</PublishSingleFile><IsAotCompatible>true</IsAotCompatible><CsWinRTAotOptimizerEnabled>true</CsWinRTAotOptimizerEnabled><CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel><WarningsNotAsErrors>IL2081;$(WarningsNotAsErrors)</WarningsNotAsErrors><ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors></PropertyGroup>
+  <PropertyGroup><PublishSingleFile>false</PublishSingleFile><IsAotCompatible>true</IsAotCompatible><CsWinRTAotOptimizerEnabled>true</CsWinRTAotOptimizerEnabled><CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel><WarningsNotAsErrors>IL2081;$(WarningsNotAsErrors)</WarningsNotAsErrors><ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors></PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'"><PublishTrimmed>false</PublishTrimmed><EnableTrimAnalyzer>true</EnableTrimAnalyzer><EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer><EnableAotAnalyzer>true</EnableAotAnalyzer></PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'!='Debug'"><PublishTrimmed>true</PublishTrimmed><ILLinkTreatWarningsAsErrors>false</ILLinkTreatWarningsAsErrors></PropertyGroup>
 </Project>
