@@ -8,6 +8,10 @@ namespace TimeDateDockExtension.Pages;
 
 internal sealed partial class TimeDateExtensionPage : ListPage
 {
+    private static readonly IconInfo TimeIcon = TimeDockPage.AddBandIcon;
+    private static readonly IconInfo DateIcon = DateDockPage.AddBandIcon;
+    private static readonly IconInfo SettingsIcon = new("\uE713");
+
     private readonly SettingsManager _settingsManager;
     private readonly NotificationCenterService _notificationCenter;
 
@@ -16,7 +20,7 @@ internal sealed partial class TimeDateExtensionPage : ListPage
         _settingsManager = settingsManager;
         _notificationCenter = notificationCenter;
         Id = "com.dziad.timedatedockextension.main";
-        Icon = new IconInfo("\uE916");
+        Icon = TimeIcon;
         Title = "Time Date Dock";
         Name = "Open";
     }
@@ -35,7 +39,7 @@ internal sealed partial class TimeDateExtensionPage : ListPage
             {
                 Title = TimeDateFormatService.FormatTime(now, _settingsManager),
                 Subtitle = $"Time format: {TimeDateFormatService.TimeFormat(_settingsManager)}",
-                Icon = new IconInfo("\uE916"),
+                Icon = TimeIcon,
             },
             new ListItem(new NotificationCenterCommand(
                 "com.dziad.timedatedockextension.preview.date",
@@ -45,13 +49,13 @@ internal sealed partial class TimeDateExtensionPage : ListPage
             {
                 Title = TimeDateFormatService.FormatDate(now, _settingsManager),
                 Subtitle = $"Date format: {TimeDateFormatService.DateFormat(_settingsManager)}",
-                Icon = new IconInfo("\uE787"),
+                Icon = DateIcon,
             },
             new ListItem(new SettingsPage(_settingsManager))
             {
                 Title = "Settings",
                 Subtitle = "Configure the time and date dock formats",
-                Icon = new IconInfo("\uE713"),
+                Icon = SettingsIcon,
             },
         ];
     }

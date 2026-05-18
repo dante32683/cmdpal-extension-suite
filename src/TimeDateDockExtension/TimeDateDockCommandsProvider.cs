@@ -9,7 +9,8 @@ public sealed partial class TimeDateDockCommandsProvider : CommandProvider, Syst
 {
     private readonly SettingsManager _settingsManager = new();
     private readonly NotificationCenterService _notificationCenter = new();
-    private readonly TimeDateDockPage _dockPage;
+    private readonly TimeDockPage _timeDockPage;
+    private readonly DateDockPage _dateDockPage;
     private readonly ICommandItem[] _commands;
     private readonly ICommandItem[] _dockBands;
 
@@ -20,7 +21,8 @@ public sealed partial class TimeDateDockCommandsProvider : CommandProvider, Syst
         Icon = new IconInfo("\uE916");
         Settings = _settingsManager.Settings;
 
-        _dockPage = new TimeDateDockPage(_settingsManager, _notificationCenter);
+        _timeDockPage = new TimeDockPage(_settingsManager, _notificationCenter);
+        _dateDockPage = new DateDockPage(_settingsManager, _notificationCenter);
         _commands =
         [
             new CommandItem(new TimeDateExtensionPage(_settingsManager, _notificationCenter))
@@ -32,9 +34,15 @@ public sealed partial class TimeDateDockCommandsProvider : CommandProvider, Syst
 
         _dockBands =
         [
-            new CommandItem(_dockPage)
+            new CommandItem(_timeDockPage)
             {
-                Title = "Time Date Dock",
+                Title = "Time",
+                Icon = TimeDockPage.AddBandIcon,
+            },
+            new CommandItem(_dateDockPage)
+            {
+                Title = "Date",
+                Icon = DateDockPage.AddBandIcon,
             },
         ];
     }
@@ -46,7 +54,8 @@ public sealed partial class TimeDateDockCommandsProvider : CommandProvider, Syst
     public override void Dispose()
     {
         base.Dispose();
-        _dockPage.Dispose();
+        _timeDockPage.Dispose();
+        _dateDockPage.Dispose();
         _notificationCenter.Dispose();
     }
 }
