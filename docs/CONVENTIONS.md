@@ -441,6 +441,8 @@ For image-first search results, use the actual image file as the row icon (`new 
 
 Use `Details.Metadata` for all labeled facts around image previews. Put OCR text, AI description, type, indexed time, copied time, source application, and file path in metadata rows instead of mixing labels and fenced code blocks in `Details.Body`. Prefer the host-style labels `Type`, `Description`, `OCR`, `Indexed`, `Copied`, `Source`, and `Path`; use `Path`, not `File`, for filesystem locations so local extensions match built-in app search details. Do not render OCR as a markdown code block when it is metadata for an image preview — the description and OCR should have the same visual treatment.
 
+Clipboard history follows the same details split. Use `Details.Body` only for the primary payload preview: fitted image markdown for images, or a fenced text block when the clipboard payload itself is text. Put file paths, image OCR, copied time, source application, and type in `Details.Metadata`; file clipboard entries should expose each filesystem location as a `Path` metadata row instead of rendering paths as a fenced body block.
+
 ### NPU models used
 
 | Model | API | What it produces |
