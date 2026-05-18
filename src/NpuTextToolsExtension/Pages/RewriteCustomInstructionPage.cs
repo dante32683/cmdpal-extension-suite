@@ -18,7 +18,7 @@ internal sealed partial class RewriteCustomInstructionPage : DynamicListPage
     {
         _service        = service;
         Id              = "com.local.nputools.texttools.custom.instruction";
-        Title           = "Custom Rewrite — Instruction";
+        Title           = "Custom Rewrite: Instruction";
         Name            = "Custom Rewrite";
         Icon            = TextToolsVisuals.Phi;
         PlaceholderText = "Enter your rewrite instruction…";

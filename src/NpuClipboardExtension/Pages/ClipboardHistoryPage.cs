@@ -7,6 +7,7 @@ using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Clipboard.Commands;
 using NpuTools.Clipboard.Services;
 using NpuTools.Clipboard.Data;
+using static NpuTools.Clipboard.KeyChords;
 
 namespace NpuTools.Clipboard.Pages;
 
@@ -99,15 +100,15 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             Tags = BuildTags(entry),
             MoreCommands =
             [
-                new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id)) { Icon = ClipboardVisuals.Copy },
-                new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id)) { Icon = ClipboardVisuals.Paste },
-                new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true)) { Icon = ClipboardVisuals.Text },
-                new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true)) { Icon = ClipboardVisuals.Text },
+                new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id))                          { Icon = ClipboardVisuals.Copy,   RequestedShortcut = Copy       },
+                new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id))                         { Icon = ClipboardVisuals.Paste,  RequestedShortcut = Paste      },
+                new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))    { Icon = ClipboardVisuals.Text,   RequestedShortcut = PastePlain },
+                new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))     { Icon = ClipboardVisuals.Text,   RequestedShortcut = CopyPlain  },
                 new Separator(),
-                new CommandContextItem(new RenameEntryPage(_store, entry.Id, entry.DisplayName)) { Icon = ClipboardVisuals.Rename },
-                new CommandContextItem(new PinEntryCommand(_store, entry.Id, !entry.IsPinned)) { Icon = ClipboardVisuals.Pin },
+                new CommandContextItem(new RenameEntryPage(_store, entry.Id, entry.DisplayName))                             { Icon = ClipboardVisuals.Rename, RequestedShortcut = Rename     },
+                new CommandContextItem(new PinEntryCommand(_store, entry.Id, !entry.IsPinned))                               { Icon = ClipboardVisuals.Pin,    RequestedShortcut = Pin        },
                 new Separator(),
-                new CommandContextItem(new DeleteEntryCommand(_store, entry.Id)) { Icon = ClipboardVisuals.Delete, IsCritical = true },
+                new CommandContextItem(new DeleteEntryCommand(_store, entry.Id))                                             { Icon = ClipboardVisuals.Delete, RequestedShortcut = Delete, IsCritical = true },
             ],
         };
 

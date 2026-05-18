@@ -19,7 +19,7 @@ public partial class ActionCenterExtensionCommandsProvider : CommandProvider
         Settings = _settingsManager.Settings;
 
         _commands = [
-            new CommandItem(new ActionCenterExtensionPage(_settingsManager)) { Title = DisplayName, Icon = Icon },
+            new CommandItem(new ActionCenterExtensionPage(_settingsManager)) { Title = DisplayName, Subtitle = "Open Action Center settings and dock controls", Icon = Icon },
         ];
 
         var quickSettings = new QuickSettingsCommand(_settingsManager);
