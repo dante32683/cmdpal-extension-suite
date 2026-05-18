@@ -19,11 +19,11 @@ The repo-level docs are the authoritative standards for all extensions in this w
 - `src/TimeDateDockExtension` - configurable time/date dock buttons that open Notification Center.
 - `src/MediaControlsExtension` - media playback dock controls with compact dock fixes.
 - `src/SimpleAnalyticsExtension` - battery, Wi-Fi, CPU, and lightweight system analytics dock extension.
-- `src/NpuAwakeExtension` - implemented NPU Awake extension.
-- `src/NpuOrganizeExtension` - NPU Organize shell.
-- `src/NpuImageEditorExtension` - NPU image tools shell.
-- `src/NpuTextToolsExtension` - NPU text tools shell.
-- `src/NpuClipboardExtension` - NPU clipboard history, search, and recorder controls.
+- `src/NpuAwakeExtension` - NPU Awake: toggle, schedules, Smart Awake, daemon.
+- `src/NpuOrganizeExtension` - NPU Organize: AI screenshot rename, content-indexed search, watcher daemon.
+- `src/NpuImageEditorExtension` - NPU Image Editor: OCR, background removal, upscale.
+- `src/NpuTextToolsExtension` - NPU Text Tools: six AI rewrite modes via Phi.
+- `src/NpuClipboardExtension` - NPU Clipboard: history, search, recorder controls.
 - `src/NpuNotesExtension` - NPU notes shell.
 - `src/NpuDevToolboxExtension` - NPU developer toolbox shell.
 - `src/NPUToolsExtension` - original scaffold retained only as a temporary reference.
