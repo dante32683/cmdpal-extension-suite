@@ -12,6 +12,7 @@
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)'=='' and '$(Platform)'=='ARM64'">win-arm64</RuntimeIdentifier>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="..\NpuTools.Shared\Assets\*.png" Link="Assets\%(Filename)%(Extension)" />

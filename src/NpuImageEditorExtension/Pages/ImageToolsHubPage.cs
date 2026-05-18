@@ -6,8 +6,11 @@ namespace NpuTools.ImageEditor.Pages;
 
 internal sealed partial class ImageToolsHubPage : ListPage
 {
-    public ImageToolsHubPage()
+    private readonly ImageEditorSettingsManager _settings;
+
+    public ImageToolsHubPage(ImageEditorSettingsManager settings)
     {
+        _settings = settings;
         Id    = "com.local.nputools.imageeditor.hub";
         Title = "Image Editor";
         Name  = "Open";
@@ -16,22 +19,24 @@ internal sealed partial class ImageToolsHubPage : ListPage
 
     public override IListItem[] GetItems()
     {
-        var ops = new List<(ImageOperation Op, string Subtitle)>
+        var ops = new List<(ImageOperation Op, int Scale, string Subtitle)>
         {
-            (ImageOperation.RemoveBackground, "Isolate subject using Windows AI"),
-            (ImageOperation.SuperResolution,  "Upscale 2x using Windows AI"),
-            (ImageOperation.Ocr,              "Extract text from any image"),
+            (ImageOperation.RemoveBackground, 1,  "Isolate subject automatically using Windows AI"),
+            (ImageOperation.SuperResolution,  2,  "Upscale 2× using Windows AI"),
+            (ImageOperation.SuperResolution,  4,  "Upscale 4× using Windows AI"),
+            (ImageOperation.SuperResolution,  8,  "Upscale 8× using Windows AI"),
+            (ImageOperation.Ocr,              1,  "Extract visible text from any image"),
         };
 
         var items = new List<IListItem>(ops.Count);
-        foreach (var (op, subtitle) in ops)
+        foreach (var (op, scale, subtitle) in ops)
         {
-            items.Add(new ListItem(new ImageInputPage(op))
+            items.Add(new ListItem(new ImageInputPage(op, scale, _settings))
             {
-                Title    = ImageInputPage.OperationLabel(op),
+                Title    = ImageInputPage.OperationLabel(op, scale),
                 Subtitle = subtitle,
                 Icon     = ImageInputPage.OperationIcon(op),
-                Tags     = [ImageEditorVisuals.MutedTag("paste path")],
+                Tags     = [ImageEditorVisuals.MutedTag("browse or paste path")],
             });
         }
 
