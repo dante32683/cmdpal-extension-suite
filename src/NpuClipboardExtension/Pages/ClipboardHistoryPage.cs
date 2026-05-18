@@ -146,7 +146,7 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
     private static string BuildDetails(ClipboardEntry entry)
     {
         if (entry.Kind == ClipboardEntryKind.Files)
-            return "```text\n" + string.Join(Environment.NewLine, entry.FilePaths) + "\n```";
+            return string.Empty;
         if (!string.IsNullOrWhiteSpace(entry.ImagePath))
         {
             return BuildImageMarkdown(entry.ImagePath);
@@ -166,6 +166,10 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             AddTextMetadata(metadata, "OCR", entry.OcrText);
             AddTextMetadata(metadata, "Path", entry.ImagePath);
         }
+        else if (entry.Kind == ClipboardEntryKind.Files)
+        {
+            AddPathMetadata(metadata, entry.FilePaths);
+        }
 
         metadata.Add(new DetailsElement { Key = "Copied", Data = new DetailsLink(entry.CreatedAt.ToString("g", CultureInfo.CurrentCulture)) });
         metadata.Add(new DetailsElement { Key = "Source", Data = new DetailsLink(entry.SourceApplication ?? "unknown") });
@@ -179,6 +183,12 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             return;
 
         metadata.Add(new DetailsElement { Key = key, Data = new DetailsLink(value.Trim()) });
+    }
+
+    private static void AddPathMetadata(List<IDetailsElement> metadata, IReadOnlyList<string> paths)
+    {
+        foreach (string path in paths)
+            AddTextMetadata(metadata, "Path", path);
     }
 
     private static string BuildImageMarkdown(string? imagePath)
