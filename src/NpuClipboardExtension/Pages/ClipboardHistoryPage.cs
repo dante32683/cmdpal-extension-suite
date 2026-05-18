@@ -75,7 +75,6 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
                 {
                     Title = FormatGroupTitle(entry.CreatedAt),
                     Subtitle = "Grouped by clipboard activity burst",
-                    Icon = ClipboardVisuals.Search,
                     Tags = [ClipboardVisuals.MutedTag("group")],
                 });
             }
@@ -116,6 +115,7 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         {
             Title = DetailsTitle(entry),
             Body = BuildDetails(entry),
+            Size = ContentSize.Small,
             Metadata =
             [
                 new DetailsElement { Key = "Type", Data = new DetailsLink(entry.Kind.ToString()) },
@@ -153,8 +153,22 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         if (entry.Kind == ClipboardEntryKind.Files)
             return "```text\n" + string.Join(Environment.NewLine, entry.FilePaths) + "\n```";
         if (!string.IsNullOrWhiteSpace(entry.ImagePath))
-            return string.IsNullOrWhiteSpace(entry.OcrText) ? string.Empty : "OCR:\n```text\n" + entry.OcrText + "\n```";
+        {
+            string image = BuildImageMarkdown(entry.ImagePath);
+            string ocr = string.IsNullOrWhiteSpace(entry.OcrText)
+                ? string.Empty
+                : "OCR:\n```text\n" + entry.OcrText.Trim() + "\n```";
+            return string.IsNullOrWhiteSpace(ocr) ? image : image + "\n\n" + ocr;
+        }
         return "```text\n" + (entry.Text ?? entry.OcrText ?? entry.DisplayName) + "\n```";
+    }
+
+    private static string BuildImageMarkdown(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
+            return string.Empty;
+
+        return "![](<" + new Uri(imagePath).AbsoluteUri + ">)";
     }
 
     private static Tag[] BuildTags(ClipboardEntry entry)
