@@ -84,6 +84,8 @@ Current extension process names:
 - `NpuOrganizeExtension`
 - `NpuImageEditorExtension`
 - `NpuTextToolsExtension`
+- `NpuClipboardExtension`
+- `NpuClipboardKeeper`
 - `NpuNotesExtension`
 - `NpuDevToolboxExtension`
 
