@@ -2,7 +2,33 @@
 
 This is the active issue ledger for the monorepo.
 
-No open bugs filed.
+## Open
+
+### BUG-007: InvalidCastException in RemoveBackground Gray8 compositing
+
+Extension: NpuImageEditorExtension  
+Severity: High — Remove Background operation always fails  
+Discovered: 2026-05-18
+
+`RemoveBackgroundAsync` throws `InvalidCastException: Invalid cast from 'WinRT.IInspectable' to 'NpuTools.ImageEditor.Interop.IMemoryBufferByteAccess'` when trying to lock the SoftwareBitmap buffers for Gray8 mask compositing.
+
+The `IMemoryBufferByteAccess` COM interop interface is defined in `Interop/IMemoryBufferByteAccess.cs` with the standard `[ComImport]` / `[Guid]` / `[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]` pattern. The cast from the buffer reference to the interface is failing at runtime under the WinRT/CsWinRT projection used by the experimental7 SDK.
+
+Likely cause: CsWinRT 2.x projects the `IMemoryBufferReference` to a WinRT-projected type that does not support direct `[ComImport]` interface casting. The raw COM query approach may need to be replaced with the CsWinRT-compatible `IMemoryBufferByteAccess` pattern (e.g., using `Marshal.GetComInterfaceForObject` / `Marshal.Release` or the CsWinRT `As<T>` interop helper).
+
+Do not attempt to debug until after sleeping. See `Services/ImageEditorService.cs :: ApplyGray8MaskAsAlpha`.
+
+### BUG-008: NpuOrganize screenshot renamer producing "screenshot" slug instead of AI description
+
+Extension: NpuOrganizeExtension  
+Severity: Medium — rename produces non-descriptive output, not broken  
+Discovered: 2026-05-18
+
+The OrganizeKeeper screenshot watcher is renaming new screenshots to a generic "screenshot" slug rather than running the `ImageDescriptionGenerator` AI pipeline to produce a meaningful slug. This regression was noticed during the image editor work session. The previous behavior was correct AI-generated slugs.
+
+Possible causes: `ImageDescriptionGenerator.GetReadyState()` returning a non-ready state that is now silently falling back to a default slug; or the SDK upgrade to `2.0.0-experimental7` changed runtime behavior of `ImageDescriptionGenerator`; or a code path change introduced a fallback that short-circuits the AI call.
+
+Do not debug now. See `NpuOrganizeKeeper/Watcher.cs` and `NpuOrganizeExtension/Services/AiNamingService.cs`.
 
 ## Resolved
 
