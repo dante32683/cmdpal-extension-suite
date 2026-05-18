@@ -28,6 +28,7 @@ public sealed partial class TimeDateDockCommandsProvider : CommandProvider, Syst
             new CommandItem(new TimeDateExtensionPage(_settingsManager, _notificationCenter))
             {
                 Title = DisplayName,
+                Subtitle = "Configure time and date dock button format and appearance",
                 Icon = Icon,
             },
         ];

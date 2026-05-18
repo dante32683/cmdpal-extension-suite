@@ -14,10 +14,10 @@ internal sealed partial class NpuImageEditorCommandsProvider : CommandProvider
         DisplayName = "NPU Image Editor";
         Icon        = ImageEditorVisuals.Camera;
 
-        var hub    = new ListItem(new ImageToolsHubPage()) { Title = "Image Editor", Icon = ImageEditorVisuals.Camera };
-        var rmbg   = new ListItem(new ImageInputPage(ImageOperation.RemoveBackground)) { Title = "Remove Background", Icon = ImageEditorVisuals.Eraser };
-        var upscale = new ListItem(new ImageInputPage(ImageOperation.SuperResolution)) { Title = "Super Resolution",  Icon = ImageEditorVisuals.Scale  };
-        var ocr    = new ListItem(new ImageInputPage(ImageOperation.Ocr))              { Title = "OCR — Extract Text", Icon = ImageEditorVisuals.Ocr    };
+        var hub     = new ListItem(new ImageToolsHubPage())                              { Title = "Image Editor",      Subtitle = "AI-powered image processing tools",       Icon = ImageEditorVisuals.Camera  };
+        var rmbg    = new ListItem(new ImageInputPage(ImageOperation.RemoveBackground)) { Title = "Remove Background", Subtitle = "Remove image background using AI",          Icon = ImageEditorVisuals.Eraser  };
+        var upscale = new ListItem(new ImageInputPage(ImageOperation.SuperResolution))  { Title = "Super Resolution",  Subtitle = "Upscale an image to 2x resolution",         Icon = ImageEditorVisuals.Scale   };
+        var ocr     = new ListItem(new ImageInputPage(ImageOperation.Ocr))              { Title = "OCR: Extract Text", Subtitle = "Extract visible text from an image",        Icon = ImageEditorVisuals.Ocr     };
 
         _commands = [hub, rmbg, upscale, ocr];
     }

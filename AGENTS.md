@@ -55,3 +55,14 @@ Look for: `Loaded N command(s) and M band(s) from [ExtensionName]` — N must ma
 **5. Test AI features one file at a time.** Features using `ImageDescriptionGenerator`, `OcrEngine`, or `LanguageModel` cannot be unit-tested outside the MSIX+COM host. Trigger the pipeline on one file first and verify the result before running any bulk operation.
 
 **6. Update the docs.** When you establish a new pattern or discover something non-obvious, update the smallest relevant doc in the same session. The docs are the persistent memory across agent sessions.
+
+## Optional Gemini Helper
+Gemini CLI is available through `tools/gemini-subagent.ps1` for bounded advisory work. Use it when the user asks for Gemini, a cheap side review, or a second-pass analysis that does not need direct Codex subagent integration.
+
+Default invocation:
+
+```powershell
+.\tools\gemini-subagent.ps1 -Mode Review -Prompt "Review the current git diff for likely bugs. Return only concrete findings."
+```
+
+Treat Gemini output as advisory only. Verify claims locally before changing code, and keep prompts scoped to the files or diff needed for the task.
