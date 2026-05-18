@@ -205,7 +205,7 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
 
         List<IListItem> items = [];
 
-        items.Add(this._bandFirstItem!);
+        items.Add(this._bandFirstItem);
 
         if (this._mediaService.CurrentSource is not null)
         {
