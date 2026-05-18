@@ -24,7 +24,7 @@ internal sealed partial class BatteryPage : ListPage
     public BatteryPage(BatteryService service)
     {
         _service = service;
-        Id = "com.dziad.simpleanalyticsextension.battery";
+        Id = "com.dziad.simpleanalyticsextension.battery.details";
         Icon  = new IconInfo("\uEBA0");
         Title = "Battery";
         Name  = "Battery Details";

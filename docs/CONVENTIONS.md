@@ -41,7 +41,7 @@
 - Do not paste glyph characters directly into source — they can be silently corrupted.
 - The default icon font is Segoe Fluent Icons. Verify codepoints against that font, not Segoe MDL2 Assets (they overlap but are not identical).
 - Use `IconHelpers.FromRelativePath("Assets\\MyIcon.png")` for file-based icons.
-- **Never create `new IconInfo()` inside `GetItems()`, `UpdateSearchText()`, or timer callbacks.** Declare icons as `private static readonly IconInfo` fields or in a `static readonly` lookup table. One allocation at startup, zero per render/tick. See `StatusDockPage` for the lookup-table pattern with programmatic codepoint ranges.
+- **Never create `new IconInfo()` inside `GetItems()`, `UpdateSearchText()`, or timer callbacks.** Declare icons as `private static readonly IconInfo` fields or in a `static readonly` lookup table. One allocation at startup, zero per render/tick. See `BatteryDockPage` for the lookup-table pattern with programmatic codepoint ranges.
 
 ## SendInput vs keybd_event
 
@@ -235,6 +235,7 @@ private void OnSettingsChanged(object sender, Settings args) => RaiseItemsChange
 ## UX: Dock Band
 
 - Prefer returning **one** `CommandItem` wrapping a single `ListPage` from `GetDockBands()`. The dock renders each `ListItem` inside it as a separate strip button. A single-button band can still use a one-row page.
+- Return multiple `CommandItem` bands when users need to add or remove each dock item independently from the Command Palette **Add bands** menu. Each addable band must have a clear `Title`, stable `Id`, and obvious `Icon` on the returned `CommandItem`.
 - Dock buttons that open a detail view wrap a `ListPage` as their command — clicking navigates automatically. Do not use `GoToPage` / `GoToPageArgs`.
 - Display-only items use `NoOpCommand`.
 - `GetItems()` is **dynamic** — filter by settings and current state at call time so toggling a setting or changing state hides/shows buttons immediately without a restart.
