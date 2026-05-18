@@ -71,6 +71,18 @@ Fix:
   Exceptions are logged with `Debug.WriteLine` including type and path.
 - `RenameSingleCommand` updated to fire-and-forget with `Task.Run`.
 
+### BUG-006: Media Controls package identity colliding with upstream package (fixed 2026-05)
+
+Extension: MediaControlsExtension
+
+The local media controls port used the generic MSIX identity `MediaControlsExtension`.
+On machines that also had another user's unpackaged copy registered under the same
+identity, `Add-AppxPackage -Register` failed with `0x80073D19` before the current
+user could deploy local builds.
+
+Fix: changed the package identity to `Dziad.MediaControlsExtension` while preserving
+the extension provider ID and command IDs.
+
 ---
 
 ## Known Risks

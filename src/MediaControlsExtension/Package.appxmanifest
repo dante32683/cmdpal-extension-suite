@@ -10,7 +10,7 @@
   IgnorableNamespaces="uap uap3 rescap">
 
   <Identity
-    Name="MediaControlsExtension"
+    Name="Dziad.MediaControlsExtension"
     Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
     Version="0.10.0.1" />
 
