@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Organize.Models;
@@ -103,25 +102,37 @@ internal sealed partial class ScreenshotSearchPage : DynamicListPage
 
     private static Details BuildDetails(ScreenshotIndexEntry entry, string name)
     {
-        string image = BuildImageMarkdown(entry.FilePath);
-        string description = string.IsNullOrWhiteSpace(entry.Description)
-            ? string.Empty
-            : "Description:\n" + entry.Description.Trim();
-        string ocr = string.IsNullOrWhiteSpace(entry.OcrText)
-            ? string.Empty
-            : "OCR:\n```text\n" + entry.OcrText.Trim() + "\n```";
-
         return new Details
         {
             Title = name,
-            Body = string.Join("\n\n", new[] { image, description, ocr }.Where(static part => !string.IsNullOrWhiteSpace(part))),
+            Body = BuildImageMarkdown(entry.FilePath),
             Size = ContentSize.Small,
-            Metadata =
-            [
-                new DetailsElement { Key = "Indexed", Data = new DetailsLink(entry.IndexedAt.ToString("g", CultureInfo.CurrentCulture)) },
-                new DetailsElement { Key = "File", Data = new DetailsLink(entry.FilePath) },
-            ],
+            Metadata = BuildDetailsMetadata(entry),
         };
+    }
+
+    private static IDetailsElement[] BuildDetailsMetadata(ScreenshotIndexEntry entry)
+    {
+        var metadata = new List<IDetailsElement>
+        {
+            new DetailsElement { Key = "Type", Data = new DetailsLink("Screenshot") },
+        };
+
+        AddTextMetadata(metadata, "Description", entry.Description);
+        AddTextMetadata(metadata, "OCR", entry.OcrText);
+
+        metadata.Add(new DetailsElement { Key = "Indexed", Data = new DetailsLink(entry.IndexedAt.ToString("g", CultureInfo.CurrentCulture)) });
+        metadata.Add(new DetailsElement { Key = "Path", Data = new DetailsLink(entry.FilePath) });
+
+        return [.. metadata];
+    }
+
+    private static void AddTextMetadata(List<IDetailsElement> metadata, string key, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        metadata.Add(new DetailsElement { Key = key, Data = new DetailsLink(value.Trim()) });
     }
 
     private static string BuildImageMarkdown(string imagePath)

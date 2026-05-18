@@ -437,7 +437,9 @@ Three components work together:
 
 3. **Search page** (`ScreenshotSearchPage` pattern, a `DynamicListPage`) — holds the in-memory index service. `UpdateSearchText` filters the dictionary with `string.Contains` (case-insensitive) across both OCR text and AI description, then calls `RaiseItemsChanged`. Because the index is already in memory, every keystroke resolves in microseconds — no I/O, no AI calls.
 
-For image-first search results, use the actual image file as the row icon (`new IconInfo(filePath)`) and add a `Details` preview with a markdown image at the top of `Body`. Add `?--x-cmdpal-fit=fit` to the image URI so the host downscales the image to the details column instead of clipping it at natural width. Keep `Details.Size = ContentSize.Small` when the preview should occupy the narrower right-side pane; `ContentSize.Large` widens the pane but does not make `HeroImage` fill it.
+For image-first search results, use the actual image file as the row icon (`new IconInfo(filePath)`) and add a `Details` preview with the markdown image as the only image body content. Add `?--x-cmdpal-fit=fit` to the image URI so the host downscales the image to the details column instead of clipping it at natural width. Keep `Details.Size = ContentSize.Small` when the preview should occupy the narrower right-side pane; `ContentSize.Large` widens the pane but does not make `HeroImage` fill it.
+
+Use `Details.Metadata` for all labeled facts around image previews. Put OCR text, AI description, type, indexed time, copied time, source application, and file path in metadata rows instead of mixing labels and fenced code blocks in `Details.Body`. Prefer the host-style labels `Type`, `Description`, `OCR`, `Indexed`, `Copied`, `Source`, and `Path`; use `Path`, not `File`, for filesystem locations so local extensions match built-in app search details. Do not render OCR as a markdown code block when it is metadata for an image preview — the description and OCR should have the same visual treatment.
 
 ### NPU models used
 
