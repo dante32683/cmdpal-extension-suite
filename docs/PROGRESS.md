@@ -12,7 +12,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | SimpleAnalyticsExtension | Shipped | 100% |
 | NpuAwakeExtension | Shipped | 100% |
 | NpuOrganizeExtension | Shipped | ~95% |
-| NpuImageEditorExtension | Shipped (partial) | ~70% |
+| NpuImageEditorExtension | Shipped | ~95% |
 | NpuTextToolsExtension | Shipped (partial) | ~55% |
 | NpuClipboardExtension | Shipped | ~85% |
 | NpuNotesExtension | Shell only | 0% |
@@ -69,19 +69,19 @@ All P0 features shipped. Bonus screenshot search added beyond original scope.
 
 ---
 
-## NPU Image Editor — ~70%
+## NPU Image Editor — ~95%
 
-Core three operations are shipped. Explorer file selection and some settings are not done.
+All planned features shipped. ImageForegroundExtractor for automatic background removal, 2×/4×/8× super resolution, image browser, and settings system.
 
 | Feature | Status |
 |---|---|
 | OCR (copy/save text) | ✅ |
-| Remove background | ✅ |
+| Remove background (ImageForegroundExtractor, automatic) | ✅ |
 | 2× super resolution | ✅ |
-| Manual file input (per-operation) | ✅ |
-| 4× super resolution | ❌ not verified/exposed |
-| Explorer selection service (detect selected files from open windows) | ❌ |
-| Settings page (scale factor, auto-open, OCR auto-open) | partial |
+| 4× super resolution | ✅ |
+| 8× super resolution | ✅ |
+| Image browser (Pictures dir, recency sort, path fallback) | ✅ |
+| Settings (scale factor, auto-open, OCR auto-copy, OCR text file) | ✅ |
 | Make Sticker (WebP subject extraction) | future |
 | Clipboard image input | future |
 
@@ -163,9 +163,7 @@ Future: Commit Message command with Phi generation and `git commit` confirmation
 Roughly in priority order:
 
 1. **Text Tools: selected-text quick rewrite** — biggest P1 gap; needs `TextSelectionHelper` binary added as packaged companion (same keeper pattern as Awake/Organize)
-2. **Image Editor: Explorer selection service** — auto-detect selected files from open Explorer windows
-3. **Image Editor: settings completion** — scale factor, auto-open, OCR auto-open text file
-4. **Notes extension** — full Phase 5 from `RAYCAST_MIGRATION_PLAN.md`
+2. **Notes extension** — full Phase 5 from `RAYCAST_MIGRATION_PLAN.md`
 5. **Dev Toolbox extension** — full Phase 6
 6. **CI: restore/build pipeline** — build validation per push
 7. **Publish: release artifacts** — per-extension MSIX publish flow
