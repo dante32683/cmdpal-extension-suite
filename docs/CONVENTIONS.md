@@ -350,14 +350,14 @@ internal static class KeyChords
 {
     internal static KeyChord Delete { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.Delete);
     internal static KeyChord Copy   { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.C);
-    internal static KeyChord Pin    { get; } = WellKnownKeyChords.TogglePin; // Ctrl+P
+    internal static KeyChord Pin    { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.P); // Ctrl+P
 }
 
 // Usage:
 new CommandContextItem(new DeleteEntryCommand()) { RequestedShortcut = KeyChords.Delete, IsCritical = true }
 ```
 
-Reuse `WellKnownKeyChords` for standard file/system actions. Define extension-specific shortcuts via `KeyChordHelpers.FromModifiers`.
+Define all shortcuts via `KeyChordHelpers.FromModifiers`. `WellKnownKeyChords` does not exist in this SDK version.
 
 ---
 

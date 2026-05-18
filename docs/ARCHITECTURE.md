@@ -12,13 +12,17 @@ This repo targets .NET 9 and `Microsoft.CommandPalette.Extensions` SDK v0.9+. It
 │   ├── TimeDateDockExtension/             # Configurable time/date dock extension
 │   ├── MediaControlsExtension/            # Media playback dock controls
 │   ├── SimpleAnalyticsExtension/          # Battery/Wi-Fi/CPU dock analytics
-│   ├── NpuAwakeExtension/                 # Implemented NPU Awake extension
-│   ├── NpuOrganizeExtension/              # NPU Organize shell
-│   ├── NpuImageEditorExtension/           # NPU image tools shell
-│   ├── NpuTextToolsExtension/             # NPU text tools shell
-│   ├── NpuNotesExtension/                 # NPU notes shell
-│   ├── NpuDevToolboxExtension/            # NPU developer toolbox shell
+│   ├── NpuAwakeExtension/                 # NPU Awake — toggle, schedules, Smart Awake, daemon
+│   ├── NpuOrganizeExtension/              # NPU Organize — AI screenshot rename and search
+│   ├── NpuOrganizeKeeper/                 # Companion watcher daemon for NpuOrganizeExtension
+│   ├── NpuImageEditorExtension/           # NPU Image Editor — OCR, background removal, upscale
+│   ├── NpuTextToolsExtension/             # NPU Text Tools — AI rewrite via Phi
+│   ├── NpuClipboardExtension/             # NPU Clipboard — history, search, recorder controls
+│   ├── NpuClipboardKeeper/                # Companion recorder daemon for NpuClipboardExtension
+│   ├── NpuNotesExtension/                 # NPU Notes shell
+│   ├── NpuDevToolboxExtension/            # NPU Dev Toolbox shell
 │   ├── NpuTools.Shared/                   # Shared NPU helpers
+│   ├── NpuTools.Tests/                    # xunit tests for shared services
 │   └── NPUToolsExtension/                 # Original scaffold, temporary reference
 ├── tools/
 │   └── NpuAwakeKeeper/                    # Companion daemon copied into Awake package output
@@ -27,7 +31,7 @@ This repo targets .NET 9 and `Microsoft.CommandPalette.Extensions` SDK v0.9+. It
 │   └── MediaControlsExtension/            # Ignored upstream reference clone
 ├── Directory.Build.props                  # Shared analyzer/platform defaults
 ├── Directory.Packages.props               # Central package versions
-└── NpuCommandPaletteExtensions.sln         # Monorepo solution
+└── NpuCommandPaletteExtensions.sln        # Monorepo solution
 ```
 
 ## Independent Extension Packages

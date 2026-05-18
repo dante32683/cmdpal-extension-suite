@@ -30,20 +30,24 @@ Each extension process provides the commands, pages, services, and package metad
 
 ## Current Extension Families
 
-### Action Center
+### Dock Extensions
 
-`src/ActionCenterExtension` provides a Quick Settings dock button. It uses `SendInput` to send Win+A and the dock toggle workaround for the Command Palette focus behavior.
+- **ActionCenterExtension** — Quick Settings dock button. Uses `SendInput` (Win+A) and the state-toggle workaround for Command Palette focus behavior.
+- **TimeDateDockExtension** — Individually addable time and date dock buttons. Opens Notification Center on click.
+- **MediaControlsExtension** — Media playback dock controls with now-playing info, volume, and per-session switching.
+- **SimpleAnalyticsExtension** — Battery, Wi-Fi/network, and CPU dock/status analytics with settings-controlled visibility.
 
-### Simple Analytics
+### NPU Tools (implemented)
 
-`src/SimpleAnalyticsExtension` provides compact dock/system analytics: battery, Wi-Fi/network, CPU, and settings-controlled visibility.
+- **NpuAwakeExtension** — Typed workflows, schedules, Smart Awake parsing, status dashboard, `NpuAwakeKeeper` daemon.
+- **NpuOrganizeExtension** — AI screenshot rename (`ImageDescriptionGenerator` → slug), content-indexed search, `NpuOrganizeKeeper` watcher daemon.
+- **NpuImageEditorExtension** — OCR (`OcrEngine`), background removal (`ImageObjectExtractor`), 2× upscale (`ImageScaler`).
+- **NpuTextToolsExtension** — Six AI rewrite modes via Phi `LanguageModel` (grammar, formal, concise, bullets, simplify, custom).
+- **NpuClipboardExtension** — Clipboard history recorder, search, filter by type, copy/paste/pin/delete/rename, `NpuClipboardKeeper` daemon.
 
-### NPU Tools
+### Shell Projects (not yet implemented)
 
-The NPU projects are the migration target for tools previously built elsewhere, including Raycast-style workflows:
-
-- Awake is implemented and includes typed workflows, schedules, a status dashboard, Smart Awake parsing, and the `NpuAwakeKeeper` daemon.
-- Organize, image tools, text tools, notes, and developer toolbox currently exist as packageable shell projects.
+- **NpuNotesExtension**, **NpuDevToolboxExtension**
 
 ## Key Gotchas
 
