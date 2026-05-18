@@ -116,12 +116,7 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             Title = DetailsTitle(entry),
             Body = BuildDetails(entry),
             Size = ContentSize.Small,
-            Metadata =
-            [
-                new DetailsElement { Key = "Type", Data = new DetailsLink(entry.Kind.ToString()) },
-                new DetailsElement { Key = "Copied", Data = new DetailsLink(entry.CreatedAt.ToString("g", CultureInfo.CurrentCulture)) },
-                new DetailsElement { Key = "Source", Data = new DetailsLink(entry.SourceApplication ?? "unknown") },
-            ],
+            Metadata = BuildDetailsMetadata(entry),
         };
         var heroImage = HeroImageFor(entry);
         if (heroImage is not null)
@@ -154,13 +149,36 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             return "```text\n" + string.Join(Environment.NewLine, entry.FilePaths) + "\n```";
         if (!string.IsNullOrWhiteSpace(entry.ImagePath))
         {
-            string image = BuildImageMarkdown(entry.ImagePath);
-            string ocr = string.IsNullOrWhiteSpace(entry.OcrText)
-                ? string.Empty
-                : "OCR:\n```text\n" + entry.OcrText.Trim() + "\n```";
-            return string.IsNullOrWhiteSpace(ocr) ? image : image + "\n\n" + ocr;
+            return BuildImageMarkdown(entry.ImagePath);
         }
         return "```text\n" + (entry.Text ?? entry.OcrText ?? entry.DisplayName) + "\n```";
+    }
+
+    private static IDetailsElement[] BuildDetailsMetadata(ClipboardEntry entry)
+    {
+        var metadata = new List<IDetailsElement>
+        {
+            new DetailsElement { Key = "Type", Data = new DetailsLink(entry.Kind.ToString()) },
+        };
+
+        if (entry.Kind == ClipboardEntryKind.Image)
+        {
+            AddTextMetadata(metadata, "OCR", entry.OcrText);
+            AddTextMetadata(metadata, "Path", entry.ImagePath);
+        }
+
+        metadata.Add(new DetailsElement { Key = "Copied", Data = new DetailsLink(entry.CreatedAt.ToString("g", CultureInfo.CurrentCulture)) });
+        metadata.Add(new DetailsElement { Key = "Source", Data = new DetailsLink(entry.SourceApplication ?? "unknown") });
+
+        return [.. metadata];
+    }
+
+    private static void AddTextMetadata(List<IDetailsElement> metadata, string key, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        metadata.Add(new DetailsElement { Key = key, Data = new DetailsLink(value.Trim()) });
     }
 
     private static string BuildImageMarkdown(string? imagePath)
