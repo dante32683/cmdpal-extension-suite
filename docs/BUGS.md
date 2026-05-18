@@ -35,7 +35,7 @@ called once `InitializeFallbackCommandsAsync` completes.
 Extensions: ActionCenterExtension, SimpleAnalyticsExtension
 
 `ActionCenterExtensionPage.GetItems()` created `new IconInfo("")` on every call.
-`StatusDockPage.RefreshBattery/RefreshWifi` created new `IconInfo` objects on every
+The Simple Analytics dock refresh path created new `IconInfo` objects on every
 timer tick (every 15–30 s). Icons are static values that should be allocated once.
 
 Fix: `static readonly IconInfo` fields for single icons; `static readonly IconInfo[]`

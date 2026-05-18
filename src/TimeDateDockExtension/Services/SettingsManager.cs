@@ -10,17 +10,6 @@ internal sealed class SettingsManager : JsonSettingsManager
     {
         FilePath = SettingsJsonPath();
 
-        Settings.Add(new ToggleSetting("showTime", true)
-        {
-            Label = "Show time dock item",
-            Description = "Show the formatted time as a separate dock button",
-        });
-        Settings.Add(new ToggleSetting("showDate", true)
-        {
-            Label = "Show date dock item",
-            Description = "Show the formatted date as a separate dock button",
-        });
-
         Settings.Add(new ChoiceSetSetting("timeClock", ClockChoices())
         {
             Label = "Time clock",
@@ -72,8 +61,6 @@ internal sealed class SettingsManager : JsonSettingsManager
         Settings.SettingsChanged += (_, _) => SaveSettings();
     }
 
-    public bool ShowTime => Settings.GetSetting<bool>("showTime");
-    public bool ShowDate => Settings.GetSetting<bool>("showDate");
     public bool TimeUses24Hour => GetString("timeClock", "24") == "24";
     public bool TimeLeadingZero => Settings.GetSetting<bool>("timeLeadingZero");
     public bool TimeShowSeconds => Settings.GetSetting<bool>("timeShowSeconds");

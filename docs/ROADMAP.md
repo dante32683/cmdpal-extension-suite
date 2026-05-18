@@ -13,9 +13,9 @@ Status: in progress
 ## Implemented Extensions
 
 - Action Center: Quick Settings dock button with settings-controlled toggle reset.
-- Time Date Dock: separate configurable time and date dock buttons that open Notification Center.
+- Time Date Dock: individually addable configurable time and date dock buttons that open Notification Center.
 - Media Controls Dock: media playback controls with compact dock subtitle suppression and native glyph controls.
-- Simple Analytics: battery, Wi-Fi/network, CPU dock/status views.
+- Simple Analytics: individually addable battery, Wi-Fi/network, and CPU dock/status views.
 - NPU Awake: toggle, timed duration, until local time, schedules, dashboard, Smart Awake, fallback commands, and daemon integration.
 
 ## Implemented Extensions (continued)
