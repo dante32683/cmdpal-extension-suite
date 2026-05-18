@@ -12,6 +12,7 @@ The repo-level docs are the authoritative standards for all extensions in this w
 4. `CONVENTIONS.md` - coding, naming, UX, settings, icons, services, and docs standards.
 5. `BUGS.md` - active issue ledger and known risks.
 6. `ROADMAP.md` - migration status and planned work.
+7. `PROGRESS.md` - feature-level completion status and what to build next.
 
 ## Current Extension Projects
 
