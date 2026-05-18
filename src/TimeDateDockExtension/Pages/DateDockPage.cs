@@ -30,11 +30,10 @@ internal sealed partial class DateDockPage : ListPage, IDisposable
         _dateItem = new ListItem(new NotificationCenterCommand(
             "com.dziad.timedatedockextension.dock.date.open",
             "Open Notification Center",
-            "\uE787",
+            null,
             notificationCenter))
         {
             Title = "Date",
-            Icon = DateIcon,
         };
 
         UpdateItem();
