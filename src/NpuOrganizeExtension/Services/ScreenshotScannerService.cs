@@ -30,6 +30,9 @@ internal sealed class ScreenshotScannerService
                 proposals.Add(new RenameProposal(path, proposed));
         }
 
+        proposals.Sort((a, b) =>
+            File.GetCreationTime(b.OriginalPath).CompareTo(File.GetCreationTime(a.OriginalPath)));
+
         return proposals;
     }
 }
