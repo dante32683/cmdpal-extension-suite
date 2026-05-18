@@ -30,11 +30,10 @@ internal sealed partial class TimeDockPage : ListPage, IDisposable
         _timeItem = new ListItem(new NotificationCenterCommand(
             "com.dziad.timedatedockextension.dock.time.open",
             "Open Notification Center",
-            "\uE916",
+            null,
             notificationCenter))
         {
             Title = "Time",
-            Icon = TimeIcon,
         };
 
         UpdateItem();
