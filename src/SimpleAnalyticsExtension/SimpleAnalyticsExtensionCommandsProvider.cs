@@ -20,7 +20,7 @@ public partial class SimpleAnalyticsExtensionCommandsProvider : CommandProvider
         var cpu     = new CpuService();
 
         _commands = [
-            new CommandItem(new SimpleAnalyticsExtensionPage(battery, network, cpu)) { Title = DisplayName, Icon = Icon },
+            new CommandItem(new SimpleAnalyticsExtensionPage(battery, network, cpu)) { Title = DisplayName, Subtitle = "Battery, Wi-Fi, and CPU dock analytics", Icon = Icon },
         ];
 
         _bands = [

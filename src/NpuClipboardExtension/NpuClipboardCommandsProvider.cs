@@ -33,8 +33,6 @@ internal sealed partial class NpuClipboardCommandsProvider : CommandProvider
                 Icon = ClipboardVisuals.Clipboard,
                 MoreCommands =
                 [
-                    new CommandContextItem(_settingsManager.Settings.SettingsPage),
-                    new Separator(),
                     new CommandContextItem(new Commands.StartStopRecorderCommand()),
                     new Separator(),
                     new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(5), "Last 5 Minutes")) { IsCritical = true },
@@ -52,12 +50,12 @@ internal sealed partial class NpuClipboardCommandsProvider : CommandProvider
                 Subtitle = "Natural-language search over text and image OCR history",
                 Icon = ClipboardVisuals.Search,
             },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Text)) { Title = "Clipboard Text", Icon = ClipboardVisuals.Text },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Image)) { Title = "Clipboard Images", Icon = ClipboardVisuals.Image },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Files)) { Title = "Clipboard Files", Icon = ClipboardVisuals.File },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Link)) { Title = "Clipboard Links", Icon = ClipboardVisuals.Link },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Email)) { Title = "Clipboard Emails", Icon = ClipboardVisuals.Mail },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Color)) { Title = "Clipboard Colors", Icon = ClipboardVisuals.Color },
+            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Text))  { Title = "Clipboard Text",   Subtitle = "Browse and paste saved text entries",         Icon = ClipboardVisuals.Text  },
+            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Image)) { Title = "Clipboard Images", Subtitle = "Browse and paste saved image entries",        Icon = ClipboardVisuals.Image },
+            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Files)) { Title = "Clipboard Files",  Subtitle = "Browse saved file path entries",              Icon = ClipboardVisuals.File  },
+            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Link))  { Title = "Clipboard Links",  Subtitle = "Browse saved URL entries",                    Icon = ClipboardVisuals.Link  },
+            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Email)) { Title = "Clipboard Emails", Subtitle = "Browse saved email address entries",          Icon = ClipboardVisuals.Mail  },
+            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Color)) { Title = "Clipboard Colors", Subtitle = "Browse saved color code entries",             Icon = ClipboardVisuals.Color },
         ];
     }
 
