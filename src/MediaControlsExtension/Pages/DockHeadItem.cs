@@ -97,8 +97,8 @@ internal sealed partial class DockHeadItem : ListItemBase, IDisposable
             else
             {
                 this._primaryMediaCommand.Name = MediaDisplayText.TitleWithArtist(mediaSource);
-                this.Title = string.Empty;
-                this.Subtitle = string.Empty;
+                this.Title = mediaSource.Name ?? string.Empty;
+                this.Subtitle = mediaSource.Artist ?? string.Empty;
 
                 var iconBuildTask = BuildIcon(mediaSource, this._settingsManager.ShowThumbnails);
                 if (this._lastIcon != iconBuildTask && iconBuildTask?.IconInfo != null)

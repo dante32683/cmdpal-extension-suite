@@ -15,6 +15,7 @@ public sealed partial class MediaControlsExtensionCommandsProvider : CommandProv
     private readonly SettingsManager _settingsManager = new();
     private readonly CommandItem _mediaControlsPageItem;
     private readonly CommandItem _nowPlayingItem;
+    private readonly CommandItem _settingsPageItem;
     private ICommandItem[] _commands = [];
     private IFallbackCommandItem[]? _fallbackCommands;
     private readonly ICommandItem[] _bands;
@@ -34,6 +35,7 @@ public sealed partial class MediaControlsExtensionCommandsProvider : CommandProv
         var mediaControlsExtensionPage = new MediaControlsExtensionPage(this._mediaService, this._settingsManager, this._yetAnotherHelper);
         this._mediaControlsPageItem = new(mediaControlsExtensionPage) { Title = this.DisplayName, Subtitle = Strings.MediaControls_Subtitle!, Icon = this.Icon, MoreCommands = [new CommandContextItem(this.Settings.SettingsPage!)] };
         this._nowPlayingItem = new NowPlayingListItem(this._mediaService, this._settingsManager, this._yetAnotherHelper, false);
+        this._settingsPageItem = new(new SettingsPage(this._settingsManager)) { Title = "Media Controls Settings", Subtitle = "Configure controls, thumbnails, and global commands", Icon = new IconInfo("\uE713") };
         var mediaControlsBand = new MediaControlsExtensionPage(this._mediaService, this._settingsManager, this._yetAnotherHelper, true);
         this._bands = [new CommandItem(mediaControlsBand) { Title = Strings.Name!, Icon = this.Icon }];
         this.UpdateTopLevelCommands();
@@ -83,7 +85,9 @@ public sealed partial class MediaControlsExtensionCommandsProvider : CommandProv
 
     private void UpdateTopLevelCommands()
     {
-        this._commands = this._settingsManager.ShowCurrentMediaAtTopLevel ? [this._mediaControlsPageItem, this._nowPlayingItem] : [this._mediaControlsPageItem];
+        this._commands = this._settingsManager.ShowCurrentMediaAtTopLevel
+            ? [this._mediaControlsPageItem, this._nowPlayingItem, this._settingsPageItem]
+            : [this._mediaControlsPageItem, this._settingsPageItem];
         this.RaiseItemsChanged();
     }
 
