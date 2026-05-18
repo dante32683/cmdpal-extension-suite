@@ -437,6 +437,8 @@ Three components work together:
 
 3. **Search page** (`ScreenshotSearchPage` pattern, a `DynamicListPage`) — holds the in-memory index service. `UpdateSearchText` filters the dictionary with `string.Contains` (case-insensitive) across both OCR text and AI description, then calls `RaiseItemsChanged`. Because the index is already in memory, every keystroke resolves in microseconds — no I/O, no AI calls.
 
+For image-first search results, use the actual image file as the row icon (`new IconInfo(filePath)`) and add a `Details` preview with a markdown image at the top of `Body`. Keep `Details.Size = ContentSize.Small` when the preview should occupy the narrower right-side pane; `ContentSize.Large` widens the pane but does not make `HeroImage` fill it.
+
 ### NPU models used
 
 | Model | API | What it produces |
