@@ -129,7 +129,16 @@ internal sealed partial class ScreenshotSearchPage : DynamicListPage
         if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
             return string.Empty;
 
-        return "![](<" + new Uri(imagePath).AbsoluteUri + ">)";
+        return "![Screenshot preview](<" + BuildFitImageUri(imagePath) + ">)";
+    }
+
+    private static string BuildFitImageUri(string imagePath)
+    {
+        var builder = new UriBuilder(new Uri(imagePath))
+        {
+            Query = "--x-cmdpal-fit=fit",
+        };
+        return builder.Uri.AbsoluteUri;
     }
 
     private IconInfo? ImageIcon(string imagePath)

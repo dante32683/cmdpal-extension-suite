@@ -168,7 +168,16 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
             return string.Empty;
 
-        return "![](<" + new Uri(imagePath).AbsoluteUri + ">)";
+        return "![Clipboard image preview](<" + BuildFitImageUri(imagePath) + ">)";
+    }
+
+    private static string BuildFitImageUri(string imagePath)
+    {
+        var builder = new UriBuilder(new Uri(imagePath))
+        {
+            Query = "--x-cmdpal-fit=fit",
+        };
+        return builder.Uri.AbsoluteUri;
     }
 
     private static Tag[] BuildTags(ClipboardEntry entry)
