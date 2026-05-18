@@ -126,6 +126,34 @@ Imported histories:
 - `imported/action-center` tag points at the old ActionCenter repo head that was merged into this monorepo as history.
 - Simple Analytics had no `.git` repository at migration time, so only its files and docs were imported.
 
+## Starting A New AI Agent Session
+
+The monorepo has a `CLAUDE.md` file at the repo root that Claude Code reads automatically at the start of every session. It points to the docs in the correct read order. Any AI agent that opens this repo will have that context injected before your first message.
+
+To get a fresh agent fully oriented, open a new chat in this working directory and say:
+
+```
+Read the docs in the order specified in CLAUDE.md before we start.
+```
+
+The agent will then read:
+
+1. `docs/README.md` — what the repo contains
+2. `docs/CONTEXT.md` — why extensions live together, key gotchas (GetItems blocking, COM lifetime)
+3. `docs/ARCHITECTURE.md` — file layout, SDK primitives, async patterns
+4. `docs/RUNBOOK.md` — build/deploy loop, log reading, common failures
+5. `docs/CONVENTIONS.md` — naming, icons, async rules, git workflow, AI search pattern, verification steps
+6. `docs/BUGS.md` — known issues and resolved bugs to avoid re-introducing
+7. `docs/ROADMAP.md` — what is implemented and what is planned
+
+After reading, the agent will know the branch naming convention, the deploy loop, how to read the log, how to verify AI features, and all established patterns. You should not need to re-explain any of this.
+
+### Keeping docs current
+
+The agent is only as good as the docs. When you establish a new pattern, fix a recurring mistake, or discover something non-obvious about the SDK or tooling, update the smallest relevant doc in that same session. The docs are the persistent memory across agent sessions.
+
+---
+
 ## Reading The Log
 
 The Command Palette host writes a rolling log at:

@@ -69,10 +69,31 @@ Command Palette extensions cannot be unit-tested outside the MSIX+COM host. The 
 
 ## Git
 
-- `main` — stable, deployable code.
-- `feature/...` — new bands or features.
-- `fix/...` — bug fixes.
-- Commits are imperative and focused (e.g., `Add QuickSettings dock band`).
+- `main` — stable, deployable code. Never commit directly to main except for single-line typo fixes or doc tweaks that carry zero risk.
+- Everything else goes on a branch, merged via `git merge --no-ff` to preserve history.
+
+### Branch naming
+
+| Prefix | Use for | Example |
+|---|---|---|
+| `feat/` | New commands, pages, services, or user-visible capabilities | `feat/organize-screenshot-search` |
+| `fix/` | Bug fixes, crash repairs, broken behavior | `fix/rename-index-collision` |
+| `chore/` | Refactors, dependency bumps, doc-only changes, tooling | `chore/update-sdk-0.9.3` |
+
+Keep the description short and hyphenated. One branch per logical change — do not bundle unrelated work.
+
+### Workflow
+
+```powershell
+git checkout -b feat/your-feature-name   # branch off main
+# ... make changes, build, deploy, test ...
+git add <specific files>
+git commit -m "feat: short imperative description"
+git checkout main
+git merge feat/your-feature-name --no-ff -m "Merge feat/your-feature-name: one-line summary"
+```
+
+- Commits are imperative and focused (e.g., `feat: add screenshot search page`, `fix: stop OCR blocking COM thread`).
 - Do not commit `bin/` or `obj/`.
 - Commit `Properties/launchSettings.json` and `*.pubxml` — they are needed for deployment.
 
