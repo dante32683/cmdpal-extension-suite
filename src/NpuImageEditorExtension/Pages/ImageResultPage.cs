@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,36 +11,39 @@ namespace NpuTools.ImageEditor.Pages;
 
 internal sealed partial class ImageResultPage : ListPage
 {
-    private readonly string _path;
     private readonly ImageOperation _operation;
+    private readonly int _scaleFactor;
+    private readonly string _path;
+    private readonly ImageEditorSettingsManager _settings;
     private readonly bool _isText;
 
     private string? _result;
     private string? _errorMessage;
-    private int _started; // Interlocked flag: 0 = not started, 1 = started
+    private int _started;
 
-    public ImageResultPage(string path, ImageOperation operation)
+    public ImageResultPage(
+        ImageOperation operation,
+        int scaleFactor,
+        string path,
+        ImageEditorSettingsManager settings)
     {
-        _path      = path;
-        _operation = operation;
-        _isText    = operation == ImageOperation.Ocr;
+        _operation   = operation;
+        _scaleFactor = scaleFactor;
+        _path        = path;
+        _settings    = settings;
+        _isText      = operation == ImageOperation.Ocr;
 
-        Id    = $"com.local.nputools.imageeditor.result.{operation.ToString().ToLowerInvariant()}";
-        Title = $"Result — {ImageInputPage.OperationLabel(operation)}";
+        Id    = $"com.local.nputools.imageeditor.result.{operation.ToString().ToLowerInvariant()}.{scaleFactor}";
+        Title = $"Result — {ImageInputPage.OperationLabel(operation, scaleFactor)}";
         Name  = "Result";
         Icon  = ImageEditorVisuals.Check;
         IsLoading = true;
     }
 
-    // GetItems() is only called after the user navigates to this page. Starting
-    // the operation here prevents AI tasks from firing while the user is still
-    // typing a path in the input page.
     public override IListItem[] GetItems()
     {
         if (Interlocked.Exchange(ref _started, 1) == 0)
-        {
             _ = Task.Run(RunOperationAsync);
-        }
 
         if (_result == null && _errorMessage == null)
         {
@@ -48,7 +52,7 @@ internal sealed partial class ImageResultPage : ListPage
                 new ListItem(new NoOpCommand())
                 {
                     Title    = "Processing…",
-                    Subtitle = ImageInputPage.OperationLabel(_operation),
+                    Subtitle = ImageInputPage.OperationLabel(_operation, _scaleFactor),
                     Icon     = ImageInputPage.OperationIcon(_operation),
                 },
             ];
@@ -89,7 +93,6 @@ internal sealed partial class ImageResultPage : ListPage
             ];
         }
 
-        string fileName = Path.GetFileName(result);
         return
         [
             new ListItem(new OpenFileCommand(result))
@@ -101,7 +104,7 @@ internal sealed partial class ImageResultPage : ListPage
             new ListItem(new CopyTextCommand(result))
             {
                 Title    = "Copy Output Path",
-                Subtitle = fileName,
+                Subtitle = Path.GetFileName(result),
                 Icon     = ImageEditorVisuals.Copy,
             },
         ];
@@ -114,10 +117,12 @@ internal sealed partial class ImageResultPage : ListPage
             _result = _operation switch
             {
                 ImageOperation.RemoveBackground => await ImageEditorService.RemoveBackgroundAsync(_path),
-                ImageOperation.SuperResolution  => await ImageEditorService.SuperResolutionAsync(_path),
+                ImageOperation.SuperResolution  => await ImageEditorService.SuperResolutionAsync(_path, _scaleFactor),
                 ImageOperation.Ocr              => await ImageEditorService.RunOcrAsync(_path),
                 _                               => throw new ArgumentOutOfRangeException(nameof(_operation)),
             };
+
+            ApplyAutoActions(_result);
         }
         catch (Exception ex)
         {
@@ -127,6 +132,30 @@ internal sealed partial class ImageResultPage : ListPage
         {
             IsLoading = false;
             RaiseItemsChanged();
+        }
+    }
+
+    private void ApplyAutoActions(string result)
+    {
+        var s = _settings.Current;
+
+        if (_isText)
+        {
+            if (s.OcrAutoCopyText)
+                ClipboardHelper.SetText(result);
+
+            if (s.OcrAutoOpenTextFile)
+            {
+                string txtPath = Path.Combine(
+                    ImageEditorPaths.SupportDir(),
+                    $"ocr_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
+                File.WriteAllText(txtPath, result);
+                Process.Start(new ProcessStartInfo(txtPath) { UseShellExecute = true });
+            }
+        }
+        else if (s.AutoOpenResult)
+        {
+            Process.Start(new ProcessStartInfo(result) { UseShellExecute = true });
         }
     }
 }
