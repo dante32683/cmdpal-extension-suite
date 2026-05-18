@@ -23,6 +23,7 @@ The repo-level docs are the authoritative standards for all extensions in this w
 - `src/NpuOrganizeExtension` - NPU Organize shell.
 - `src/NpuImageEditorExtension` - NPU image tools shell.
 - `src/NpuTextToolsExtension` - NPU text tools shell.
+- `src/NpuClipboardExtension` - NPU clipboard history, search, and recorder controls.
 - `src/NpuNotesExtension` - NPU notes shell.
 - `src/NpuDevToolboxExtension` - NPU developer toolbox shell.
 - `src/NPUToolsExtension` - original scaffold retained only as a temporary reference.
@@ -44,6 +45,7 @@ Imported project docs live under `docs/extensions/`. Treat them as historical or
 ## Planning Documents
 
 - `RAYCAST_MIGRATION_PLAN.md` - migration plan for Raycast tools into Command Palette extensions. This is planning material, not current architecture truth until implemented.
+- `docs/ephemeral-plans/` - ignored local planning notes for future agents on this machine. These files are intentionally excluded from git and are not authoritative unless copied into canonical docs.
 
 ## Authority Levels
 
