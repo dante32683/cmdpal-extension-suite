@@ -3,6 +3,8 @@ description: 'Comprehensive guide for developing Command Palette extensions — 
 applyTo: '**/*.cs'
 ---
 
+> **Project conventions:** Read `AGENTS.md` at the repo root before using this file. `AGENTS.md` covers the branch workflow, build/deploy loop, log verification, and all established patterns for this specific codebase. This file is an SDK API reference only.
+
 # Command Palette Extension Development
 
 Complete reference for building Command Palette (CmdPal) extensions. Extensions run out-of-process as MSIX-packaged COM servers.
