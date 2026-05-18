@@ -56,6 +56,17 @@
 - Retain WinRT source objects (battery, network, SMTC) as instance fields for process lifetime. Short-lived WinRT wrappers that are GC'd while the OS-side object is active cause `AccessViolationException` in `WinRT.IObjectReference.Finalize`.
 - Unsubscribe all WinRT events and cancel timers in `Dispose`.
 
+## Verifying A New Page Or Feature
+
+Command Palette extensions cannot be unit-tested outside the MSIX+COM host. The verification loop is:
+
+1. Build and deploy (`Stop-Process` → `dotnet build` → `Add-AppxPackage -Register` → "Reload Command Palette extensions"). See `RUNBOOK.md § Per-Extension Dev Loop`.
+2. Open the log and confirm `Loaded N command(s)` appears with the expected count. If N is wrong, look for a crash above that line. See `RUNBOOK.md § Reading The Log`.
+3. Exercise the feature in the palette. For AI-backed features, test one file before running any bulk operation.
+4. If behavior is wrong and no error appears in the log, the failure is likely in `GetItems()` or `UpdateSearchText()` returning silently — add a `Debug.WriteLine` at the suspect site and redeploy.
+
+`Debug.WriteLine` output is visible in any debugger-attached session or can be captured with tools like DebugView. For quick checks, write a temporary state file and read it with PowerShell.
+
 ## Git
 
 - `main` — stable, deployable code.

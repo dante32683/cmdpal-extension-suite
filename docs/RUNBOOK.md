@@ -126,6 +126,68 @@ Imported histories:
 - `imported/action-center` tag points at the old ActionCenter repo head that was merged into this monorepo as history.
 - Simple Analytics had no `.git` repository at migration time, so only its files and docs were imported.
 
+## Reading The Log
+
+The Command Palette host writes a rolling log at:
+
+```text
+%LocalAppData%\Microsoft\PowerToys\CmdPal\Logs\{version}\Log_{date}.log
+```
+
+Read the tail in PowerShell:
+
+```powershell
+$log = "$env:LOCALAPPDATA\Microsoft\PowerToys\CmdPal\Logs"
+$latest = Get-ChildItem $log | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+Get-Content "$($latest.FullName)\Log_$(Get-Date -Format 'yyyy-MM-dd').log" | Select-Object -Last 60
+```
+
+Or grep for extension-specific lines:
+
+```powershell
+Get-Content $logFile | Select-String -Pattern "(NpuOrganize|error|Started|Loaded)" | Select-Object -Last 30
+```
+
+### Key patterns to look for
+
+| Pattern | What it means |
+|---|---|
+| `Started extension FooExtension_... in N ms` | Extension process launched and responded to COM activation |
+| `Loaded N command(s) and M band(s) from FooExtension` | Extension's `TopLevelCommands()` and `GetDockBands()` returned successfully |
+| `Loaded N command(s) ... from K extension(s) in N ms` | Full palette reload completed — total counts across all extensions |
+| `Failed to find band com.dziad...` | A previously pinned dock band is not available — normal during partial reloads |
+| `SearchQuery TryExecuteFallbackQuery` | Host's own file-system search found nothing for the typed string — not an extension error |
+
+### Verifying your extension loaded
+
+After `Reload Command Palette extensions`, find your extension's load line and confirm the command count matches the length of your `TopLevelCommands()` array:
+
+```text
+Loaded 6 command(s) and 0 band(s) from NpuOrganizeExtension_0.0.1.0_x64__8wekyb3d8bbwe in 63 ms
+```
+
+If the count is wrong or the line is missing, the extension process crashed during startup — check for exceptions above that line.
+
+### Noise to ignore
+
+**`error fast initializing CommandItemViewModel` / `COMException -2147023174 (RPC_S_SERVER_UNAVAILABLE)`** — this fires when the host tries to read a command ID from a COM server that is no longer running. It almost always comes from OTHER extensions whose processes have died (e.g. the old version of your extension that was just killed before the reload, or a different extension that is not registered in the current session). If your extension's `Loaded N command(s)` line appears cleanly and N is correct, these errors are not yours.
+
+The reliable signal for your extension crashing is: no `Started extension` line, or an unhandled exception in the log between `Starting extension` and `Loaded`.
+
+### Tailing the log live
+
+To watch new entries appear during a test session:
+
+```powershell
+$log = "path\to\Log_yyyy-MM-dd.log"
+$pos = (Get-Item $log).Length
+Start-Sleep -Seconds 10   # do something in the palette during this window
+$content = Get-Content $log -Raw
+$content.Substring([int]$pos)
+```
+
+---
+
 ## Common Failures
 
 ### Extension Does Not Appear
@@ -152,3 +214,28 @@ Imported histories:
 ### Dock Button Reopens Instead Of Closing
 
 Use the state-toggle workaround. Do not rely on Win32 window detection for Windows 11 Quick Settings or other system UI.
+
+### Build Fails With MSB3021 / MSB3027 (File Locked)
+
+```text
+error MSB3021: Unable to copy file "...NpuOrganizeExtension.exe"...
+The process cannot access the file because it is being used by another process.
+```
+
+The extension process is still running and has the output exe locked. Stop it first:
+
+```powershell
+Stop-Process -Name "NpuOrganizeExtension" -Force -ErrorAction SilentlyContinue
+```
+
+If the extension has a companion daemon (e.g. `NpuOrganizeKeeper`), stop that too before building.
+
+Always use PowerShell (`Stop-Process`, `Add-AppxPackage`) for process and package management on Windows — these cmdlets are not available in a bash shell.
+
+### Testing AI Features Incrementally
+
+AI pipeline features (`ImageDescriptionGenerator`, `OcrEngine`, `LanguageModel`) cannot be unit-tested outside the MSIX+COM context. Test them in stages:
+
+1. **One file first.** Before triggering any bulk operation (Index All, Rename All), run the same pipeline on a single file through the normal UI. Confirm the result is correct and the index or output is updated. A bug in the pipeline will surface immediately without processing hundreds of files.
+2. **Check the index/output file.** For index-backed features, verify the backing file (`%LocalAppData%\NpuOrganize\index.json`, etc.) was created and contains the expected fields after the single-file test.
+3. **Then bulk.** Once the single-file round-trip is confirmed, the bulk operation is just that same path repeated — run it confidently.
