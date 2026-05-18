@@ -19,7 +19,7 @@ internal sealed partial class RewriteCustomTextPage : DynamicListPage
         _instruction    = instruction;
         _service        = service;
         Id              = "com.local.nputools.texttools.custom.text";
-        Title           = "Custom Rewrite — Paste Text";
+        Title           = "Custom Rewrite: Paste Text";
         Name            = "Next";
         Icon            = TextToolsVisuals.Phi;
         PlaceholderText = "Now paste or type the text to rewrite…";

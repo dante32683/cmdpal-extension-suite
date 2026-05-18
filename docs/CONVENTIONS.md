@@ -308,11 +308,10 @@ private static ListItem Row(string title, string subtitle, IconInfo icon, Tag? t
 
 ## UX: Settings
 
-1. Prefer a `SettingsManager` or equivalent typed settings service that owns a single settings instance.
-2. If using SDK settings, assign `Settings = _settingsManager.Settings` in the `CommandProvider` constructor so settings surface in the extension manager UI automatically.
-3. If using local JSON settings, keep all reads/writes behind the domain service and normalize values on read.
-4. The main command page should include a path to settings when settings are user-facing. Use a `SettingsPage` (`ContentPage`) for richer in-palette settings.
-5. Pass settings services to dock/page classes via constructor injection.
+- Every extension with configurable behavior must assign `Settings = _settingsManager.Settings` in the `CommandProvider` constructor. The global palette settings UI is the **only** settings surface — no settings command in `TopLevelCommands()`, no settings entry in `MoreCommands`.
+- Prefer a `SettingsManager` typed service that owns a single settings instance.
+- If using local JSON settings, keep all reads/writes behind the domain service and normalize values on read.
+- Pass settings services to dock/page classes via constructor injection.
 
 ### Setting types
 
@@ -323,6 +322,42 @@ private static ListItem Row(string title, string subtitle, IconInfo icon, Tag? t
 | `TextSetting` | Free-form string input, such as a default local time |
 
 Setting keys are `camelCase`: `"defaultAwakeMode"`, `"defaultDurationMinutes"`, `"defaultUntilTime"`.
+
+---
+
+## UX: Language
+
+| Rule | Correct | Wrong |
+|---|---|---|
+| Title casing | Title Case | `"fix grammar"`, `"CLIPBOARD HISTORY"` |
+| Subtitle casing | Sentence case, no trailing period | `"Correct grammar."` |
+| Subtitles required | Every top-level command must have a subtitle | Title with no subtitle |
+| Ellipsis | Only on two-step flows where user must type before action runs | `"Awake For…"`, `"Awake Until…"` |
+| Em-dash in titles | Never — use subtitle for disambiguation instead | `"OCR — Extract Text"` |
+| Hub page title | Short feature name, not the full provider DisplayName | `"Organize"` not `"NPU Organize"` |
+| Hardcoded strings | English strings are hardcoded directly; no `Strings.X` resource references in providers | `Strings.MediaControls_Subtitle!` |
+
+---
+
+## UX: Keyboard Shortcuts
+
+Every `CommandContextItem` for a primary action must have a `RequestedShortcut`. Set `IsCritical = true` on destructive actions (delete, clear, stop recorder) — this renders the item red.
+
+Each extension defines a static `KeyChords.cs` to centralize its shortcuts:
+
+```csharp
+internal static class KeyChords
+{
+    internal static KeyChord Delete { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.Delete);
+    internal static KeyChord Copy   { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.C);
+    internal static KeyChord Pin    { get; } = WellKnownKeyChords.TogglePin; // Ctrl+P
+}
+
+// Usage:
+new CommandContextItem(new DeleteEntryCommand()) { RequestedShortcut = KeyChords.Delete, IsCritical = true }
+```
+
+Reuse `WellKnownKeyChords` for standard file/system actions. Define extension-specific shortcuts via `KeyChordHelpers.FromModifiers`.
 
 ---
 
