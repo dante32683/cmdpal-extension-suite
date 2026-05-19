@@ -10,9 +10,9 @@
   IgnorableNamespaces="uap uap3 rescap">
 
   <Identity
-    Name="Dziad.MediaControlsExtension"
+    Name="MediaControlsExtension"
     Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
-    Version="0.10.0.1" />
+    Version="0.0.1.0" />
 
   <Properties>
     <DisplayName>Media Controls Dock</DisplayName>
