@@ -65,9 +65,12 @@
 
   <Target Name="CopyAwakeKeeper" AfterTargets="Build">
     <PropertyGroup>
-      <AwakeKeeperOutput>..\..\tools\NpuAwakeKeeper\bin\$(Platform)\$(Configuration)\net9.0-windows10.0.26100.0\$(RuntimeIdentifier)\NpuAwakeKeeper.exe</AwakeKeeperOutput>
+      <AwakeKeeperDir>..\..\tools\NpuAwakeKeeper\bin\$(Platform)\$(Configuration)\net9.0-windows10.0.26100.0\$(RuntimeIdentifier)\</AwakeKeeperDir>
     </PropertyGroup>
+    <ItemGroup>
+      <AwakeKeeperFiles Include="$(AwakeKeeperDir)*" Condition="Exists('$(AwakeKeeperDir)')" />
+    </ItemGroup>
     <MakeDir Directories="$(OutDir)Tools" />
-    <Copy SourceFiles="$(AwakeKeeperOutput)" DestinationFiles="$(OutDir)Tools\NpuAwakeKeeper.exe" SkipUnchangedFiles="true" Condition="Exists('$(AwakeKeeperOutput)')" />
+    <Copy SourceFiles="@(AwakeKeeperFiles)" DestinationFolder="$(OutDir)Tools" SkipUnchangedFiles="true" />
   </Target>
 </Project>
