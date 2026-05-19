@@ -40,19 +40,21 @@ internal sealed partial class ScreenshotSearchPage : DynamicListPage
         if (string.IsNullOrEmpty(query))
         {
             int count = _indexService.Count;
-            return
-            [
-                new ListItem(new NoOpCommand())
-                {
-                    Title    = count == 0
-                        ? "No screenshots indexed yet"
-                        : $"{count} screenshot{(count == 1 ? "" : "s")} indexed",
-                    Subtitle = count == 0
-                        ? "Use 'Index All Screenshots' to build the search index"
-                        : "Type to search by visible text or AI description",
-                    Icon     = OrganizeVisuals.Search,
-                },
-            ];
+            if (count == 0)
+            {
+                return
+                [
+                    new ListItem(new NoOpCommand())
+                    {
+                        Title    = "No screenshots indexed yet",
+                        Subtitle = "Use 'Index All Screenshots' to build the search index",
+                        Icon     = OrganizeVisuals.Search,
+                    },
+                ];
+            }
+
+            var recent = _indexService.Recent();
+            return BuildResultItems(recent, $"{count} screenshot{(count == 1 ? "" : "s")} indexed — showing {recent.Count} most recent");
         }
 
         var matches = _indexService.Search(query);
@@ -70,15 +72,32 @@ internal sealed partial class ScreenshotSearchPage : DynamicListPage
             ];
         }
 
-        var items = new IListItem[matches.Count];
-        for (int i = 0; i < matches.Count; i++)
+        return BuildResultItems(matches);
+    }
+
+    private IListItem[] BuildResultItems(IReadOnlyList<ScreenshotIndexEntry> entries, string? headerSubtitle = null)
+    {
+        int offset = headerSubtitle is null ? 0 : 1;
+        var items = new IListItem[entries.Count + offset];
+
+        if (headerSubtitle is not null)
         {
-            ScreenshotIndexEntry entry = matches[i];
+            items[0] = new ListItem(new NoOpCommand())
+            {
+                Title    = "Recent screenshots",
+                Subtitle = headerSubtitle,
+                Icon     = OrganizeVisuals.Search,
+            };
+        }
+
+        for (int i = 0; i < entries.Count; i++)
+        {
+            ScreenshotIndexEntry entry = entries[i];
             string name    = Path.GetFileName(entry.FilePath);
             string preview = entry.Description.Length > 120
                 ? entry.Description[..120] + "…"
                 : entry.Description;
-            items[i] = new ListItem(new OpenFileCommand(entry.FilePath))
+            items[i + offset] = new ListItem(new OpenFileCommand(entry.FilePath))
             {
                 Title    = name,
                 Subtitle = BuildSubtitle(entry, preview),
