@@ -30,24 +30,10 @@ internal sealed partial class NpuImageEditorCommandsProvider : CommandProvider
             Icon     = ImageEditorVisuals.Eraser,
         };
 
-        var sr2 = new ListItem(new ImageInputPage(ImageOperation.SuperResolution, 2, _settingsManager))
+        var sr = new ListItem(new SuperResolutionPickerPage(_settingsManager))
         {
-            Title    = "Super Resolution (2×)",
-            Subtitle = "Upscale an image to 2× resolution using Windows AI",
-            Icon     = ImageEditorVisuals.Scale,
-        };
-
-        var sr4 = new ListItem(new ImageInputPage(ImageOperation.SuperResolution, 4, _settingsManager))
-        {
-            Title    = "Super Resolution (4×)",
-            Subtitle = "Upscale an image to 4× resolution using Windows AI",
-            Icon     = ImageEditorVisuals.Scale,
-        };
-
-        var sr8 = new ListItem(new ImageInputPage(ImageOperation.SuperResolution, 8, _settingsManager))
-        {
-            Title    = "Super Resolution (8×)",
-            Subtitle = "Upscale an image to 8× resolution using Windows AI",
+            Title    = "Super Resolution",
+            Subtitle = "Upscale an image 2×, 4×, or 8× using Windows AI",
             Icon     = ImageEditorVisuals.Scale,
         };
 
@@ -58,7 +44,7 @@ internal sealed partial class NpuImageEditorCommandsProvider : CommandProvider
             Icon     = ImageEditorVisuals.Ocr,
         };
 
-        _commands = [hub, rmbg, sr2, sr4, sr8, ocr];
+        _commands = [hub, rmbg, sr, ocr];
     }
 
     public override ICommandItem[] TopLevelCommands() => _commands;

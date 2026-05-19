@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
@@ -17,29 +16,27 @@ internal sealed partial class ImageToolsHubPage : ListPage
         Icon  = ImageEditorVisuals.Camera;
     }
 
-    public override IListItem[] GetItems()
-    {
-        var ops = new List<(ImageOperation Op, int Scale, string Subtitle)>
+    public override IListItem[] GetItems() =>
+    [
+        new ListItem(new ImageInputPage(ImageOperation.RemoveBackground, 1, _settings))
         {
-            (ImageOperation.RemoveBackground, 1,  "Isolate subject automatically using Windows AI"),
-            (ImageOperation.SuperResolution,  2,  "Upscale 2× using Windows AI"),
-            (ImageOperation.SuperResolution,  4,  "Upscale 4× using Windows AI"),
-            (ImageOperation.SuperResolution,  8,  "Upscale 8× using Windows AI"),
-            (ImageOperation.Ocr,              1,  "Extract visible text from any image"),
-        };
-
-        var items = new List<IListItem>(ops.Count);
-        foreach (var (op, scale, subtitle) in ops)
+            Title    = ImageInputPage.OperationLabel(ImageOperation.RemoveBackground, 1),
+            Subtitle = "Isolate subject automatically using Windows AI",
+            Icon     = ImageInputPage.OperationIcon(ImageOperation.RemoveBackground),
+            Tags     = [ImageEditorVisuals.MutedTag("browse or paste path")],
+        },
+        new ListItem(new SuperResolutionPickerPage(_settings))
         {
-            items.Add(new ListItem(new ImageInputPage(op, scale, _settings))
-            {
-                Title    = ImageInputPage.OperationLabel(op, scale),
-                Subtitle = subtitle,
-                Icon     = ImageInputPage.OperationIcon(op),
-                Tags     = [ImageEditorVisuals.MutedTag("browse or paste path")],
-            });
-        }
-
-        return items.ToArray();
-    }
+            Title    = "Super Resolution",
+            Subtitle = "Upscale an image 2×, 4×, or 8× using Windows AI",
+            Icon     = ImageEditorVisuals.Scale,
+        },
+        new ListItem(new ImageInputPage(ImageOperation.Ocr, 1, _settings))
+        {
+            Title    = ImageInputPage.OperationLabel(ImageOperation.Ocr, 1),
+            Subtitle = "Extract visible text from any image",
+            Icon     = ImageInputPage.OperationIcon(ImageOperation.Ocr),
+            Tags     = [ImageEditorVisuals.MutedTag("browse or paste path")],
+        },
+    ];
 }
