@@ -15,10 +15,6 @@ internal static class Program
     private const uint ES_SYSTEM_REQUIRED = 0x00000001;
     private const uint ES_DISPLAY_REQUIRED = 0x00000002;
 
-    private const uint POWER_REQUEST_CONTEXT_VERSION = 0;
-    private const uint POWER_REQUEST_CONTEXT_SIMPLE_STRING = 0x1;
-    private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
-
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -26,35 +22,8 @@ internal static class Program
         WriteIndented = false,
     };
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    private struct REASON_CONTEXT
-    {
-        public uint Version;
-        public uint Flags;
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string SimpleReasonString;
-    }
-
-    private enum POWER_REQUEST_TYPE
-    {
-        PowerRequestDisplayRequired = 0,
-        PowerRequestSystemRequired = 1,
-    }
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr PowerCreateRequest(ref REASON_CONTEXT Context);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool PowerSetRequest(IntPtr PowerRequest, POWER_REQUEST_TYPE RequestType);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool PowerClearRequest(IntPtr PowerRequest, POWER_REQUEST_TYPE RequestType);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool CloseHandle(IntPtr hObject);
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern uint SetThreadExecutionState(uint esFlags);
 
     private static int Main(string[] args)
     {
@@ -64,8 +33,16 @@ internal static class Program
             return 1;
         }
 
-        RunDaemon(args[1]);
-        return 0;
+        try
+        {
+            RunDaemon(args[1]);
+            return 0;
+        }
+        finally
+        {
+            // Clear execution state when the daemon exits for any reason.
+            SetThreadExecutionState(ES_CONTINUOUS);
+        }
     }
 
     private static void RunDaemon(string supportDir)
@@ -82,70 +59,20 @@ internal static class Program
             File.Delete(stopPath);
         }
 
-        var ctx = new REASON_CONTEXT
-        {
-            Version = POWER_REQUEST_CONTEXT_VERSION,
-            Flags = POWER_REQUEST_CONTEXT_SIMPLE_STRING,
-            SimpleReasonString = "NPU Awake - keeping system awake as requested",
-        };
-        IntPtr powerRequest = PowerCreateRequest(ref ctx);
-
-        bool systemActive = false;
-        bool displayActive = false;
-
         var daemon = new DaemonState(schedulesPath, statePath);
         daemon.StartWatching();
 
         Console.WriteLine("MODE: daemon");
         Console.WriteLine($"SUPPORT_DIR: {supportDir}");
 
-        try
+        while (!File.Exists(stopPath))
         {
-            while (!File.Exists(stopPath))
-            {
-                daemon.MaybeReload();
-                var decision = daemon.Decide(DateTimeOffset.Now);
+            daemon.MaybeReload();
+            var decision = daemon.Decide(DateTimeOffset.Now);
 
-                bool wantSystem = (decision.Flags & ES_SYSTEM_REQUIRED) != 0;
-                bool wantDisplay = (decision.Flags & ES_DISPLAY_REQUIRED) != 0;
-
-                if (powerRequest != INVALID_HANDLE_VALUE && powerRequest != IntPtr.Zero)
-                {
-                    if (wantSystem && !systemActive)
-                    {
-                        PowerSetRequest(powerRequest, POWER_REQUEST_TYPE.PowerRequestSystemRequired);
-                        systemActive = true;
-                    }
-                    else if (!wantSystem && systemActive)
-                    {
-                        PowerClearRequest(powerRequest, POWER_REQUEST_TYPE.PowerRequestSystemRequired);
-                        systemActive = false;
-                    }
-
-                    if (wantDisplay && !displayActive)
-                    {
-                        PowerSetRequest(powerRequest, POWER_REQUEST_TYPE.PowerRequestDisplayRequired);
-                        displayActive = true;
-                    }
-                    else if (!wantDisplay && displayActive)
-                    {
-                        PowerClearRequest(powerRequest, POWER_REQUEST_TYPE.PowerRequestDisplayRequired);
-                        displayActive = false;
-                    }
-                }
-
-                WriteHeartbeat(heartbeatPath, decision);
-                Thread.Sleep(TimeSpan.FromSeconds(15));
-            }
-        }
-        finally
-        {
-            if (powerRequest != INVALID_HANDLE_VALUE && powerRequest != IntPtr.Zero)
-            {
-                if (systemActive) PowerClearRequest(powerRequest, POWER_REQUEST_TYPE.PowerRequestSystemRequired);
-                if (displayActive) PowerClearRequest(powerRequest, POWER_REQUEST_TYPE.PowerRequestDisplayRequired);
-                CloseHandle(powerRequest);
-            }
+            SetThreadExecutionState(decision.Flags);
+            WriteHeartbeat(heartbeatPath, decision);
+            Thread.Sleep(TimeSpan.FromSeconds(15));
         }
     }
 
