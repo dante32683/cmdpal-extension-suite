@@ -20,6 +20,22 @@ Do not debug now. See `NpuOrganizeKeeper/Watcher.cs` and `NpuOrganizeExtension/S
 
 ## Resolved
 
+### ~~BUG-010: Awake keeper not running after extension reload + wrong power API~~ — RESOLVED 2026-05-18
+
+Extension: NpuAwakeExtension / NpuAwakeKeeper  
+Severity: High — awake appeared active in UI but did not prevent sleep  
+Discovered: 2026-05-18 / Fixed: 2026-05-18
+
+Two compounding issues:
+
+1. **Daemon not restarted on reload.** When PowerToys kills and restarts the extension process (e.g. "Reload Command Palette extensions"), the keeper daemon is killed too. `state.json` kept the active override, so the UI showed "active" but nothing was holding a power request. `NpuAwakeCommandsProvider` had no startup logic to restart the daemon.
+
+2. **Wrong power API.** The keeper used `SetThreadExecutionState`, which works but does not appear in `powercfg /requests`. Switched to `PowerCreateRequest`/`PowerSetRequest` so the request is visible in `powercfg /requests` with a descriptive reason string.
+
+Fix:
+- `NpuAwakeCommandsProvider`: calls `EnsureDaemonRunning()` at init when an unexpired override or schedules are present.
+- `NpuAwakeKeeper/Program.cs`: replaced `SetThreadExecutionState` with `PowerCreateRequest`/`PowerSetRequest`/`CloseHandle` P/Invoke. The handle is created once at daemon startup, requests are set/cleared as the decision changes, and the handle is cleaned up in the `finally` block.
+
 ### ~~BUG-009: Duplicate primary action in ClipboardHistoryPage MoreCommands flyout~~ — RESOLVED 2026-05-18
 
 Extension: NpuClipboardExtension  
