@@ -124,7 +124,7 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
             this._prevTrackCurrentSessionItem.UpdateIcon(prevTrackCommand.CanExecute() ? Icons.SkipPreviousTrack : Icons.SkipPreviousTrackDisabled);
         }
 
-        this.RebuildAndRaiseIfChanged();
+        this.RebuildAndRaiseIfChanged(forceRaise: this._isBandPage);
     }
 
     private void SettingsOnSettingsChanged(object sender, Settings args)
@@ -136,12 +136,12 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
     /// Rebuilds the items list and raises <see cref="RaiseItemsChanged"/> only when
     /// the item composition (identity or order) actually changed.
     /// </summary>
-    private void RebuildAndRaiseIfChanged()
+    private void RebuildAndRaiseIfChanged(bool forceRaise = false)
     {
         lock (this._refreshLock)
         {
             var newItems = this.BuildItems();
-            if (ItemsEqual(this._cachedItems, newItems))
+            if (!forceRaise && ItemsEqual(this._cachedItems, newItems))
             {
                 return;
             }
