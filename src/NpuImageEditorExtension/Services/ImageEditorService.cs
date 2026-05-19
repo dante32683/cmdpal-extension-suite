@@ -2,10 +2,10 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
-using NpuTools.ImageEditor.Interop;
 using Windows.Graphics.Imaging;
 using Windows.Media.Ocr;
 using Windows.Storage;
@@ -94,35 +94,32 @@ internal sealed class ImageEditorService
     }
 
     // mask is Gray8 (1 byte per pixel), source/output are Bgra8 premultiplied
-    private static unsafe SoftwareBitmap ApplyGray8MaskAsAlpha(SoftwareBitmap source, SoftwareBitmap mask)
+    private static SoftwareBitmap ApplyGray8MaskAsAlpha(SoftwareBitmap source, SoftwareBitmap mask)
     {
+        int n = source.PixelWidth * source.PixelHeight;
+
+        byte[] srcPixels  = new byte[n * 4];
+        byte[] maskPixels = new byte[n];
+        byte[] dstPixels  = new byte[n * 4];
+
+        source.CopyToBuffer(srcPixels.AsBuffer());
+        mask.CopyToBuffer(maskPixels.AsBuffer());
+
+        for (int i = 0; i < n; i++)
+        {
+            byte a = maskPixels[i];
+            dstPixels[i * 4 + 0] = (byte)(srcPixels[i * 4 + 0] * a / 255); // B premultiplied
+            dstPixels[i * 4 + 1] = (byte)(srcPixels[i * 4 + 1] * a / 255); // G premultiplied
+            dstPixels[i * 4 + 2] = (byte)(srcPixels[i * 4 + 2] * a / 255); // R premultiplied
+            dstPixels[i * 4 + 3] = a;
+        }
+
         var output = new SoftwareBitmap(
             BitmapPixelFormat.Bgra8,
             source.PixelWidth,
             source.PixelHeight,
             BitmapAlphaMode.Premultiplied);
-
-        using var srcBuf  = source.LockBuffer(BitmapBufferAccessMode.Read);
-        using var maskBuf = mask.LockBuffer(BitmapBufferAccessMode.Read);
-        using var dstBuf  = output.LockBuffer(BitmapBufferAccessMode.Write);
-        using var srcRef  = srcBuf.CreateReference();
-        using var maskRef = maskBuf.CreateReference();
-        using var dstRef  = dstBuf.CreateReference();
-
-        ((IMemoryBufferByteAccess)srcRef).GetBuffer(out byte* s, out _);
-        ((IMemoryBufferByteAccess)maskRef).GetBuffer(out byte* m, out _);
-        ((IMemoryBufferByteAccess)dstRef).GetBuffer(out byte* d, out _);
-
-        int n = source.PixelWidth * source.PixelHeight;
-        for (int i = 0; i < n; i++)
-        {
-            byte a = m[i];                               // Gray8: 1 byte per pixel
-            d[i * 4 + 0] = (byte)(s[i * 4 + 0] * a / 255); // B premultiplied
-            d[i * 4 + 1] = (byte)(s[i * 4 + 1] * a / 255); // G premultiplied
-            d[i * 4 + 2] = (byte)(s[i * 4 + 2] * a / 255); // R premultiplied
-            d[i * 4 + 3] = a;                               // A
-        }
-
+        output.CopyFromBuffer(dstPixels.AsBuffer());
         return output;
     }
 
