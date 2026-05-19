@@ -72,20 +72,6 @@ internal sealed partial class AwakeDashboardPage : ListPage
                 Icon = status.DaemonPid is null ? AwakeVisuals.Stop : AwakeVisuals.Check,
                 Tags = [status.DaemonPid is null ? AwakeVisuals.MutedTag("stopped") : AwakeVisuals.StatusTag("running")],
             },
-            new ListItem(new SetDefaultModeCommand(_awakeService, "indefinite", "Set Default Mode: Indefinite"))
-            {
-                Title = "Default Mode: Indefinite",
-                Subtitle = settings.DefaultAwakeMode == "indefinite" ? "Current" : "Use for Awake toggle",
-                Icon = AwakeVisuals.Power,
-                Tags = [settings.DefaultAwakeMode == "indefinite" ? AwakeVisuals.StatusTag("current") : AwakeVisuals.MutedTag("option")],
-            },
-            new ListItem(new SetDefaultModeCommand(_awakeService, "screen-off", "Set Default Mode: Screen Off"))
-            {
-                Title = "Default Mode: Screen-Off",
-                Subtitle = settings.DefaultAwakeMode == "screen-off" ? "Current" : "System stays awake, display may sleep",
-                Icon = AwakeVisuals.Moon,
-                Tags = [settings.DefaultAwakeMode == "screen-off" ? AwakeVisuals.StatusTag("current") : AwakeVisuals.MutedTag("option")],
-            },
             new ListItem(new StopDaemonCommand(_awakeService))
             {
                 Title = "Stop Awake Daemon",

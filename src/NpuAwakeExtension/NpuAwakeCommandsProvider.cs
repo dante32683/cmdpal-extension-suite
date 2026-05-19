@@ -9,15 +9,18 @@ namespace NpuTools.Awake;
 internal sealed partial class NpuAwakeCommandsProvider : CommandProvider
 {
     private readonly AwakeService _awakeService;
+    private readonly AwakeSettingsManager _settingsManager;
     private readonly ICommandItem[] _commands;
     private readonly ICommandItem[] _dockBands;
 
     public NpuAwakeCommandsProvider(AwakeService awakeService)
     {
         _awakeService = awakeService;
+        _settingsManager = new AwakeSettingsManager(_awakeService);
         Id = "com.local.nputools.awake";
         DisplayName = "NPU Awake";
         Icon = AwakeVisuals.Power;
+        Settings = _settingsManager.Settings;
 
         _commands =
         [
