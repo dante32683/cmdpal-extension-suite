@@ -21,7 +21,8 @@ internal static class ClipboardVisuals
     internal static readonly IconInfo Settings = new("\uE713");
     internal static readonly IconInfo Warning = new("\uE7BA");
     internal static readonly IconInfo Start = new("\uE768");
-    internal static readonly IconInfo Stop = new("\uE71A");
+    internal static readonly IconInfo Stop   = new("\uE71A");
+    internal static readonly IconInfo Folder = new("\uE8DA"); // FolderOpen (Open File Location)
 
     private static readonly Color GreenColor = new() { R = 108, G = 203, B = 95, A = 255 };
     private static readonly Color YellowColor = new() { R = 255, G = 192, B = 0, A = 255 };
