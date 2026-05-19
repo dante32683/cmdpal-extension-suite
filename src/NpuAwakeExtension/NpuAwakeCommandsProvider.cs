@@ -22,6 +22,14 @@ internal sealed partial class NpuAwakeCommandsProvider : CommandProvider
         Icon = AwakeVisuals.Power;
         Settings = _settingsManager.Settings;
 
+        // Daemon is killed when the extension process is killed (e.g. on CmdPal reload).
+        // Restart it on startup if an active override or schedules are still persisted.
+        var status = _awakeService.GetStatus();
+        if (status.Override != null || status.Schedules.Count > 0)
+        {
+            _awakeService.EnsureDaemonRunning();
+        }
+
         _commands =
         [
             new CommandItem(new ToggleAwakeCommand(_awakeService)) { Title = "Awake", Subtitle = "Toggle keep-awake using the default mode", Icon = AwakeVisuals.Power },
