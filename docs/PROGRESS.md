@@ -11,10 +11,10 @@ Feature-level completion status across all planned extensions. Source of truth f
 | MediaControlsExtension | Shipped | 100% |
 | SimpleAnalyticsExtension | Shipped | 100% |
 | NpuAwakeExtension | Shipped | 100% |
-| NpuOrganizeExtension | Shipped | ~95% |
-| NpuImageEditorExtension | Shipped | ~95% |
+| NpuOrganizeExtension | Shipped | ~98% |
+| NpuImageEditorExtension | Shipped | ~98% |
 | NpuTextToolsExtension | Shipped (partial) | ~55% |
-| NpuClipboardExtension | Shipped | ~85% |
+| NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | Shell only | 0% |
 | NpuDevToolboxExtension | Shell only | 0% |
 
@@ -51,9 +51,9 @@ All priority features from the migration plan are shipped.
 
 ---
 
-## NPU Organize — ~95%
+## NPU Organize — ~98%
 
-All P0 features shipped. Bonus screenshot search added beyond original scope.
+All P0 features shipped. Screenshot search with relevance ranking and context actions added beyond original scope.
 
 | Feature | Status |
 |---|---|
@@ -63,13 +63,17 @@ All P0 features shipped. Bonus screenshot search added beyond original scope.
 | OrganizeKeeper daemon | ✅ |
 | Dock band (watcher state) | ✅ |
 | Screenshot content search (OCR + AI index) | ✅ bonus |
+| Search relevance ranking (desc +3, OCR +2, whole-word +1, recency tiebreak) | ✅ bonus |
+| Search shows recent screenshots by default | ✅ bonus |
+| Context actions: Copy Image (Ctrl+C), Copy Path (Ctrl+Shift+C), Open File Location (Ctrl+Shift+E) | ✅ bonus |
 | Slug parity tests | ✅ |
+| BUG-008: AI naming regression (generic "screenshot" slug) | open |
 | Downloads triage / monthly subfolders | deferred |
 | Multi-folder watch | deferred |
 
 ---
 
-## NPU Image Editor — ~95%
+## NPU Image Editor — ~98%
 
 All planned features shipped. ImageForegroundExtractor for automatic background removal, 2×/4×/8× super resolution, image browser, and settings system.
 
@@ -82,6 +86,7 @@ All planned features shipped. ImageForegroundExtractor for automatic background 
 | 8× super resolution | ✅ |
 | Image browser (Pictures dir, recency sort, path fallback) | ✅ |
 | Settings (scale factor, auto-open, OCR auto-copy, OCR text file) | ✅ |
+| Context actions on file results: Open File Location (Ctrl+Shift+E), Copy Path (Ctrl+Shift+C) | ✅ bonus |
 | Make Sticker (WebP subject extraction) | future |
 | Clipboard image input | future |
 
@@ -105,7 +110,7 @@ The selected-text quick rewrite is the largest remaining gap. It requires a `Tex
 
 ---
 
-## NPU Clipboard — ~85%
+## NPU Clipboard — ~92%
 
 MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 
@@ -122,6 +127,9 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 | Image OCR | ✅ |
 | Ask Clipboard (local + Phi semantic search) | ✅ |
 | NpuClipboardKeeper background recorder | ✅ |
+| Open File Location (Ctrl+Shift+E) for image + file entries | ✅ bonus |
+| Recorder toggle shortcut Ctrl+R on Clipboard History context menu | ✅ |
+| Added to Refresh-ExtensionRegistrations.ps1 deploy script | ✅ (was missing) |
 | Cross-device sync via sync folder | deferred |
 | Time-window grouping display in list | not verified |
 

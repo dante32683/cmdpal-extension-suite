@@ -13,6 +13,7 @@ $packageNames = @(
     "NpuOrganizeExtension",
     "NpuImageEditorExtension",
     "NpuTextToolsExtension",
+    "NpuClipboardExtension",
     "NpuNotesExtension",
     "NpuDevToolboxExtension",
     "TimeDateDockExtension",

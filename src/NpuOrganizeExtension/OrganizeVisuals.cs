@@ -17,6 +17,7 @@ internal static class OrganizeVisuals
     internal static readonly IconInfo Stop      = new("\uE71A"); // Stop
     internal static readonly IconInfo Refresh   = new("\uE72C"); // Refresh
     internal static readonly IconInfo Search    = new("\uE721"); // Search
+    internal static readonly IconInfo Copy      = new("\uE8C8"); // Copy
 
     internal static Tag MutedTag(string text) => new(text)
     {

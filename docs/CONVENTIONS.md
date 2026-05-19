@@ -359,6 +359,23 @@ new CommandContextItem(new DeleteEntryCommand()) { RequestedShortcut = KeyChords
 
 Define all shortcuts via `KeyChordHelpers.FromModifiers`. `WellKnownKeyChords` does not exist in this SDK version.
 
+### MoreCommands and the SDK Primary Action
+
+The SDK automatically inserts the `ListItem`'s primary command as the first entry in the MoreCommands flyout (no keyboard shortcut shown — it is activated by Enter). This is the same behavior visible in built-in extensions like "Search apps" where "Run" appears first with no shortcut.
+
+**Do not duplicate the primary command in `MoreCommands`.** If the primary is dynamic (e.g. Copy vs Paste based on a user setting), only add the *alternate* action:
+
+```csharp
+// settings.PrimaryAction determines which of Copy/Paste is Enter
+bool primaryIsCopy = settings.PrimaryAction == ClipboardPrimaryAction.Copy;
+if (primaryIsCopy)
+    items.Add(new CommandContextItem(new PasteCommand()) { RequestedShortcut = Paste }); // Ctrl+V
+else
+    items.Add(new CommandContextItem(new CopyCommand()) { RequestedShortcut = Copy });   // Ctrl+C
+```
+
+If the primary is fixed (e.g. always "Open File"), include it in MoreCommands only if you want a different shortcut label for it — which is rarely necessary. Prefer leaving it out and adding only the secondary actions.
+
 ---
 
 ## Color Palette

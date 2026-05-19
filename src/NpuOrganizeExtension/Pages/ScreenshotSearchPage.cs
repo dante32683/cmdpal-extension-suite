@@ -4,8 +4,10 @@ using System.Globalization;
 using System.IO;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
+using NpuTools.Organize.Commands;
 using NpuTools.Organize.Models;
 using NpuTools.Organize.Services;
+using static NpuTools.Organize.KeyChords;
 
 namespace NpuTools.Organize.Pages;
 
@@ -104,6 +106,13 @@ internal sealed partial class ScreenshotSearchPage : DynamicListPage
                 Icon     = ImageIcon(entry.FilePath) ?? OrganizeVisuals.File,
                 Details  = BuildDetails(entry, name),
                 Tags     = [OrganizeVisuals.MutedTag("open")],
+                MoreCommands =
+                [
+                    new CommandContextItem(new CopyImageToClipboardCommand(entry.FilePath)) { RequestedShortcut = CopyImage },
+                    new CommandContextItem(new CopyTextCommand(entry.FilePath) { Name = "Copy Path", Icon = OrganizeVisuals.Copy }) { RequestedShortcut = CopyPath },
+                    new Separator(),
+                    new CommandContextItem(new RevealInExplorerCommand(entry.FilePath)) { RequestedShortcut = Reveal },
+                ],
             };
         }
         return items;
