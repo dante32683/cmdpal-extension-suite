@@ -34,7 +34,7 @@ internal sealed partial class ImageResultPage : ListPage
         _isText      = operation == ImageOperation.Ocr;
 
         Id    = $"com.local.nputools.imageeditor.result.{operation.ToString().ToLowerInvariant()}.{scaleFactor}";
-        Title = $"Result — {ImageInputPage.OperationLabel(operation, scaleFactor)}";
+        Title = $"Result: {ImageInputPage.OperationLabel(operation, scaleFactor)}";
         Name  = "Result";
         Icon  = ImageEditorVisuals.Check;
         IsLoading = true;
@@ -64,7 +64,7 @@ internal sealed partial class ImageResultPage : ListPage
             [
                 new ListItem(new CopyTextCommand(_errorMessage))
                 {
-                    Title    = "Operation failed — press Enter to copy error",
+                    Title    = "Operation failed",
                     Subtitle = _errorMessage,
                     Icon     = ImageEditorVisuals.Folder,
                 },
