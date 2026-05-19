@@ -142,7 +142,7 @@ internal sealed partial class DockHeadItem : ListItemBase, IDisposable
 
     public override bool Equals(object? obj)
     {
-        return ReferenceEquals(this, obj) || obj is NowPlayingListItem;
+        return ReferenceEquals(this, obj) || obj is DockHeadItem;
     }
 
     public override int GetHashCode()
