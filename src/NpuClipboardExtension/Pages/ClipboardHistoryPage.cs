@@ -98,18 +98,7 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             Subtitle = BuildSubtitle(entry),
             Icon = IconFor(entry),
             Tags = BuildTags(entry),
-            MoreCommands =
-            [
-                new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id))                          { Icon = ClipboardVisuals.Copy,   RequestedShortcut = Copy       },
-                new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id))                         { Icon = ClipboardVisuals.Paste,  RequestedShortcut = Paste      },
-                new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))    { Icon = ClipboardVisuals.Text,   RequestedShortcut = PastePlain },
-                new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))     { Icon = ClipboardVisuals.Text,   RequestedShortcut = CopyPlain  },
-                new Separator(),
-                new CommandContextItem(new RenameEntryPage(_store, entry.Id, entry.DisplayName))                             { Icon = ClipboardVisuals.Rename, RequestedShortcut = Rename     },
-                new CommandContextItem(new PinEntryCommand(_store, entry.Id, !entry.IsPinned))                               { Icon = ClipboardVisuals.Pin,    RequestedShortcut = Pin        },
-                new Separator(),
-                new CommandContextItem(new DeleteEntryCommand(_store, entry.Id))                                             { Icon = ClipboardVisuals.Delete, RequestedShortcut = Delete, IsCritical = true },
-            ],
+            MoreCommands = BuildMoreCommands(entry),
         };
 
         var details = new Details
@@ -125,6 +114,42 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         item.Details = details;
 
         return item;
+    }
+
+    private IContextItem[] BuildMoreCommands(ClipboardEntry entry)
+    {
+        // The SDK auto-inserts the primary action at the top of the flyout (activated by Enter, no shortcut shown).
+        // Only add the alternate here to avoid a duplicate row.
+        bool primaryIsCopy = _settings.Current.PrimaryAction == ClipboardPrimaryAction.Copy;
+
+        var items = new List<IContextItem>();
+        if (primaryIsCopy)
+            items.Add(new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id))           { Icon = ClipboardVisuals.Paste, RequestedShortcut = Paste      });
+        else
+            items.Add(new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id))            { Icon = ClipboardVisuals.Copy,  RequestedShortcut = Copy       });
+
+        items.Add(new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true)) { Icon = ClipboardVisuals.Text, RequestedShortcut = PastePlain });
+        items.Add(new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))  { Icon = ClipboardVisuals.Text, RequestedShortcut = CopyPlain  });
+
+        if (entry.Kind == ClipboardEntryKind.Image && !string.IsNullOrWhiteSpace(entry.ImagePath) && File.Exists(entry.ImagePath))
+        {
+            items.Add(new Separator());
+            items.Add(new CommandContextItem(new Commands.RevealInExplorerCommand(entry.ImagePath)) { Icon = ClipboardVisuals.Folder, RequestedShortcut = Reveal });
+        }
+        else if (entry.Kind == ClipboardEntryKind.Files && entry.FilePaths.Count > 0)
+        {
+            items.Add(new Separator());
+            foreach (string path in entry.FilePaths)
+                items.Add(new CommandContextItem(new Commands.RevealInExplorerCommand(path, $"Open Location: {Path.GetFileName(path)}")) { Icon = ClipboardVisuals.Folder, RequestedShortcut = Reveal });
+        }
+
+        items.Add(new Separator());
+        items.Add(new CommandContextItem(new RenameEntryPage(_store, entry.Id, entry.DisplayName))  { Icon = ClipboardVisuals.Rename, RequestedShortcut = Rename });
+        items.Add(new CommandContextItem(new PinEntryCommand(_store, entry.Id, !entry.IsPinned))    { Icon = ClipboardVisuals.Pin,    RequestedShortcut = Pin   });
+        items.Add(new Separator());
+        items.Add(new CommandContextItem(new DeleteEntryCommand(_store, entry.Id))                  { Icon = ClipboardVisuals.Delete, RequestedShortcut = Delete, IsCritical = true });
+
+        return [.. items];
     }
 
     private static string FormatGroupTitle(DateTimeOffset value)

@@ -5,7 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
+using NpuTools.ImageEditor.Commands;
 using NpuTools.ImageEditor.Services;
+using static NpuTools.ImageEditor.KeyChords;
 
 namespace NpuTools.ImageEditor.Pages;
 
@@ -80,10 +82,11 @@ internal sealed partial class ImageResultPage : ListPage
             [
                 new ListItem(new CopyTextCommand(result))
                 {
-                    Title    = "Copy Extracted Text",
-                    Subtitle = preview,
-                    Icon     = ImageEditorVisuals.Copy,
-                    Tags     = [ImageEditorVisuals.MutedTag("copies to clipboard")],
+                    Title        = "Copy Extracted Text",
+                    Subtitle     = preview,
+                    Icon         = ImageEditorVisuals.Copy,
+                    Tags         = [ImageEditorVisuals.MutedTag("copies to clipboard")],
+                    MoreCommands = [new CommandContextItem(new CopyTextCommand(result)) { RequestedShortcut = CopyText }],
                 },
                 new ListItem(new NoOpCommand())
                 {
@@ -100,12 +103,21 @@ internal sealed partial class ImageResultPage : ListPage
                 Title    = "Open Output File",
                 Subtitle = result,
                 Icon     = ImageEditorVisuals.Folder,
+                MoreCommands =
+                [
+                    new CommandContextItem(new RevealInExplorerCommand(result)) { RequestedShortcut = Reveal },
+                    new CommandContextItem(new CopyTextCommand(result) { Name = "Copy Path", Icon = ImageEditorVisuals.Copy }) { RequestedShortcut = CopyPath },
+                ],
             },
-            new ListItem(new CopyTextCommand(result))
+            new ListItem(new CopyTextCommand(result) { Name = "Copy Output Path" })
             {
-                Title    = "Copy Output Path",
-                Subtitle = Path.GetFileName(result),
-                Icon     = ImageEditorVisuals.Copy,
+                Title        = "Copy Output Path",
+                Subtitle     = Path.GetFileName(result),
+                Icon         = ImageEditorVisuals.Copy,
+                MoreCommands =
+                [
+                    new CommandContextItem(new RevealInExplorerCommand(result)) { RequestedShortcut = Reveal },
+                ],
             },
         ];
     }
