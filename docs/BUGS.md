@@ -4,6 +4,36 @@ This is the active issue ledger for the monorepo.
 
 ## Open
 
+### BUG-008: NpuOrganize screenshot renamer producing "screenshot" slug instead of AI description
+
+Extension: NpuOrganizeExtension  
+Severity: Medium — rename produces non-descriptive output, not broken  
+Discovered: 2026-05-18
+
+The OrganizeKeeper screenshot watcher is renaming new screenshots to a generic "screenshot" slug rather than running the `ImageDescriptionGenerator` AI pipeline to produce a meaningful slug. This regression was noticed during the image editor work session.
+
+Possible causes: `ImageDescriptionGenerator.GetReadyState()` returning a non-ready state that is now silently falling back to a default slug; or a code path change introduced a fallback that short-circuits the AI call.
+
+Do not debug now. See `NpuOrganizeKeeper/Watcher.cs` and `NpuOrganizeExtension/Services/AiNamingService.cs`.
+
+---
+
+## Resolved
+
+### ~~BUG-009: Duplicate primary action in ClipboardHistoryPage MoreCommands flyout~~ — RESOLVED 2026-05-18
+
+Extension: NpuClipboardExtension  
+Severity: Low — cosmetic, functionally harmless  
+Discovered: 2026-05-18 / Fixed: 2026-05-18
+
+The MoreCommands flyout for each clipboard history entry showed the primary action (Copy or Paste) twice: once auto-inserted by the SDK at the top of the flyout (activated by Enter, no shortcut label), and again as an explicit `CommandContextItem` with its keyboard shortcut.
+
+Root cause: The SDK always displays the `ListItem`'s primary command as the first entry in the MoreCommands flyout automatically. The original `ClipboardHistoryPage` code added both `CopyEntryCommand` and `PasteEntryCommand` to `MoreCommands` unconditionally, causing a duplicate for whichever one matched the user's `PrimaryAction` setting.
+
+Fix: `BuildMoreCommands` now reads `settings.PrimaryAction` and only adds the *alternate* action (if primary is Paste → add Copy with Ctrl+C; if primary is Copy → add Paste with Ctrl+V). The plain-text variants (Ctrl+Shift+V, Ctrl+Shift+C) always appear since they are distinct from both primary options.
+
+Convention updated: see `CONVENTIONS.md § MoreCommands and the SDK Primary Action`.
+
 ### ~~BUG-007: InvalidCastException in RemoveBackground Gray8 compositing~~ — RESOLVED 2026-05-18
 
 Extension: NpuImageEditorExtension  
@@ -14,67 +44,15 @@ Root cause: CsWinRT projects `IMemoryBufferReference` as a managed `WinRT.IInspe
 
 Fix: replaced the raw unsafe-pointer compositing in `ApplyGray8MaskAsAlpha` with `SoftwareBitmap.CopyToBuffer` / `CopyFromBuffer` using `byte[].AsBuffer()` (from `System.Runtime.InteropServices.WindowsRuntime`). The `Interop/IMemoryBufferByteAccess.cs` file and the `Interop/` folder were deleted — they are no longer needed.
 
-### BUG-008: NpuOrganize screenshot renamer producing "screenshot" slug instead of AI description
+### ~~BUG-006: Media Controls package identity mismatch with deploy script~~ — RESOLVED 2026-05-18
 
-Extension: NpuOrganizeExtension  
-Severity: Medium — rename produces non-descriptive output, not broken  
-Discovered: 2026-05-18
+Extension: MediaControlsExtension  
+Severity: High — re-registration always fails with 0x80073CFB  
+Discovered: 2026-05-18 / Fixed: 2026-05-18
 
-The OrganizeKeeper screenshot watcher is renaming new screenshots to a generic "screenshot" slug rather than running the `ImageDescriptionGenerator` AI pipeline to produce a meaningful slug. This regression was noticed during the image editor work session. The previous behavior was correct AI-generated slugs.
+A previous fix (see history) renamed the package identity to `Dziad.MediaControlsExtension` to avoid an upstream collision. However `Refresh-ExtensionRegistrations.ps1` searches for `"MediaControlsExtension"` (no prefix) in `$packageNames`. The mismatch caused the old `Dziad.MediaControlsExtension` package to never be unregistered, and the new registration to fail with `0x80073CFB` ("package already installed, reinstallation blocked at same version").
 
-Possible causes: `ImageDescriptionGenerator.GetReadyState()` returning a non-ready state that is now silently falling back to a default slug; or the SDK upgrade to `2.0.0-experimental7` changed runtime behavior of `ImageDescriptionGenerator`; or a code path change introduced a fallback that short-circuits the AI call.
-
-Do not debug now. See `NpuOrganizeKeeper/Watcher.cs` and `NpuOrganizeExtension/Services/AiNamingService.cs`.
-
-## Resolved
-
-### BUG-001: GetItems() blocking on async AI (fixed 2026-05)
-
-Extensions: NpuTextToolsExtension, NpuImageEditorExtension
-
-`RewriteResultPage` and `ImageResultPage` were calling `.GetAwaiter().GetResult()` on
-AI service calls inside `GetItems()`. `GetItems()` runs on the COM apartment thread;
-blocking it froze the entire Command Palette UI for the duration of the AI call
-(typically 3–15 seconds for a vision or language model).
-
-Fix: lazy async start on first `GetItems()` call via `Interlocked` flag. Page shows a
-"Processing…" placeholder and calls `RaiseItemsChanged()` when the task completes.
-See `CONVENTIONS.md § SDK Async Rules` for the canonical pattern.
-
-### BUG-002: FallbackCommands() returning empty array (fixed 2026-05)
-
-Extension: MediaControlsExtension
-
-`_fallbackCommands` was initialized to `[]` (empty array) before fallbacks loaded.
-SDK contract: `FallbackCommands()` must return `null` until actual fallbacks are ready.
-Returning `[]` signals "fallback system exists, no items" rather than "no fallbacks".
-
-Fix: field initialized to `null` (implicit default); populated and `RaiseItemsChanged()`
-called once `InitializeFallbackCommandsAsync` completes.
-
-### BUG-003: new IconInfo() inside GetItems() and timer callbacks (fixed 2026-05)
-
-Extensions: ActionCenterExtension, SimpleAnalyticsExtension
-
-`ActionCenterExtensionPage.GetItems()` created `new IconInfo("")` on every call.
-The Simple Analytics dock refresh path created new `IconInfo` objects on every
-timer tick (every 15–30 s). Icons are static values that should be allocated once.
-
-Fix: `static readonly IconInfo` fields for single icons; `static readonly IconInfo[]`
-lookup tables populated in a `static` constructor for ranged battery/WiFi codepoints.
-
-### BUG-004: ContentPage missing RaiseItemsChanged on settings change (fixed 2026-05)
-
-Extension: ActionCenterExtension
-
-`SettingsPage` (a `ContentPage`) did not subscribe to `SettingsChanged` and never
-called `RaiseItemsChanged()`. The SDK only re-calls `GetContent()` when told content
-changed. Without the subscription, reopening the settings page after a change could
-show stale content.
-
-Fix: constructor subscribes to `_settingsManager.Settings.SettingsChanged` and calls
-`RaiseItemsChanged()` in the handler. `#pragma warning disable CA1001` added per the
-process-lifetime page convention.
+Fix: removed the orphaned `Dziad.MediaControlsExtension_0.10.0.1` package manually, then reverted `Package.appxmanifest` to `Name="MediaControlsExtension"` and `Version="0.0.1.0"` to match the monorepo convention and the deploy script. All 11 extensions now register cleanly.
 
 ### BUG-005: Blocking AI call and silent exception swallow in rename (fixed 2026-05)
 
@@ -93,17 +71,53 @@ Fix:
   Exceptions are logged with `Debug.WriteLine` including type and path.
 - `RenameSingleCommand` updated to fire-and-forget with `Task.Run`.
 
-### BUG-006: Media Controls package identity colliding with upstream package (fixed 2026-05)
+### BUG-004: ContentPage missing RaiseItemsChanged on settings change (fixed 2026-05)
+
+Extension: ActionCenterExtension
+
+`SettingsPage` (a `ContentPage`) did not subscribe to `SettingsChanged` and never
+called `RaiseItemsChanged()`. The SDK only re-calls `GetContent()` when told content
+changed. Without the subscription, reopening the settings page after a change could
+show stale content.
+
+Fix: constructor subscribes to `_settingsManager.Settings.SettingsChanged` and calls
+`RaiseItemsChanged()` in the handler. `#pragma warning disable CA1001` added per the
+process-lifetime page convention.
+
+### BUG-003: new IconInfo() inside GetItems() and timer callbacks (fixed 2026-05)
+
+Extensions: ActionCenterExtension, SimpleAnalyticsExtension
+
+`ActionCenterExtensionPage.GetItems()` created `new IconInfo("")` on every call.
+The Simple Analytics dock refresh path created new `IconInfo` objects on every
+timer tick (every 15–30 s). Icons are static values that should be allocated once.
+
+Fix: `static readonly IconInfo` fields for single icons; `static readonly IconInfo[]`
+lookup tables populated in a `static` constructor for ranged battery/WiFi codepoints.
+
+### BUG-002: FallbackCommands() returning empty array (fixed 2026-05)
 
 Extension: MediaControlsExtension
 
-The local media controls port used the generic MSIX identity `MediaControlsExtension`.
-On machines that also had another user's unpackaged copy registered under the same
-identity, `Add-AppxPackage -Register` failed with `0x80073D19` before the current
-user could deploy local builds.
+`_fallbackCommands` was initialized to `[]` (empty array) before fallbacks loaded.
+SDK contract: `FallbackCommands()` must return `null` until actual fallbacks are ready.
+Returning `[]` signals "fallback system exists, no items" rather than "no fallbacks".
 
-Fix: changed the package identity to `Dziad.MediaControlsExtension` while preserving
-the extension provider ID and command IDs.
+Fix: field initialized to `null` (implicit default); populated and `RaiseItemsChanged()`
+called once `InitializeFallbackCommandsAsync` completes.
+
+### BUG-001: GetItems() blocking on async AI (fixed 2026-05)
+
+Extensions: NpuTextToolsExtension, NpuImageEditorExtension
+
+`RewriteResultPage` and `ImageResultPage` were calling `.GetAwaiter().GetResult()` on
+AI service calls inside `GetItems()`. `GetItems()` runs on the COM apartment thread;
+blocking it froze the entire Command Palette UI for the duration of the AI call
+(typically 3–15 seconds for a vision or language model).
+
+Fix: lazy async start on first `GetItems()` call via `Interlocked` flag. Page shows a
+"Processing…" placeholder and calls `RaiseItemsChanged()` when the task completes.
+See `CONVENTIONS.md § SDK Async Rules` for the canonical pattern.
 
 ---
 

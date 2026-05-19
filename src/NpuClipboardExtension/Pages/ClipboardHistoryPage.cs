@@ -118,13 +118,18 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
 
     private IContextItem[] BuildMoreCommands(ClipboardEntry entry)
     {
-        var items = new List<IContextItem>
-        {
-            new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id))                          { Icon = ClipboardVisuals.Copy,   RequestedShortcut = Copy       },
-            new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id))                         { Icon = ClipboardVisuals.Paste,  RequestedShortcut = Paste      },
-            new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))    { Icon = ClipboardVisuals.Text,   RequestedShortcut = PastePlain },
-            new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))     { Icon = ClipboardVisuals.Text,   RequestedShortcut = CopyPlain  },
-        };
+        // The SDK auto-inserts the primary action at the top of the flyout (activated by Enter, no shortcut shown).
+        // Only add the alternate here to avoid a duplicate row.
+        bool primaryIsCopy = _settings.Current.PrimaryAction == ClipboardPrimaryAction.Copy;
+
+        var items = new List<IContextItem>();
+        if (primaryIsCopy)
+            items.Add(new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id))           { Icon = ClipboardVisuals.Paste, RequestedShortcut = Paste      });
+        else
+            items.Add(new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id))            { Icon = ClipboardVisuals.Copy,  RequestedShortcut = Copy       });
+
+        items.Add(new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true)) { Icon = ClipboardVisuals.Text, RequestedShortcut = PastePlain });
+        items.Add(new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))  { Icon = ClipboardVisuals.Text, RequestedShortcut = CopyPlain  });
 
         if (entry.Kind == ClipboardEntryKind.Image && !string.IsNullOrWhiteSpace(entry.ImagePath) && File.Exists(entry.ImagePath))
         {
