@@ -77,6 +77,20 @@ internal sealed partial class DockHeadItem : ListItemBase, IDisposable
             }
         }
 
+        // Update text immediately so the tooltip is correct when RaiseItemsChanged fires
+        // synchronously from MediaControlsExtensionPage — the throttled Update() runs 150 ms
+        // later and would otherwise leave a stale title in the dock band.
+        if (arg is { HasProperties: true })
+        {
+            this.Title = arg.Name ?? string.Empty;
+            this.Subtitle = arg.Artist ?? string.Empty;
+        }
+        else
+        {
+            this.Title = string.Empty;
+            this.Subtitle = string.Empty;
+        }
+
         this._updateMediaInfo?.Invoke();
     }
 
