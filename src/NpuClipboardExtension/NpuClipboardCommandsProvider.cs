@@ -33,7 +33,7 @@ internal sealed partial class NpuClipboardCommandsProvider : CommandProvider
                 Icon = ClipboardVisuals.Clipboard,
                 MoreCommands =
                 [
-                    new CommandContextItem(new Commands.StartStopRecorderCommand()),
+                    new CommandContextItem(new Commands.StartStopRecorderCommand()) { RequestedShortcut = KeyChords.ToggleRecorder },
                     new Separator(),
                     new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(5), "Last 5 Minutes")) { IsCritical = true },
                     new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(15), "Last 15 Minutes")) { IsCritical = true },
