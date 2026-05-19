@@ -55,7 +55,12 @@ Then in Command Palette:
 Reload Command Palette extensions
 ```
 
-## Refresh Existing Local Registrations
+> **Do NOT call `Remove-AppxPackage` before re-registering during normal development.**
+> `Add-AppxPackage -Register` at the same version updates the registration in place and preserves the PowerToys host's settings record for that extension. Calling `Remove-AppxPackage` first causes the host to forget the extension's settings, resetting all user-configured values to defaults even though the JSON backup files survive on disk. The only time `Remove-AppxPackage` is needed is when the package **Name**, **Publisher**, or **Version** in `Package.appxmanifest` changes (see §Identity Change below).
+
+## Refresh Existing Local Registrations (one-time migration only)
+
+> **This script is a one-time migration tool. Do NOT run it during normal development — it calls `Remove-AppxPackage` on every extension, which wipes the PowerToys host's settings record for each one and resets all user settings to defaults.**
 
 After moving projects or consolidating old repos into this monorepo, refresh local package registrations from the monorepo paths:
 
@@ -88,6 +93,27 @@ Current extension process names:
 - `NpuClipboardKeeper`
 - `NpuNotesExtension`
 - `NpuDevToolboxExtension`
+
+## Identity Change (rare — Remove-AppxPackage required)
+
+The only case where `Remove-AppxPackage` is necessary during development is when the package `Name`, `Publisher`, or `Version` in `Package.appxmanifest` changes. Windows treats a different identity as a different package and `Add-AppxPackage -Register` will fail with `0x80073CFB` (same-version block) or a publisher mismatch error.
+
+Procedure for an identity change on a single extension:
+
+```powershell
+# 1. Stop the process
+Stop-Process -Name "[ExtensionName]" -Force -ErrorAction SilentlyContinue
+
+# 2. Remove the old package registration (settings for this extension will reset)
+$old = Get-AppxPackage -Name "[OldPackageName]" -ErrorAction SilentlyContinue
+if ($old) { Remove-AppxPackage -Package $old.PackageFullName }
+
+# 3. Build and re-register
+dotnet build "src\[ExtensionName]\[ExtensionName].csproj" -p:Platform=x64
+Add-AppxPackage -Register "src\[ExtensionName]\bin\x64\Debug\net9.0-windows10.0.26100.0\win-x64\AppxManifest.xml" -ForceApplicationShutdown
+```
+
+Keep all package names at `Version="0.0.1.0"` and `Publisher="CN=Microsoft Corporation, ..."` throughout development to avoid needing this. Do not bump the version for dev builds.
 
 ## Awake Daemon
 
