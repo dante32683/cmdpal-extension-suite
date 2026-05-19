@@ -4,19 +4,15 @@ This is the active issue ledger for the monorepo.
 
 ## Open
 
-### BUG-007: InvalidCastException in RemoveBackground Gray8 compositing
+### ~~BUG-007: InvalidCastException in RemoveBackground Gray8 compositing~~ — RESOLVED 2026-05-18
 
 Extension: NpuImageEditorExtension  
 Severity: High — Remove Background operation always fails  
-Discovered: 2026-05-18
+Discovered: 2026-05-18 / Fixed: 2026-05-18
 
-`RemoveBackgroundAsync` throws `InvalidCastException: Invalid cast from 'WinRT.IInspectable' to 'NpuTools.ImageEditor.Interop.IMemoryBufferByteAccess'` when trying to lock the SoftwareBitmap buffers for Gray8 mask compositing.
+Root cause: CsWinRT projects `IMemoryBufferReference` as a managed `WinRT.IInspectable` wrapper. Direct C# casts to a custom `[ComImport]` / `IUnknown`-based `IMemoryBufferByteAccess` interface always throw `InvalidCastException` — the managed wrapper does not surface IUnknown QI through the normal C# cast path.
 
-The `IMemoryBufferByteAccess` COM interop interface is defined in `Interop/IMemoryBufferByteAccess.cs` with the standard `[ComImport]` / `[Guid]` / `[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]` pattern. The cast from the buffer reference to the interface is failing at runtime under the WinRT/CsWinRT projection used by the experimental7 SDK.
-
-Likely cause: CsWinRT 2.x projects the `IMemoryBufferReference` to a WinRT-projected type that does not support direct `[ComImport]` interface casting. The raw COM query approach may need to be replaced with the CsWinRT-compatible `IMemoryBufferByteAccess` pattern (e.g., using `Marshal.GetComInterfaceForObject` / `Marshal.Release` or the CsWinRT `As<T>` interop helper).
-
-Do not attempt to debug until after sleeping. See `Services/ImageEditorService.cs :: ApplyGray8MaskAsAlpha`.
+Fix: replaced the raw unsafe-pointer compositing in `ApplyGray8MaskAsAlpha` with `SoftwareBitmap.CopyToBuffer` / `CopyFromBuffer` using `byte[].AsBuffer()` (from `System.Runtime.InteropServices.WindowsRuntime`). The `Interop/IMemoryBufferByteAccess.cs` file and the `Interop/` folder were deleted — they are no longer needed.
 
 ### BUG-008: NpuOrganize screenshot renamer producing "screenshot" slug instead of AI description
 

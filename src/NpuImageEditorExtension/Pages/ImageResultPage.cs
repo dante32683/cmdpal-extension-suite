@@ -62,9 +62,9 @@ internal sealed partial class ImageResultPage : ListPage
         {
             return
             [
-                new ListItem(new NoOpCommand())
+                new ListItem(new CopyTextCommand(_errorMessage))
                 {
-                    Title    = "Operation failed",
+                    Title    = "Operation failed — press Enter to copy error",
                     Subtitle = _errorMessage,
                     Icon     = ImageEditorVisuals.Folder,
                 },
@@ -126,7 +126,7 @@ internal sealed partial class ImageResultPage : ListPage
         }
         catch (Exception ex)
         {
-            _errorMessage = ex.Message;
+            _errorMessage = $"{ex.GetType().Name}: {ex.Message}";
         }
         finally
         {
