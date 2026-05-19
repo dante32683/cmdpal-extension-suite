@@ -63,6 +63,16 @@ internal sealed partial class ScreenshotIndexService
             return _entries.ContainsKey(filePath);
     }
 
+    public IReadOnlyList<ScreenshotIndexEntry> Recent(int maxCount = 20)
+    {
+        lock (_lock)
+        {
+            var all = new List<ScreenshotIndexEntry>(_entries.Values);
+            all.Sort(static (a, b) => b.IndexedAt.CompareTo(a.IndexedAt));
+            return all.Count <= maxCount ? all : all.GetRange(0, maxCount);
+        }
+    }
+
     public IReadOnlyList<ScreenshotIndexEntry> Search(string query)
     {
         lock (_lock)
@@ -70,16 +80,56 @@ internal sealed partial class ScreenshotIndexService
             if (string.IsNullOrWhiteSpace(query))
                 return [.. _entries.Values];
 
-            var results = new List<ScreenshotIndexEntry>();
             string q = query.Trim();
+            var scored = new List<(ScreenshotIndexEntry Entry, int Score)>();
             foreach (var entry in _entries.Values)
             {
-                if (entry.Description.Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                    entry.OcrText.Contains(q, StringComparison.OrdinalIgnoreCase))
-                    results.Add(entry);
+                int score = ScoreEntry(entry, q);
+                if (score > 0)
+                    scored.Add((entry, score));
             }
+
+            scored.Sort((a, b) =>
+            {
+                int cmp = b.Score.CompareTo(a.Score);
+                return cmp != 0 ? cmp : b.Entry.IndexedAt.CompareTo(a.Entry.IndexedAt);
+            });
+
+            var results = new List<ScreenshotIndexEntry>(scored.Count);
+            foreach (var (entry, _) in scored)
+                results.Add(entry);
             return results;
         }
+    }
+
+    private static int ScoreEntry(ScreenshotIndexEntry entry, string q)
+    {
+        int score = 0;
+
+        bool inDesc = entry.Description.Contains(q, StringComparison.OrdinalIgnoreCase);
+        bool inOcr  = entry.OcrText.Contains(q, StringComparison.OrdinalIgnoreCase);
+
+        if (inDesc) score += 3;
+        if (inOcr)  score += 2;
+
+        if (score > 0 && IsWholeWord(entry.Description + " " + entry.OcrText, q))
+            score += 1;
+
+        return score;
+    }
+
+    private static bool IsWholeWord(string text, string q)
+    {
+        int idx = text.IndexOf(q, StringComparison.OrdinalIgnoreCase);
+        while (idx >= 0)
+        {
+            bool leftBound  = idx == 0 || !char.IsLetterOrDigit(text[idx - 1]);
+            bool rightBound = idx + q.Length >= text.Length || !char.IsLetterOrDigit(text[idx + q.Length]);
+            if (leftBound && rightBound)
+                return true;
+            idx = text.IndexOf(q, idx + 1, StringComparison.OrdinalIgnoreCase);
+        }
+        return false;
     }
 
     private void Load()
