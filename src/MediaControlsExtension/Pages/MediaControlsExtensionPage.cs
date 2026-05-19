@@ -78,10 +78,6 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
             });
         };
 
-        this._mediaService.CurrentMediaSourceChanged += (_, _) => this.UpdateCurrentMediaItems();
-
-        this._mediaService.CurrentMediaPlaybackChanged += (_, _) => this.UpdateCurrentMediaItems();
-
         this._mediaService.LoadingStatusChanged += (_, _) => this.IsLoading = this._mediaService.IsLoading;
         this._settingsManager.Settings.SettingsChanged += this.SettingsOnSettingsChanged;
 
@@ -93,6 +89,9 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
         };
 
         this._playPauseCurrentSessionItem = new NowPlayingListItem(this._mediaService, this._settingsManager, this._yetAnotherHelper, this._isBandPage);
+        // DockHeadItem subscribes to CurrentMediaSourceChanged in its constructor.
+        // The page's own subscription is added below so DockHeadItem's handler fires first,
+        // updating Title/Subtitle before RaiseItemsChanged() reads them.
         this._bandFirstItem = this._isBandPage
             ? new DockHeadItem(this._mediaService, this._settingsManager, this._yetAnotherHelper)
             : null;
@@ -111,6 +110,11 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
             this._muteCommandItem.Title = string.Empty;
             this._muteCommandItem.Subtitle = string.Empty;
         }
+
+        // Subscribe after items are constructed so DockHeadItem's handler (registered in its
+        // constructor above) runs first and Title/Subtitle are current when RaiseItemsChanged fires.
+        this._mediaService.CurrentMediaSourceChanged += (_, _) => this.UpdateCurrentMediaItems();
+        this._mediaService.CurrentMediaPlaybackChanged += (_, _) => this.UpdateCurrentMediaItems();
     }
 
     private void UpdateCurrentMediaItems()
