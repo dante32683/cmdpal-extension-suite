@@ -229,12 +229,18 @@ Future polish:
 
 ### Phase 5: NPU Notes
 
-Priority features first.
+Priority features first. Raycast Notes is centered on three fast commands: open/toggle notes, create note, and search notes. Command Palette should adapt that into a notes hub plus direct create/search commands, with Markdown files as the storage and editing surface.
 
+- Notes Hub:
+  - Top-level command that shows pinned notes first, then recent notes.
+  - Replaces Raycast's toggleable notes window; Command Palette is the navigator/action surface.
+  - Actions: create note, search notes, browse categories, open notes folder.
 - Add Note:
+  - Zero-friction capture command.
+  - First line becomes the title by default, matching Raycast Notes behavior.
   - Form accepts rough note text.
   - Optional clipboard prefill.
-  - Phi formats note into title/category/content.
+  - Optional Phi cleanup formats rough text into title/category/content.
   - Save Markdown with YAML frontmatter.
   - Category folders are created automatically.
   - Default notes folder: `%UserProfile%\Documents\NpuNotes`.
@@ -244,6 +250,9 @@ Priority features first.
   - List notes grouped/filterable by category.
   - Open note detail as markdown.
   - Actions: open in editor, open folder, copy content, delete.
+- Pin Notes:
+  - Pinned notes sort to the top of hub, browse, and search views.
+  - Store pin order in frontmatter or a small sidecar index.
 - Delete Note:
   - Confirmation required.
   - Move to Recycle Bin, not permanent delete.
@@ -265,6 +274,7 @@ Future polish:
 - Rebuild index action.
 - Post-save related links and `related:` frontmatter.
 - RAG question-answering over notes.
+- Inline editor/helper only if opening Markdown in the user's editor is not enough.
 
 ### Phase 6: NPU Dev Toolbox
 
