@@ -4,37 +4,23 @@ This is the active issue ledger for the monorepo.
 
 ## Open
 
-### BUG-008: NpuOrganize screenshot renamer producing "screenshot" slug instead of AI description
-
-Extension: NpuOrganizeExtension  
-Severity: Medium — rename produces non-descriptive output, not broken  
-Discovered: 2026-05-18
-
-The OrganizeKeeper screenshot watcher is renaming new screenshots to a generic "screenshot" slug rather than running the `ImageDescriptionGenerator` AI pipeline to produce a meaningful slug. This regression was noticed during the image editor work session.
-
-Possible causes: `ImageDescriptionGenerator.GetReadyState()` returning a non-ready state that is now silently falling back to a default slug; or a code path change introduced a fallback that short-circuits the AI call.
-
-Do not debug now. See `NpuOrganizeKeeper/Watcher.cs` and `NpuOrganizeExtension/Services/AiNamingService.cs`.
-
----
+No open bugs currently tracked.
 
 ## Resolved
 
-### ~~BUG-010: Awake keeper not running after extension reload + wrong power API~~ — RESOLVED 2026-05-18
+### ~~BUG-010: Awake keeper not running after extension reload~~ — RESOLVED 2026-05-18
 
 Extension: NpuAwakeExtension / NpuAwakeKeeper  
 Severity: High — awake appeared active in UI but did not prevent sleep  
 Discovered: 2026-05-18 / Fixed: 2026-05-18
 
-Two compounding issues:
+Root issue:
 
-1. **Daemon not restarted on reload.** When PowerToys kills and restarts the extension process (e.g. "Reload Command Palette extensions"), the keeper daemon is killed too. `state.json` kept the active override, so the UI showed "active" but nothing was holding a power request. `NpuAwakeCommandsProvider` had no startup logic to restart the daemon.
-
-2. **Wrong power API.** The keeper used `SetThreadExecutionState`, which works but does not appear in `powercfg /requests`. Switched to `PowerCreateRequest`/`PowerSetRequest` so the request is visible in `powercfg /requests` with a descriptive reason string.
+When PowerToys kills and restarts the extension process (e.g. "Reload Command Palette extensions"), the keeper daemon is killed too. `state.json` kept the active override, so the UI showed "active" but nothing was holding a sleep-prevention request. `NpuAwakeCommandsProvider` had no startup logic to restart the daemon.
 
 Fix:
 - `NpuAwakeCommandsProvider`: calls `EnsureDaemonRunning()` at init when an unexpired override or schedules are present.
-- `NpuAwakeKeeper/Program.cs`: replaced `SetThreadExecutionState` with `PowerCreateRequest`/`PowerSetRequest`/`CloseHandle` P/Invoke. The handle is created once at daemon startup, requests are set/cleared as the decision changes, and the handle is cleaned up in the `finally` block.
+- `NpuAwakeKeeper/Program.cs`: continues to use `SetThreadExecutionState`, matching the PowerToys Awake approach. A short-lived attempt to switch to `PowerCreateRequest`/`PowerSetRequest` was reverted.
 
 ### ~~BUG-009: Duplicate primary action in ClipboardHistoryPage MoreCommands flyout~~ — RESOLVED 2026-05-18
 
