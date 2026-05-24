@@ -46,6 +46,7 @@ Imported project docs live under `docs/extensions/`. Treat them as historical or
 ## Planning Documents
 
 - `RAYCAST_MIGRATION_PLAN.md` - migration plan for Raycast tools into Command Palette extensions. This is planning material, not current architecture truth until implemented.
+- `NPU_NOTES_EXTENSION_GUIDE.md` - implementation guide for the Raycast-inspired NPU Notes extension.
 - `docs/ephemeral-plans/` - ignored local planning notes for future agents on this machine. These files are intentionally excluded from git and are not authoritative unless copied into canonical docs.
 
 ## Authority Levels
