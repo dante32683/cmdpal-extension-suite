@@ -138,6 +138,8 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 
 Shell project. No features implemented.
 
+Implementation guide: `docs/NPU_NOTES_EXTENSION_GUIDE.md`.
+
 Raycast-inspired plan, adapted to Command Palette:
 1. Notes Hub — default top-level entry showing recent and pinned notes, replacing Raycast's separate toggleable Notes window.
 2. Create Note — zero-friction capture command. First line becomes title by default; optional Phi cleanup can infer title/category/body.
