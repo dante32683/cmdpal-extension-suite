@@ -14,16 +14,18 @@ Command Palette should adapt that model instead of cloning the Raycast window. T
 
 ## V1 Scope
 
+Status: implemented for the file-backed MVP. AI items remain deferred.
+
 Build these in order:
 
-1. Notes Hub
-2. Create Note
-3. Search Notes
-4. Browse Notes
-5. Note Detail
-6. Pin/Unpin Note
-7. Delete Note
-8. Settings
+1. Notes Hub — implemented
+2. Create Note — implemented
+3. Search Notes — implemented
+4. Browse Notes — implemented
+5. Note Detail — implemented
+6. Pin/Unpin Note — implemented
+7. Delete Note — implemented
+8. Settings — implemented
 
 Defer these until the core file-backed flows are stable:
 
