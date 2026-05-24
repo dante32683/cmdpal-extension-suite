@@ -15,7 +15,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuImageEditorExtension | Shipped | ~98% |
 | NpuTextToolsExtension | Shipped (partial) | ~55% |
 | NpuClipboardExtension | Shipped | ~92% |
-| NpuNotesExtension | Shell only | 0% |
+| NpuNotesExtension | MVP shipped | ~55% |
 | NpuDevToolboxExtension | Shell only | 0% |
 
 ---
@@ -134,22 +134,24 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 
 ---
 
-## NPU Notes — 0%
+## NPU Notes — ~55%
 
-Shell project. No features implemented.
+File-backed Markdown MVP implemented. AI and semantic features remain future work.
 
 Implementation guide: `docs/NPU_NOTES_EXTENSION_GUIDE.md`.
 
 Raycast-inspired plan, adapted to Command Palette:
-1. Notes Hub — default top-level entry showing recent and pinned notes, replacing Raycast's separate toggleable Notes window.
-2. Create Note — zero-friction capture command. First line becomes title by default; optional Phi cleanup can infer title/category/body.
-3. Search Notes — dynamic title/content search, with pinned notes first and recent notes as the empty-query view.
-4. Browse Notes — category-filtered stack of Markdown files under `%UserProfile%\Documents\NpuNotes`.
-5. Pin Notes — pinned notes sort first and can later map to direct commands or numbered context shortcuts.
-6. Note Detail — Markdown preview with actions: open in editor, open folder, copy content, pin/unpin, delete.
-7. Delete Note — move to Recycle Bin with confirmation.
-8. Find Related Notes — Phi relatedness over recent/capped candidates.
-9. Semantic fallback search — keyword first, Phi relevance only when keyword results are sparse.
+1. Notes Hub — ✅ default top-level entry showing recent and pinned notes, replacing Raycast's separate toggleable Notes window.
+2. Create Note — ✅ zero-friction capture command. First line becomes title by default.
+3. Search Notes — ✅ dynamic title/content search, with pinned notes first and recent notes as the empty-query view.
+4. Browse Notes — ✅ category-filtered stack of Markdown files under `%UserProfile%\Documents\NpuNotes`.
+5. Pin Notes — ✅ pinned notes sort first via `.notes-index.json` sidecar metadata.
+6. Note Detail — ✅ Markdown preview with actions: open in editor, open folder, copy content, pin/unpin, delete.
+7. Delete Note — ✅ move to Recycle Bin with confirmation.
+8. Settings — ✅ notes root, default category, open-after-create, recent count, result count.
+9. AI cleanup on create — future.
+10. Find Related Notes — future Phi relatedness over recent/capped candidates.
+11. Semantic fallback search — future keyword first, Phi relevance only when keyword results are sparse.
 
 V1 should avoid building a full editor inside Command Palette. Store notes as normal Markdown files with YAML frontmatter, open them in the user's configured editor for rich editing, and keep Command Palette optimized for create/search/browse/action workflows.
 

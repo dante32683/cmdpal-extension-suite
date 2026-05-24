@@ -32,5 +32,14 @@
     <Compile Include="..\NpuOrganizeKeeper\SlugGenerator.cs" Link="SlugGenerator.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardClassifier.cs" Link="Clipboard\ClipboardClassifier.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardEntryKind.cs" Link="Clipboard\ClipboardEntryKind.cs" />
+    <Compile Include="..\NpuNotesExtension\Models\NoteEntry.cs" Link="Notes\NoteEntry.cs" />
+    <Compile Include="..\NpuNotesExtension\Models\NotesAppSettings.cs" Link="Notes\NotesAppSettings.cs" />
+    <Compile Include="..\NpuNotesExtension\Models\NotesIndex.cs" Link="Notes\NotesIndex.cs" />
+    <Compile Include="..\NpuNotesExtension\Shared\NotesJsonContext.cs" Link="Notes\NotesJsonContext.cs" />
+    <Compile Include="..\NpuNotesExtension\Services\NotesPaths.cs" Link="Notes\NotesPaths.cs" />
+    <Compile Include="..\NpuNotesExtension\Services\NotesSettingsStore.cs" Link="Notes\NotesSettingsStore.cs" />
+    <Compile Include="..\NpuNotesExtension\Services\NotesIndexStore.cs" Link="Notes\NotesIndexStore.cs" />
+    <Compile Include="..\NpuNotesExtension\Services\NotesStore.cs" Link="Notes\NotesStore.cs" />
+    <Compile Include="..\NpuNotesExtension\Services\NotesSearchService.cs" Link="Notes\NotesSearchService.cs" />
   </ItemGroup>
 </Project>

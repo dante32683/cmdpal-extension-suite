@@ -25,7 +25,7 @@ The repo-level docs are the authoritative standards for all extensions in this w
 - `src/NpuImageEditorExtension` - NPU Image Editor: OCR, background removal, upscale.
 - `src/NpuTextToolsExtension` - NPU Text Tools: six AI rewrite modes via Phi.
 - `src/NpuClipboardExtension` - NPU Clipboard: history, search, recorder controls.
-- `src/NpuNotesExtension` - NPU notes shell.
+- `src/NpuNotesExtension` - Markdown notes hub with create, search, browse, pin, and delete flows.
 - `src/NpuDevToolboxExtension` - NPU developer toolbox shell.
 - `src/NPUToolsExtension` - original scaffold retained only as a temporary reference.
 - `src/NpuTools.Shared` - shared NPU helpers.

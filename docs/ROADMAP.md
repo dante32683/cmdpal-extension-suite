@@ -24,24 +24,24 @@ Status: in progress
 - NPU Image Editor: OCR via OcrEngine, background removal via ImageObjectExtractor, 2x super-resolution via ImageScaler, hub + per-operation input pages. Uses built-in SDK `CopyTextCommand` and `OpenFileCommand` from the Toolkit namespace.
 - NPU Text Tools: six rewrite modes (Fix Grammar, Make Formal, Make Concise, Bullet Points, Simplify, Custom) via Phi LanguageModel, hub + per-mode input pages. Custom mode uses two-step flow (instruction page → text page) matching Raycast UX. TestAiCommand removed from top-level command list.
 - NPU Clipboard: standalone clipboard history extension with `NpuClipboardKeeper` background recorder. Stores local history at `%LocalAppData%\NpuClipboard\history.json`, supports searchable/filterable text, images, files, links, emails, and colors; copy, paste, paste as plain text, rename, pin, delete, hard-confirm delete all, bulk delete by recent time window, count-based retention, disabled application names, image OCR via `OcrEngine`, and Ask Clipboard local/Phi search. Cross-device sync is intentionally not active yet, but storage keeps stable IDs and a future `syncFolder` setting placeholder.
+- NPU Notes: Markdown note hub with file-backed create, search, browse-by-category, preview/details, pin/unpin, open in editor, copy, reveal, settings, and Recycle Bin delete flows. Stores notes under `%UserProfile%\Documents\NpuNotes` by default with YAML frontmatter and `.notes-index.json` sidecar metadata.
 
 ## Tests
 
-- `NpuTools.Tests`: xunit project targeting net9.0-windows10.0.26100.0. 43 tests covering:
+- `NpuTools.Tests`: xunit project targeting net9.0-windows10.0.26100.0. 53 tests covering:
   - `SlugServiceTests`: Slugify algorithm, BuildTargetFilename, ResolveCollision, IsAlreadyDateNamed, NormalizeExtension against Raycast parity fixtures.
   - `TextRewriteServiceTests`: all six rewrite-mode prompts validated for instruction text and format.
   - All tests pass with `dotnet test src/NpuTools.Tests/NpuTools.Tests.csproj`.
 
 ## Shell Projects
 
-- NPU Notes
 - NPU Dev Toolbox
 
 ## Next Work
 
 - Add CI for restore/build.
 - Publish release artifacts per extension.
-- Implement NPU Notes (add/browse/delete/find related/search per migration plan Phase 5).
+- Extend NPU Notes with Phi cleanup, Find Related Notes, and semantic fallback search.
 - Implement NPU Dev Toolbox (open workspace in Explorer/terminal/IDE per migration plan Phase 6).
 - Continue Raycast migration using `RAYCAST_MIGRATION_PLAN.md`.
 
