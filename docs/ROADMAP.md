@@ -27,7 +27,7 @@ Status: in progress
 
 ## Tests
 
-- `NpuTools.Tests`: xunit project targeting net9.0-windows10.0.26100.0. 37 tests covering:
+- `NpuTools.Tests`: xunit project targeting net9.0-windows10.0.26100.0. 43 tests covering:
   - `SlugServiceTests`: Slugify algorithm, BuildTargetFilename, ResolveCollision, IsAlreadyDateNamed, NormalizeExtension against Raycast parity fixtures.
   - `TextRewriteServiceTests`: all six rewrite-mode prompts validated for instruction text and format.
   - All tests pass with `dotnet test src/NpuTools.Tests/NpuTools.Tests.csproj`.

@@ -11,7 +11,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | MediaControlsExtension | Shipped | 100% |
 | SimpleAnalyticsExtension | Shipped | 100% |
 | NpuAwakeExtension | Shipped | 100% |
-| NpuOrganizeExtension | Shipped | ~98% |
+| NpuOrganizeExtension | Shipped | 100% |
 | NpuImageEditorExtension | Shipped | ~98% |
 | NpuTextToolsExtension | Shipped (partial) | ~55% |
 | NpuClipboardExtension | Shipped | ~92% |
@@ -51,7 +51,7 @@ All priority features from the migration plan are shipped.
 
 ---
 
-## NPU Organize — ~98%
+## NPU Organize — 100%
 
 All P0 features shipped. Screenshot search with relevance ranking and context actions added beyond original scope.
 
@@ -67,7 +67,6 @@ All P0 features shipped. Screenshot search with relevance ranking and context ac
 | Search shows recent screenshots by default | ✅ bonus |
 | Context actions: Copy Image (Ctrl+C), Copy Path (Ctrl+Shift+C), Open File Location (Ctrl+Shift+E) | ✅ bonus |
 | Slug parity tests | ✅ |
-| BUG-008: AI naming regression (generic "screenshot" slug) | open |
 | Downloads triage / monthly subfolders | deferred |
 | Multi-folder watch | deferred |
 
@@ -139,15 +138,20 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 
 Shell project. No features implemented.
 
-Planned (priority order):
-1. Add Note — Phi formats rough text into title/category/content, saves Markdown with YAML frontmatter
-2. Category folders (work, school, personal, tasks, ideas, health, finance, people, projects, misc)
-3. Browse Notes — list by category, open detail, open in editor, copy, delete
-4. Delete Note — move to Recycle Bin, confirmation required
-5. Find Related Notes — Phi relatedness over recent candidates, ranked results
-6. Search Notes — keyword first, Phi semantic fallback when sparse
+Raycast-inspired plan, adapted to Command Palette:
+1. Notes Hub — default top-level entry showing recent and pinned notes, replacing Raycast's separate toggleable Notes window.
+2. Create Note — zero-friction capture command. First line becomes title by default; optional Phi cleanup can infer title/category/body.
+3. Search Notes — dynamic title/content search, with pinned notes first and recent notes as the empty-query view.
+4. Browse Notes — category-filtered stack of Markdown files under `%UserProfile%\Documents\NpuNotes`.
+5. Pin Notes — pinned notes sort first and can later map to direct commands or numbered context shortcuts.
+6. Note Detail — Markdown preview with actions: open in editor, open folder, copy content, pin/unpin, delete.
+7. Delete Note — move to Recycle Bin with confirmation.
+8. Find Related Notes — Phi relatedness over recent/capped candidates.
+9. Semantic fallback search — keyword first, Phi relevance only when keyword results are sparse.
 
-Future: AppContentIndexer semantic index, rebuild action, RAG Q&A over notes.
+V1 should avoid building a full editor inside Command Palette. Store notes as normal Markdown files with YAML frontmatter, open them in the user's configured editor for rich editing, and keep Command Palette optimized for create/search/browse/action workflows.
+
+Future: AppContentIndexer semantic index, rebuild action, RAG Q&A over notes, inline editor helper if Command Palette alone is too limited.
 
 ---
 
