@@ -42,6 +42,7 @@ Status: in progress
 - Add CI for restore/build.
 - Publish release artifacts per extension.
 - Extend NPU Notes with Phi cleanup, Find Related Notes, and semantic fallback search.
+- Add NPU Obsidian as a separate vault-backed extension using `docs/NPU_OBSIDIAN_EXTENSION_GUIDE.md`.
 - Implement NPU Dev Toolbox (open workspace in Explorer/terminal/IDE per migration plan Phase 6).
 - Continue Raycast migration using `RAYCAST_MIGRATION_PLAN.md`.
 
