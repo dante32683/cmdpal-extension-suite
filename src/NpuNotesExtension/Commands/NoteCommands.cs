@@ -1,0 +1,228 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.CommandPalette.Extensions.Toolkit;
+using NpuTools.Notes.Models;
+using NpuTools.Notes.Services;
+using Windows.ApplicationModel.DataTransfer;
+
+namespace NpuTools.Notes.Commands;
+
+internal sealed partial class OpenNoteCommand : InvokableCommand
+{
+    private readonly NotesStore _store;
+    private readonly string _path;
+
+    public OpenNoteCommand(NotesStore store, string path)
+    {
+        _store = store;
+        _path = path;
+        Name = "Open In Editor";
+        Icon = NotesVisuals.Open;
+    }
+
+    public override CommandResult Invoke()
+    {
+        try
+        {
+            var entry = _store.GetByPath(_path);
+            if (entry is not null)
+                _store.RecordOpened(entry);
+
+            Process.Start(new ProcessStartInfo(_path) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"OpenNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
+        }
+
+        return CommandResult.Dismiss();
+    }
+}
+
+internal sealed partial class OpenNoteLocationCommand : InvokableCommand
+{
+    private readonly string _path;
+
+    public OpenNoteLocationCommand(string path)
+    {
+        _path = path;
+        Name = "Open File Location";
+        Icon = NotesVisuals.Folder;
+    }
+
+    public override CommandResult Invoke()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{_path}\"") { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"OpenNoteLocationCommand failed: {ex.GetType().Name}: {ex.Message}");
+        }
+
+        return CommandResult.Dismiss();
+    }
+}
+
+internal sealed partial class OpenNotesFolderCommand : InvokableCommand
+{
+    private readonly NotesSettingsStore _settings;
+
+    public OpenNotesFolderCommand(NotesSettingsStore settings)
+    {
+        _settings = settings;
+        Name = "Open Notes Folder";
+        Icon = NotesVisuals.Folder;
+    }
+
+    public override CommandResult Invoke()
+    {
+        try
+        {
+            string root = _settings.Current.NotesRoot;
+            Directory.CreateDirectory(root);
+            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{root}\"") { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"OpenNotesFolderCommand failed: {ex.GetType().Name}: {ex.Message}");
+        }
+
+        return CommandResult.Dismiss();
+    }
+}
+
+internal sealed partial class TogglePinNoteCommand : InvokableCommand
+{
+    private readonly NotesStore _store;
+    private readonly string _path;
+    private readonly bool _pin;
+
+    public TogglePinNoteCommand(NotesStore store, NoteEntry entry)
+    {
+        _store = store;
+        _path = entry.FilePath;
+        _pin = !entry.IsPinned;
+        Name = _pin ? "Pin Note" : "Unpin Note";
+        Icon = NotesVisuals.Pin;
+    }
+
+    public override CommandResult Invoke()
+    {
+        var entry = _store.GetByPath(_path);
+        if (entry is null)
+            return CommandResult.ShowToast("Note no longer exists.");
+
+        _store.SetPinned(entry, _pin);
+        return CommandResult.ShowToast(_pin ? "Note pinned." : "Note unpinned.");
+    }
+}
+
+internal sealed partial class DeleteNoteCommand : InvokableCommand
+{
+    private readonly NotesStore _store;
+    private readonly string _path;
+
+    public DeleteNoteCommand(NotesStore store, string path)
+    {
+        _store = store;
+        _path = path;
+        Name = "Delete Note";
+        Icon = NotesVisuals.Delete;
+    }
+
+    public override CommandResult Invoke()
+    {
+        var entry = _store.GetByPath(_path);
+        if (entry is null)
+            return CommandResult.ShowToast("Note no longer exists.");
+
+        try
+        {
+            _store.DeleteToRecycleBin(entry);
+            return CommandResult.ShowToast("Note moved to Recycle Bin.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"DeleteNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not delete note.");
+        }
+    }
+}
+
+internal sealed partial class CreateNoteCommand : InvokableCommand
+{
+    private readonly NotesStore _store;
+    private readonly NotesSettingsStore _settings;
+    private readonly string _text;
+    private readonly string? _category;
+
+    public CreateNoteCommand(NotesStore store, NotesSettingsStore settings, string text, string? category = null)
+    {
+        _store = store;
+        _settings = settings;
+        _text = text;
+        _category = category;
+        Name = string.IsNullOrWhiteSpace(text) ? "Create Blank Note" : "Create Note";
+        Icon = NotesVisuals.Add;
+    }
+
+    public override CommandResult Invoke()
+    {
+        try
+        {
+            var entry = _store.Create(_text, _category);
+            if (_settings.Current.OpenAfterCreate)
+                Process.Start(new ProcessStartInfo(entry.FilePath) { UseShellExecute = true });
+
+            return CommandResult.ShowToast($"Created {entry.Title}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"CreateNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not create note.");
+        }
+    }
+}
+
+internal sealed partial class CreateNoteFromClipboardCommand : InvokableCommand
+{
+    private readonly NotesStore _store;
+    private readonly NotesSettingsStore _settings;
+
+    public CreateNoteFromClipboardCommand(NotesStore store, NotesSettingsStore settings)
+    {
+        _store = store;
+        _settings = settings;
+        Name = "Create Note From Clipboard";
+        Icon = NotesVisuals.Add;
+    }
+
+    public override CommandResult Invoke()
+    {
+        _ = Task.Run(CreateAsync);
+        return CommandResult.ShowToast("Creating note from clipboard...");
+    }
+
+    private async Task CreateAsync()
+    {
+        try
+        {
+            DataPackageView content = Clipboard.GetContent();
+            string text = content.Contains(StandardDataFormats.Text)
+                ? await content.GetTextAsync()
+                : string.Empty;
+
+            var entry = _store.Create(text, _settings.Current.DefaultCategory);
+            if (_settings.Current.OpenAfterCreate)
+                Process.Start(new ProcessStartInfo(entry.FilePath) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"CreateNoteFromClipboardCommand failed: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+}
