@@ -41,5 +41,10 @@
     <Compile Include="..\NpuNotesExtension\Services\NotesIndexStore.cs" Link="Notes\NotesIndexStore.cs" />
     <Compile Include="..\NpuNotesExtension\Services\NotesStore.cs" Link="Notes\NotesStore.cs" />
     <Compile Include="..\NpuNotesExtension\Services\NotesSearchService.cs" Link="Notes\NotesSearchService.cs" />
+    <!-- Obsidian: pure parsing and search logic only (no SDK dependencies) -->
+    <Compile Include="..\NpuObsidianExtension\Models\ObsidianNote.cs" Link="Obsidian\ObsidianNote.cs" />
+    <Compile Include="..\NpuObsidianExtension\Services\ObsidianMarkdownParser.cs" Link="Obsidian\ObsidianMarkdownParser.cs" />
+    <Compile Include="..\NpuObsidianExtension\Services\ObsidianSearchService.cs" Link="Obsidian\ObsidianSearchService.cs" />
+    <Compile Include="..\NpuObsidianExtension\Services\ObsidianUriService.cs" Link="Obsidian\ObsidianUriService.cs" />
   </ItemGroup>
 </Project>
