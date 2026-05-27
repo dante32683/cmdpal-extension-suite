@@ -17,7 +17,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | AI features shipped | ~75% |
 | NpuObsidianExtension | M3 shipped | ~80% |
-| NpuDevToolboxExtension | Shell only | 0% |
+| NpuDevToolboxExtension | MVP shipped | ~80% |
 
 ---
 
@@ -187,18 +187,24 @@ Future: AppContentIndexer semantic index, rebuild action, RAG Q&A over notes, in
 
 ---
 
-## NPU Dev Toolbox — 0%
+## NPU Dev Toolbox — ~80%
 
-Shell project. No features implemented.
+MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspaces, settings.
 
-Planned:
-1. Open Workspace — detect from open Explorer windows, recent workspaces, explicit path; list candidates
-2. Open in Explorer / Terminal / IDE actions
-3. Windows Terminal support (`wt.exe` new-tab with profile and working directory)
-4. IDE support (Cursor, VS Code, Windsurf, JetBrains, custom path)
-5. Settings: default target, terminal choice, IDE choice, workspace detection timeout
-
-Future: Commit Message command with Phi generation and `git commit` confirmation.
+| Feature | Status |
+|---|---|
+| Dev Toolbox Hub (recent + scanned workspaces) | ✅ |
+| Workspace detection (~/repos, ~/source/repos, etc. with .git/.sln/package.json markers) | ✅ |
+| Open in Explorer | ✅ |
+| Open in Terminal (Windows Terminal / PowerShell / Cmd / Custom) | ✅ |
+| Open in IDE (VS Code / Cursor / Windsurf / Custom) | ✅ |
+| Quick Open commands (Explorer / Terminal / IDE shortcuts from top level) | ✅ |
+| Recent workspaces (persistent JSON, add-on-open, remove action) | ✅ |
+| Settings (terminal choice, IDE choice, custom exe paths) | ✅ |
+| Manual path entry via search box | ✅ |
+| Open Explorer window detection | future |
+| Commit Message with Phi generation | future |
+| Windows Terminal profile selection | future |
 
 ---
 
