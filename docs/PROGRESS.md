@@ -16,7 +16,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuTextToolsExtension | Shipped (partial) | ~55% |
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | MVP shipped | ~55% |
-| NpuObsidianExtension | M2 shipped | ~60% |
+| NpuObsidianExtension | M3 shipped | ~80% |
 | NpuDevToolboxExtension | Shell only | 0% |
 
 ---
@@ -132,6 +132,29 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 | Added to Refresh-ExtensionRegistrations.ps1 deploy script | ✅ (was missing) |
 | Cross-device sync via sync folder | deferred |
 | Time-window grouping display in list | not verified |
+
+---
+
+## NPU Obsidian — ~80%
+
+M3 shipped. Vault index, AI summarization, Find Related Notes, and Smart Capture all implemented.
+
+| Feature | Status |
+|---|---|
+| Vault browser (Hub, Search, Browse, Preview) | ✅ M1 |
+| Vault metadata (pin, record opened) | ✅ M1 |
+| Quick Append, Copy URI/Link, Daily Note | ✅ M1 |
+| Persistent vault index (vault-index.json) | ✅ M2 |
+| IndexVaultPage (progress, stats) | ✅ M2 |
+| Index-backed search (backlinks, AI summary score) | ✅ M2 |
+| Unit tests (parser, search scoring) | ✅ M2 |
+| Phi summarization (SummarizeNotePage + save to index) | ✅ M3 |
+| Find Related Notes (deterministic scoring + Phi rerank) | ✅ M3 |
+| Smart Capture (DynamicListPage → ProposalPage) | ✅ M3 |
+| Smart Capture creates note with AI-proposed folder/tags | ✅ M3 |
+| Summarize/Find Related in note preview and MoreCommands | ✅ M3 |
+| Delete note | future M4 |
+| Bulk vault operations | future M4 |
 
 ---
 

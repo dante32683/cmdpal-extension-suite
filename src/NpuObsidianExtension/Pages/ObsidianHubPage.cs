@@ -16,19 +16,22 @@ internal sealed partial class ObsidianHubPage : ListPage
     private readonly ObsidianSettingsStore _settings;
     private readonly ObsidianMetadataStore _metadata;
     private readonly ObsidianSearchService _search;
+    private readonly ObsidianAiService _ai;
 
     public ObsidianHubPage(
         ObsidianVaultStore store,
         ObsidianIndexStore indexStore,
         ObsidianSettingsStore settings,
         ObsidianMetadataStore metadata,
-        ObsidianSearchService search)
+        ObsidianSearchService search,
+        ObsidianAiService ai)
     {
         _store = store;
         _indexStore = indexStore;
         _settings = settings;
         _metadata = metadata;
         _search = search;
+        _ai = ai;
         Id = "com.local.nputools.obsidian.hub";
         Title = "Obsidian";
         Name = "Open";
@@ -91,7 +94,7 @@ internal sealed partial class ObsidianHubPage : ListPage
             }
         }
 
-        items.Add(new ListItem(new SearchObsidianNotesPage(_store, _indexStore, _settings, _metadata, _search))
+        items.Add(new ListItem(new SearchObsidianNotesPage(_store, _indexStore, _settings, _metadata, _search, _ai))
         {
             Title = "Search Notes",
             Subtitle = "Search by title, tags, headings, or content",
@@ -161,6 +164,6 @@ internal sealed partial class ObsidianHubPage : ListPage
         });
 
         foreach (var note in notes)
-            items.Add(NoteItemFactory.Build(_store, _settings, note));
+            items.Add(NoteItemFactory.Build(_store, _indexStore, _settings, _ai, note));
     }
 }

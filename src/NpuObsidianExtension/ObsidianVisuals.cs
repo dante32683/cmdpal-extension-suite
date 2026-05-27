@@ -1,4 +1,4 @@
-﻿using Microsoft.CommandPalette.Extensions;
+using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
 namespace NpuTools.Obsidian;
@@ -22,6 +22,8 @@ internal static class ObsidianVisuals
     internal static readonly IconInfo Warning  = new("");
     internal static readonly IconInfo Index    = new("");
     internal static readonly IconInfo Check    = new("");
+    internal static readonly IconInfo Ai      = new("");
+    internal static readonly IconInfo Related  = new("");
 
     private static readonly Color PurpleColor = new() { R = 124, G = 58, B = 237, A = 255 };
     private static readonly Color GreenColor  = new() { R = 108, G = 203, B = 95,  A = 255 };
