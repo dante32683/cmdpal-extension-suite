@@ -12,13 +12,22 @@ namespace NpuTools.Obsidian.Pages;
 internal sealed partial class ObsidianHubPage : ListPage
 {
     private readonly ObsidianVaultStore _store;
+    private readonly ObsidianIndexStore _indexStore;
     private readonly ObsidianSettingsStore _settings;
+    private readonly ObsidianMetadataStore _metadata;
     private readonly ObsidianSearchService _search;
 
-    public ObsidianHubPage(ObsidianVaultStore store, ObsidianSettingsStore settings, ObsidianSearchService search)
+    public ObsidianHubPage(
+        ObsidianVaultStore store,
+        ObsidianIndexStore indexStore,
+        ObsidianSettingsStore settings,
+        ObsidianMetadataStore metadata,
+        ObsidianSearchService search)
     {
         _store = store;
+        _indexStore = indexStore;
         _settings = settings;
+        _metadata = metadata;
         _search = search;
         Id = "com.local.nputools.obsidian.hub";
         Title = "Obsidian";
@@ -58,9 +67,31 @@ internal sealed partial class ObsidianHubPage : ListPage
                 Icon = ObsidianVisuals.Hub,
                 Tags = [ObsidianVisuals.VaultTag("vault")],
             });
+
+            // Index status row
+            if (_indexStore.IsIndexed)
+            {
+                items.Add(new ListItem(new NoOpCommand())
+                {
+                    Title = $"Index: {_indexStore.EntryCount} notes",
+                    Subtitle = "Vault index is built — search uses rich body and backlink data",
+                    Icon = ObsidianVisuals.Index,
+                    Tags = [ObsidianVisuals.StatusTag("indexed")],
+                });
+            }
+            else
+            {
+                items.Add(new ListItem(new IndexVaultPage(_store, _indexStore, _settings))
+                {
+                    Title = "Index Vault",
+                    Subtitle = "Build the search index for richer body and backlink search",
+                    Icon = ObsidianVisuals.Index,
+                    Tags = [ObsidianVisuals.MutedTag("not indexed")],
+                });
+            }
         }
 
-        items.Add(new ListItem(new SearchObsidianNotesPage(_store, _settings, _search))
+        items.Add(new ListItem(new SearchObsidianNotesPage(_store, _indexStore, _settings, _metadata, _search))
         {
             Title = "Search Notes",
             Subtitle = "Search by title, tags, headings, or content",
@@ -93,7 +124,11 @@ internal sealed partial class ObsidianHubPage : ListPage
 
         if (vaultOk)
         {
-            var notes = _store.GetAll();
+            // Use index-backed notes for the hub if available, else live scan.
+            var notes = _indexStore.IsIndexed
+                ? _indexStore.GetSearchableNotes(current.VaultPath, _metadata)
+                : _store.GetAll();
+
             var pinned = notes.Where(n => n.IsPinned).OrderBy(n => n.PinOrder ?? int.MaxValue).Take(current.MaxRecentNotes).ToList();
             var recent = notes.Where(n => !n.IsPinned).OrderByDescending(n => n.LastOpenedUtc ?? n.LastModifiedUtc).Take(current.MaxRecentNotes).ToList();
 
