@@ -125,6 +125,21 @@ internal sealed partial class ObsidianIndexStore
     }
 
     // Returns notes built from index data — no file I/O after initial index load.
+    public void UpdateSummary(string absolutePath, string summary)
+    {
+        EnsureLoaded();
+        List<ObsidianIndexEntry> snapshot;
+        lock (_lock)
+        {
+            var entry = _entries.FirstOrDefault(e => SamePath(e.AbsolutePath, absolutePath));
+            if (entry is null)
+                return;
+            entry.AiSummary = summary;
+            snapshot = [.. _entries];
+        }
+        SaveToDisk(snapshot);
+    }
+
     public IReadOnlyList<ObsidianNote> GetSearchableNotes(string vaultPath, ObsidianMetadataStore? metadata = null)
     {
         EnsureLoaded();
