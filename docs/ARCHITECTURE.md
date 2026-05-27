@@ -19,7 +19,7 @@ This repo targets .NET 9 and `Microsoft.CommandPalette.Extensions` SDK v0.9+. It
 │   ├── NpuTextToolsExtension/             # NPU Text Tools — AI rewrite via Phi
 │   ├── NpuClipboardExtension/             # NPU Clipboard — history, search, recorder controls
 │   ├── NpuClipboardKeeper/                # Companion recorder daemon for NpuClipboardExtension
-│   ├── NpuNotesExtension/                 # NPU Notes shell
+│   ├── NpuNotesExtension/                 # Markdown notes hub
 │   ├── NpuDevToolboxExtension/            # NPU Dev Toolbox shell
 │   ├── NpuTools.Shared/                   # Shared NPU helpers
 │   ├── NpuTools.Tests/                    # xunit tests for shared services

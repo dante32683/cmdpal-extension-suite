@@ -47,7 +47,7 @@ Each extension process provides the commands, pages, services, and package metad
 
 ### Shell Projects (not yet implemented)
 
-- **NpuNotesExtension**, **NpuDevToolboxExtension**
+- **NpuDevToolboxExtension**
 
 ## Key Gotchas
 
