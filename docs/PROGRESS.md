@@ -16,6 +16,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuTextToolsExtension | Shipped (partial) | ~55% |
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | MVP shipped | ~55% |
+| NpuObsidianExtension | M1 shipped | ~35% |
 | NpuDevToolboxExtension | Shell only | 0% |
 
 ---
