@@ -9,13 +9,22 @@ namespace NpuTools.Obsidian.Pages;
 internal sealed partial class NotePreviewPage : ListPage
 {
     private readonly ObsidianVaultStore _store;
+    private readonly ObsidianIndexStore _indexStore;
     private readonly ObsidianSettingsStore _settings;
+    private readonly ObsidianAiService _ai;
     private readonly string _path;
 
-    public NotePreviewPage(ObsidianVaultStore store, ObsidianSettingsStore settings, string path)
+    public NotePreviewPage(
+        ObsidianVaultStore store,
+        ObsidianIndexStore indexStore,
+        ObsidianSettingsStore settings,
+        ObsidianAiService ai,
+        string path)
     {
         _store = store;
+        _indexStore = indexStore;
         _settings = settings;
+        _ai = ai;
         _path = path;
         Id = "com.local.nputools.obsidian.preview";
         Title = "Note";
@@ -51,7 +60,7 @@ internal sealed partial class NotePreviewPage : ListPage
                 Subtitle = note.AbsolutePath,
                 Icon = ObsidianVisuals.Open,
                 Details = NoteItemFactory.BuildDetails(note),
-                MoreCommands = NoteItemFactory.BuildMoreCommands(_store, _settings, note),
+                MoreCommands = NoteItemFactory.BuildMoreCommands(_store, _indexStore, _settings, _ai, note),
             },
             new ListItem(new OpenInEditorCommand(_store, note.AbsolutePath))
             {
@@ -65,6 +74,21 @@ internal sealed partial class NotePreviewPage : ListPage
                 Subtitle = "Add text to the end of this note",
                 Icon = ObsidianVisuals.Append,
                 MoreCommands = [new CommandContextItem(new QuickAppendPage(_store, note)) { RequestedShortcut = QuickAppend }],
+            },
+            new ListItem(new SummarizeNotePage(note, _ai, _indexStore))
+            {
+                Title = "Summarize Note",
+                Subtitle = string.IsNullOrWhiteSpace(note.AiSummary)
+                    ? "Generate a 1–2 sentence Phi summary"
+                    : "Regenerate summary",
+                Icon = ObsidianVisuals.Ai,
+                Tags = string.IsNullOrWhiteSpace(note.AiSummary) ? [] : [ObsidianVisuals.StatusTag("summarized")],
+            },
+            new ListItem(new FindRelatedNotesPage(note, _store, _indexStore, _settings, _ai))
+            {
+                Title = "Find Related Notes",
+                Subtitle = "Discover linked and thematically similar notes",
+                Icon = ObsidianVisuals.Related,
             },
             new ListItem(new CopyObsidianUriCommand(note, _settings))
             {

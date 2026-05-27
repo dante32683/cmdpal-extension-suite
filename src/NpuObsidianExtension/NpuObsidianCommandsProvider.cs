@@ -13,6 +13,7 @@ internal sealed partial class NpuObsidianCommandsProvider : CommandProvider
     private readonly ObsidianVaultStore _vaultStore;
     private readonly ObsidianIndexStore _indexStore = new();
     private readonly ObsidianSearchService _search = new();
+    private readonly ObsidianAiService _aiService = new();
     private readonly ObsidianSettingsManager _settingsManager;
     private readonly ICommandItem[] _commands;
 
@@ -31,13 +32,13 @@ internal sealed partial class NpuObsidianCommandsProvider : CommandProvider
 
         _commands =
         [
-            new CommandItem(new ObsidianHubPage(_vaultStore, _indexStore, _settingsStore, _metadataStore, _search))
+            new CommandItem(new ObsidianHubPage(_vaultStore, _indexStore, _settingsStore, _metadataStore, _search, _aiService))
             {
                 Title = "Obsidian",
                 Subtitle = "Browse vault, pinned notes, and quick actions",
                 Icon = ObsidianVisuals.Hub,
             },
-            new CommandItem(new SearchObsidianNotesPage(_vaultStore, _indexStore, _settingsStore, _metadataStore, _search))
+            new CommandItem(new SearchObsidianNotesPage(_vaultStore, _indexStore, _settingsStore, _metadataStore, _search, _aiService))
             {
                 Title = "Search Obsidian Notes",
                 Subtitle = "Search vault by title, tags, headings, and content",
@@ -48,6 +49,12 @@ internal sealed partial class NpuObsidianCommandsProvider : CommandProvider
                 Title = "New Obsidian Note",
                 Subtitle = "Create a Markdown note directly in the vault",
                 Icon = ObsidianVisuals.Add,
+            },
+            new CommandItem(new SmartCapturePage(_vaultStore, _settingsStore, _aiService))
+            {
+                Title = "Smart Capture",
+                Subtitle = "Paste rough text — Phi structures it into a note",
+                Icon = ObsidianVisuals.Ai,
             },
             new CommandItem(new OpenDailyNoteCommand(_settingsStore))
             {

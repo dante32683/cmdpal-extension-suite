@@ -11,6 +11,7 @@ internal sealed partial class SearchObsidianNotesPage : DynamicListPage
     private readonly ObsidianSettingsStore _settings;
     private readonly ObsidianMetadataStore _metadata;
     private readonly ObsidianSearchService _search;
+    private readonly ObsidianAiService _ai;
     private IListItem[] _items;
 
     public SearchObsidianNotesPage(
@@ -18,13 +19,15 @@ internal sealed partial class SearchObsidianNotesPage : DynamicListPage
         ObsidianIndexStore indexStore,
         ObsidianSettingsStore settings,
         ObsidianMetadataStore metadata,
-        ObsidianSearchService search)
+        ObsidianSearchService search,
+        ObsidianAiService ai)
     {
         _store = store;
         _indexStore = indexStore;
         _settings = settings;
         _metadata = metadata;
         _search = search;
+        _ai = ai;
         Id = "com.local.nputools.obsidian.search";
         Title = "Search Obsidian Notes";
         Name = "Search";
@@ -89,7 +92,7 @@ internal sealed partial class SearchObsidianNotesPage : DynamicListPage
 
         var items = new IListItem[results.Count];
         for (int i = 0; i < results.Count; i++)
-            items[i] = NoteItemFactory.Build(_store, _settings, results[i]);
+            items[i] = NoteItemFactory.Build(_store, _indexStore, _settings, _ai, results[i]);
         return items;
     }
 }
