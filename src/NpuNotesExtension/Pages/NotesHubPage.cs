@@ -12,12 +12,14 @@ internal sealed partial class NotesHubPage : ListPage
     private readonly NotesStore _store;
     private readonly NotesSettingsStore _settings;
     private readonly NotesSearchService _search;
+    private readonly NotesAiService _ai;
 
-    public NotesHubPage(NotesStore store, NotesSettingsStore settings, NotesSearchService search)
+    public NotesHubPage(NotesStore store, NotesSettingsStore settings, NotesSearchService search, NotesAiService ai)
     {
         _store = store;
         _settings = settings;
         _search = search;
+        _ai = ai;
         Id = "com.local.nputools.notes.hub";
         Title = "Notes";
         Name = "Open";
@@ -39,13 +41,13 @@ internal sealed partial class NotesHubPage : ListPage
                 Subtitle = "Type or paste Markdown text",
                 Icon = NotesVisuals.Add,
             },
-            new ListItem(new SearchNotesPage(_store, _settings, _search))
+            new ListItem(new SearchNotesPage(_store, _settings, _search, _ai))
             {
                 Title = "Search Notes",
                 Subtitle = "Search by title, content, category, or tags",
                 Icon = NotesVisuals.Search,
             },
-            new ListItem(new BrowseNotesPage(_store, _settings))
+            new ListItem(new BrowseNotesPage(_store, _settings, _ai))
             {
                 Title = "Browse Notes",
                 Subtitle = "Open notes by category",
@@ -87,6 +89,6 @@ internal sealed partial class NotesHubPage : ListPage
         });
 
         foreach (var note in notes)
-            items.Add(NoteItemFactory.Build(_store, note));
+            items.Add(NoteItemFactory.Build(_store, _ai, note));
     }
 }

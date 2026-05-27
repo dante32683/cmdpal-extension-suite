@@ -12,13 +12,15 @@ internal sealed partial class BrowseNotesPage : DynamicListPage
 {
     private readonly NotesStore _store;
     private readonly NotesSettingsStore _settings;
+    private readonly NotesAiService _ai;
     private readonly string? _category;
     private IListItem[] _items;
 
-    public BrowseNotesPage(NotesStore store, NotesSettingsStore settings, string? category = null)
+    public BrowseNotesPage(NotesStore store, NotesSettingsStore settings, NotesAiService ai, string? category = null)
     {
         _store = store;
         _settings = settings;
+        _ai = ai;
         _category = category;
         Id = category is null ? "com.local.nputools.notes.browse" : $"com.local.nputools.notes.browse.{category}";
         Title = category is null ? "Browse Notes" : $"{TitleCase(category)} Notes";
@@ -73,7 +75,7 @@ internal sealed partial class BrowseNotesPage : DynamicListPage
 
         var items = new IListItem[notes.Count];
         for (int i = 0; i < notes.Count; i++)
-            items[i] = NoteItemFactory.Build(_store, notes[i]);
+            items[i] = NoteItemFactory.Build(_store, _ai, notes[i]);
         return items;
     }
 
@@ -83,7 +85,7 @@ internal sealed partial class BrowseNotesPage : DynamicListPage
         var counts = notes.GroupBy(n => n.Category, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
         var items = new List<IListItem>
         {
-            new ListItem(new BrowseNotesPage(_store, _settings, "all"))
+            new ListItem(new BrowseNotesPage(_store, _settings, _ai, "all"))
             {
                 Title = "All Notes",
                 Subtitle = $"{notes.Count} notes",
@@ -94,7 +96,7 @@ internal sealed partial class BrowseNotesPage : DynamicListPage
         foreach (string category in NotesStore.KnownCategories)
         {
             int count = counts.TryGetValue(category, out int value) ? value : 0;
-            items.Add(new ListItem(new BrowseNotesPage(_store, _settings, category))
+            items.Add(new ListItem(new BrowseNotesPage(_store, _settings, _ai, category))
             {
                 Title = TitleCase(category),
                 Subtitle = $"{count} notes",
