@@ -9,11 +9,13 @@ namespace NpuTools.Notes.Pages;
 internal sealed partial class DeleteNotePage : ListPage
 {
     private readonly NotesStore _store;
+    private readonly NotesAiService _ai;
     private readonly string _path;
 
-    public DeleteNotePage(NotesStore store, string path)
+    public DeleteNotePage(NotesStore store, NotesAiService ai, string path)
     {
         _store = store;
+        _ai = ai;
         _path = path;
         Id = "com.local.nputools.notes.delete";
         Title = "Delete Note";
@@ -39,7 +41,7 @@ internal sealed partial class DeleteNotePage : ListPage
 
         return
         [
-            new ListItem(new NoteDetailPage(_store, entry.FilePath))
+            new ListItem(new NoteDetailPage(_store, _ai, entry.FilePath))
             {
                 Title = "Cancel",
                 Subtitle = "Return to the note",
