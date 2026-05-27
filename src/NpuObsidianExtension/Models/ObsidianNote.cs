@@ -29,6 +29,11 @@ internal sealed class ObsidianNote
 
     public DateTimeOffset? LastOpenedUtc { get; set; }
 
+    // Populated from index; empty when loaded via live vault scan.
+    public List<string> Backlinks { get; set; } = [];
+
+    public string AiSummary { get; set; } = "";
+
     public string Snippet
     {
         get

@@ -20,6 +20,8 @@ internal static class ObsidianVisuals
     internal static readonly IconInfo Link     = new("");
     internal static readonly IconInfo Daily    = new("");
     internal static readonly IconInfo Warning  = new("");
+    internal static readonly IconInfo Index    = new("");
+    internal static readonly IconInfo Check    = new("");
 
     private static readonly Color PurpleColor = new() { R = 124, G = 58, B = 237, A = 255 };
     private static readonly Color GreenColor  = new() { R = 108, G = 203, B = 95,  A = 255 };

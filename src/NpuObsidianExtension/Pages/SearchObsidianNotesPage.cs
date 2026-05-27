@@ -7,14 +7,23 @@ namespace NpuTools.Obsidian.Pages;
 internal sealed partial class SearchObsidianNotesPage : DynamicListPage
 {
     private readonly ObsidianVaultStore _store;
+    private readonly ObsidianIndexStore _indexStore;
     private readonly ObsidianSettingsStore _settings;
+    private readonly ObsidianMetadataStore _metadata;
     private readonly ObsidianSearchService _search;
     private IListItem[] _items;
 
-    public SearchObsidianNotesPage(ObsidianVaultStore store, ObsidianSettingsStore settings, ObsidianSearchService search)
+    public SearchObsidianNotesPage(
+        ObsidianVaultStore store,
+        ObsidianIndexStore indexStore,
+        ObsidianSettingsStore settings,
+        ObsidianMetadataStore metadata,
+        ObsidianSearchService search)
     {
         _store = store;
+        _indexStore = indexStore;
         _settings = settings;
+        _metadata = metadata;
         _search = search;
         Id = "com.local.nputools.obsidian.search";
         Title = "Search Obsidian Notes";
@@ -54,7 +63,12 @@ internal sealed partial class SearchObsidianNotesPage : DynamicListPage
         }
 
         var settings = _settings.Current;
-        var notes = _store.GetAll();
+
+        // Prefer the persistent index for rich body + backlink search; fall back to live scan.
+        var notes = _indexStore.IsIndexed
+            ? _indexStore.GetSearchableNotes(settings.VaultPath, _metadata)
+            : _store.GetAll();
+
         int maxResults = string.IsNullOrWhiteSpace(query) ? settings.MaxRecentNotes : settings.MaxSearchResults;
         var results = _search.Search(notes, query, maxResults);
 
@@ -65,7 +79,9 @@ internal sealed partial class SearchObsidianNotesPage : DynamicListPage
                 new ListItem(new CreateObsidianNotePage(_store, _settings))
                 {
                     Title = string.IsNullOrWhiteSpace(query) ? "No notes in vault" : $"No matches for \"{query}\"",
-                    Subtitle = "Create a note or change the search text",
+                    Subtitle = _indexStore.IsIndexed
+                        ? "Create a note or change the search text"
+                        : "Index the vault for richer search, or create a note",
                     Icon = ObsidianVisuals.Search,
                 },
             ];
