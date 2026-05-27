@@ -50,6 +50,14 @@ internal sealed partial class TextToolsHubPage : ListPage
             Tags     = [TextToolsVisuals.MutedTag("type instruction")],
         });
 
+        items.Add(new ListItem(new QuickRewritePage(_service))
+        {
+            Title    = "Quick Rewrite",
+            Subtitle = "Leave empty to rewrite selected text, or type text directly",
+            Icon     = TextToolsVisuals.Phi,
+            Tags     = [TextToolsVisuals.MutedTag("select text first")],
+        });
+
         return items.ToArray();
     }
 }
