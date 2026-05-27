@@ -2,28 +2,14 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CommandPalette.Extensions;
-using NpuTools.Common;
 
 namespace NpuTools.DevToolbox;
 
 [Guid("f9bfb2c8-9aa7-4247-b64c-d2381c892e40")]
 public sealed partial class NpuDevToolboxExtension : IExtension, IDisposable
 {
-    private static readonly ExtensionDescriptor Descriptor = new(
-        "dev-toolbox",
-        "NPU Dev Toolbox",
-        "com.local.nputools.devtoolbox",
-        "DevToolbox",
-        [
-            "Open workspace in Explorer",
-            "Open workspace in terminal",
-            "Open workspace in IDE",
-            "Workspace detection settings",
-        ],
-        IconGlyph: "\uE943");
-
     private readonly ManualResetEvent _extensionDisposedEvent;
-    private readonly Phase0CommandProvider _provider = new(Descriptor);
+    private readonly NpuDevToolboxCommandsProvider _provider = new();
 
     public NpuDevToolboxExtension(ManualResetEvent extensionDisposedEvent)
     {
