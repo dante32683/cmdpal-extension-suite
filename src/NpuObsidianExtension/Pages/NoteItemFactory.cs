@@ -11,15 +11,20 @@ namespace NpuTools.Obsidian.Pages;
 
 internal static class NoteItemFactory
 {
-    public static ListItem Build(ObsidianVaultStore store, ObsidianSettingsStore settings, ObsidianNote note)
+    public static ListItem Build(
+        ObsidianVaultStore store,
+        ObsidianIndexStore indexStore,
+        ObsidianSettingsStore settings,
+        ObsidianAiService ai,
+        ObsidianNote note)
     {
-        return new ListItem(new NotePreviewPage(store, settings, note.AbsolutePath))
+        return new ListItem(new NotePreviewPage(store, indexStore, settings, ai, note.AbsolutePath))
         {
             Title = note.Title,
             Subtitle = BuildSubtitle(note),
             Icon = ObsidianVisuals.Note,
             Tags = BuildTags(note),
-            MoreCommands = BuildMoreCommands(store, settings, note),
+            MoreCommands = BuildMoreCommands(store, indexStore, settings, ai, note),
             Details = BuildDetails(note),
         };
     }
@@ -50,7 +55,12 @@ internal static class NoteItemFactory
         };
     }
 
-    public static IContextItem[] BuildMoreCommands(ObsidianVaultStore store, ObsidianSettingsStore settings, ObsidianNote note)
+    public static IContextItem[] BuildMoreCommands(
+        ObsidianVaultStore store,
+        ObsidianIndexStore indexStore,
+        ObsidianSettingsStore settings,
+        ObsidianAiService ai,
+        ObsidianNote note)
     {
         return
         [
@@ -61,7 +71,10 @@ internal static class NoteItemFactory
             new CommandContextItem(new CopyObsidianUriCommand(note, settings)) { RequestedShortcut = CopyUri },
             new CommandContextItem(new CopyMarkdownLinkCommand(note, settings)) { RequestedShortcut = CopyMarkdownLink },
             new Separator(),
-            new CommandContextItem(new QuickAppendPage(store, note))  { Icon = ObsidianVisuals.Append, RequestedShortcut = QuickAppend },
+            new CommandContextItem(new QuickAppendPage(store, note)) { Icon = ObsidianVisuals.Append, RequestedShortcut = QuickAppend },
+            new Separator(),
+            new CommandContextItem(new SummarizeNotePage(note, ai, indexStore)) { Icon = ObsidianVisuals.Ai },
+            new CommandContextItem(new FindRelatedNotesPage(note, store, indexStore, settings, ai)) { Icon = ObsidianVisuals.Related },
             new Separator(),
             new CommandContextItem(new TogglePinCommand(store, note)) { Icon = ObsidianVisuals.Pin, RequestedShortcut = Pin },
         ];

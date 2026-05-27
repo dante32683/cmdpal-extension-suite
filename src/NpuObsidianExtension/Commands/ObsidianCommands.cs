@@ -285,13 +285,15 @@ internal sealed partial class CreateNoteAndOpenCommand : InvokableCommand
     private readonly ObsidianSettingsStore _settings;
     private readonly string _title;
     private readonly string _body;
+    private readonly string? _subfolder;
 
-    public CreateNoteAndOpenCommand(ObsidianVaultStore store, ObsidianSettingsStore settings, string title, string body)
+    public CreateNoteAndOpenCommand(ObsidianVaultStore store, ObsidianSettingsStore settings, string title, string body, string? subfolder = null)
     {
         _store = store;
         _settings = settings;
         _title = title;
         _body = body;
+        _subfolder = subfolder;
         Name = string.IsNullOrWhiteSpace(title) ? "Create Blank Note" : $"Create: {title}";
         Icon = ObsidianVisuals.Add;
     }
@@ -306,7 +308,7 @@ internal sealed partial class CreateNoteAndOpenCommand : InvokableCommand
     {
         try
         {
-            var note = _store.Create(_title, _body);
+            var note = _store.Create(_title, _body, _subfolder);
             if (_settings.Current.OpenAfterCreate)
             {
                 string vaultName = OpenInObsidianBySettingsCommand.ResolveVaultName(_settings.Current, note.VaultPath);
