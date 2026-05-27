@@ -11,6 +11,7 @@ internal sealed partial class NpuObsidianCommandsProvider : CommandProvider
     private readonly ObsidianSettingsStore _settingsStore = new();
     private readonly ObsidianMetadataStore _metadataStore;
     private readonly ObsidianVaultStore _vaultStore;
+    private readonly ObsidianIndexStore _indexStore = new();
     private readonly ObsidianSearchService _search = new();
     private readonly ObsidianSettingsManager _settingsManager;
     private readonly ICommandItem[] _commands;
@@ -26,15 +27,17 @@ internal sealed partial class NpuObsidianCommandsProvider : CommandProvider
         _settingsManager = new ObsidianSettingsManager(_settingsStore);
         Settings = _settingsManager.Settings;
 
+        _indexStore.EnsureLoaded();
+
         _commands =
         [
-            new CommandItem(new ObsidianHubPage(_vaultStore, _settingsStore, _search))
+            new CommandItem(new ObsidianHubPage(_vaultStore, _indexStore, _settingsStore, _metadataStore, _search))
             {
                 Title = "Obsidian",
                 Subtitle = "Browse vault, pinned notes, and quick actions",
                 Icon = ObsidianVisuals.Hub,
             },
-            new CommandItem(new SearchObsidianNotesPage(_vaultStore, _settingsStore, _search))
+            new CommandItem(new SearchObsidianNotesPage(_vaultStore, _indexStore, _settingsStore, _metadataStore, _search))
             {
                 Title = "Search Obsidian Notes",
                 Subtitle = "Search vault by title, tags, headings, and content",
@@ -51,6 +54,12 @@ internal sealed partial class NpuObsidianCommandsProvider : CommandProvider
                 Title = "Open Daily Note",
                 Subtitle = "Open today's daily note in Obsidian",
                 Icon = ObsidianVisuals.Daily,
+            },
+            new CommandItem(new IndexVaultPage(_vaultStore, _indexStore, _settingsStore))
+            {
+                Title = "Index Vault",
+                Subtitle = "Build or refresh the vault search index",
+                Icon = ObsidianVisuals.Index,
             },
         ];
     }

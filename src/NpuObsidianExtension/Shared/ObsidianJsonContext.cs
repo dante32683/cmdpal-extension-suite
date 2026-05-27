@@ -7,6 +7,7 @@ namespace NpuTools.Obsidian.Shared;
 [JsonSerializable(typeof(ObsidianVaultSettings))]
 [JsonSerializable(typeof(ObsidianVaultIndex))]
 [JsonSerializable(typeof(List<ObsidianNote>))]
+[JsonSerializable(typeof(List<ObsidianIndexEntry>))]
 [JsonSourceGenerationOptions(WriteIndented = false)]
 internal sealed partial class ObsidianJsonContext : JsonSerializerContext
 {

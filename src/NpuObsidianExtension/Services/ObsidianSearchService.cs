@@ -54,11 +54,18 @@ internal sealed class ObsidianSearchService
         if (note.Body.Contains(query, StringComparison.OrdinalIgnoreCase))
             score += 2;
 
+        if (!string.IsNullOrEmpty(note.AiSummary) && note.AiSummary.Contains(query, StringComparison.OrdinalIgnoreCase))
+            score += 2;
+
         if (score > 0 && IsWholeWord(note.Title + " " + string.Join(' ', note.Tags) + " " + string.Join(' ', note.Aliases), query))
             score += 2;
 
         if (note.IsPinned)
             score += 2;
+
+        // Notes that many other notes link to are more important; small backlink bonus capped at +3.
+        if (note.Backlinks.Count > 0)
+            score += Math.Min(note.Backlinks.Count, 3);
 
         return score;
     }

@@ -26,18 +26,27 @@ internal static class NoteItemFactory
 
     public static Details BuildDetails(ObsidianNote note)
     {
+        var metadata = new List<DetailsElement>
+        {
+            new() { Key = "Folder",   Data = new DetailsLink(System.IO.Path.GetDirectoryName(note.RelativePath) ?? "") },
+            new() { Key = "Modified", Data = new DetailsLink(note.LastModifiedUtc.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)) },
+            new() { Key = "Tags",     Data = new DetailsLink(note.Tags.Count > 0 ? string.Join(", ", note.Tags) : "none") },
+        };
+
+        if (note.Backlinks.Count > 0)
+            metadata.Add(new DetailsElement { Key = "Backlinks", Data = new DetailsLink($"{note.Backlinks.Count} note{(note.Backlinks.Count == 1 ? "" : "s")} link here") });
+
+        if (!string.IsNullOrWhiteSpace(note.AiSummary))
+            metadata.Add(new DetailsElement { Key = "Summary", Data = new DetailsLink(note.AiSummary) });
+
+        metadata.Add(new DetailsElement { Key = "Path", Data = new DetailsLink(note.AbsolutePath) });
+
         return new Details
         {
             Title = note.Title,
             Body = string.IsNullOrWhiteSpace(note.Body) ? "_Empty note_" : note.Body,
             Size = ContentSize.Large,
-            Metadata =
-            [
-                new DetailsElement { Key = "Folder", Data = new DetailsLink(System.IO.Path.GetDirectoryName(note.RelativePath) ?? "") },
-                new DetailsElement { Key = "Modified", Data = new DetailsLink(note.LastModifiedUtc.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)) },
-                new DetailsElement { Key = "Tags", Data = new DetailsLink(note.Tags.Count > 0 ? string.Join(", ", note.Tags) : "none") },
-                new DetailsElement { Key = "Path", Data = new DetailsLink(note.AbsolutePath) },
-            ],
+            Metadata = [.. metadata],
         };
     }
 
