@@ -24,6 +24,12 @@ internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
                 Subtitle = "Six Phi-Silica rewrite modes",
                 Icon     = TextToolsVisuals.Hub,
             },
+            new CommandItem(new QuickRewritePage(_service))
+            {
+                Title    = "Quick Rewrite",
+                Subtitle = "Select text, open Command Palette, pick a mode — result goes to clipboard",
+                Icon     = TextToolsVisuals.Phi,
+            },
             new CommandItem(new RewriteInputPage(TextRewriteMode.FixGrammar, _service))
             {
                 Title    = "Fix Grammar",
