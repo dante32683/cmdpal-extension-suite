@@ -13,15 +13,15 @@ namespace NpuTools.Notes.Pages;
 
 internal static class NoteItemFactory
 {
-    public static ListItem Build(NotesStore store, NoteEntry entry)
+    public static ListItem Build(NotesStore store, NotesAiService ai, NoteEntry entry)
     {
-        var item = new ListItem(new NoteDetailPage(store, entry.FilePath))
+        var item = new ListItem(new NoteDetailPage(store, ai, entry.FilePath))
         {
             Title = entry.Title,
             Subtitle = BuildSubtitle(entry),
             Icon = NotesVisuals.Note,
             Tags = BuildTags(entry),
-            MoreCommands = BuildMoreCommands(store, entry),
+            MoreCommands = BuildMoreCommands(store, ai, entry),
             Details = BuildDetails(entry),
         };
 
@@ -45,7 +45,7 @@ internal static class NoteItemFactory
         };
     }
 
-    public static IContextItem[] BuildMoreCommands(NotesStore store, NoteEntry entry)
+    public static IContextItem[] BuildMoreCommands(NotesStore store, NotesAiService ai, NoteEntry entry)
     {
         var items = new List<IContextItem>
         {
@@ -54,9 +54,11 @@ internal static class NoteItemFactory
             new CommandContextItem(new CopyTextCommand(entry.FilePath) { Name = "Copy Path", Icon = NotesVisuals.Copy }) { RequestedShortcut = CopyPath },
             new CommandContextItem(new OpenNoteLocationCommand(entry.FilePath)) { Icon = NotesVisuals.Folder, RequestedShortcut = Reveal },
             new Separator(),
+            new CommandContextItem(new FindRelatedNotesPage(store, ai, entry)) { Icon = NotesVisuals.Related },
+            new Separator(),
             new CommandContextItem(new TogglePinNoteCommand(store, entry)) { Icon = NotesVisuals.Pin, RequestedShortcut = Pin },
             new Separator(),
-            new CommandContextItem(new DeleteNotePage(store, entry.FilePath)) { Icon = NotesVisuals.Delete, RequestedShortcut = Delete, IsCritical = true },
+            new CommandContextItem(new DeleteNotePage(store, ai, entry.FilePath)) { Icon = NotesVisuals.Delete, RequestedShortcut = Delete, IsCritical = true },
         };
 
         return [.. items];
