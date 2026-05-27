@@ -11,6 +11,7 @@ internal sealed partial class NpuNotesCommandsProvider : CommandProvider
     private readonly NotesIndexStore _indexStore;
     private readonly NotesStore _store;
     private readonly NotesSearchService _search = new();
+    private readonly NotesAiService _aiService = new();
     private readonly NotesSettingsManager _settingsManager;
     private readonly ICommandItem[] _commands;
 
@@ -27,7 +28,7 @@ internal sealed partial class NpuNotesCommandsProvider : CommandProvider
 
         _commands =
         [
-            new CommandItem(new NotesHubPage(_store, _settingsStore, _search))
+            new CommandItem(new NotesHubPage(_store, _settingsStore, _search, _aiService))
             {
                 Title = "Notes",
                 Subtitle = "Pinned and recent Markdown notes",
@@ -39,13 +40,13 @@ internal sealed partial class NpuNotesCommandsProvider : CommandProvider
                 Subtitle = "Capture Markdown text into a note",
                 Icon = NotesVisuals.Add,
             },
-            new CommandItem(new SearchNotesPage(_store, _settingsStore, _search))
+            new CommandItem(new SearchNotesPage(_store, _settingsStore, _search, _aiService))
             {
                 Title = "Search Notes",
                 Subtitle = "Search note titles and content",
                 Icon = NotesVisuals.Search,
             },
-            new CommandItem(new BrowseNotesPage(_store, _settingsStore))
+            new CommandItem(new BrowseNotesPage(_store, _settingsStore, _aiService))
             {
                 Title = "Browse Notes",
                 Subtitle = "Browse notes by category",

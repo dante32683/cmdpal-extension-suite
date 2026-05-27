@@ -9,11 +9,13 @@ namespace NpuTools.Notes.Pages;
 internal sealed partial class NoteDetailPage : ListPage
 {
     private readonly NotesStore _store;
+    private readonly NotesAiService _ai;
     private readonly string _path;
 
-    public NoteDetailPage(NotesStore store, string path)
+    public NoteDetailPage(NotesStore store, NotesAiService ai, string path)
     {
         _store = store;
+        _ai = ai;
         _path = path;
         Id = "com.local.nputools.notes.detail";
         Title = "Note";
@@ -49,7 +51,7 @@ internal sealed partial class NoteDetailPage : ListPage
                 Subtitle = entry.FilePath,
                 Icon = NotesVisuals.Open,
                 Details = NoteItemFactory.BuildDetails(entry),
-                MoreCommands = NoteItemFactory.BuildMoreCommands(_store, entry),
+                MoreCommands = NoteItemFactory.BuildMoreCommands(_store, _ai, entry),
             },
             new ListItem(new CopyTextCommand(entry.Body) { Name = "Copy Content" })
             {
@@ -64,6 +66,13 @@ internal sealed partial class NoteDetailPage : ListPage
                 Subtitle = entry.FilePath,
                 Icon = NotesVisuals.Copy,
                 MoreCommands = [new CommandContextItem(new OpenNoteLocationCommand(entry.FilePath)) { RequestedShortcut = Reveal }],
+            },
+            new ListItem(new FindRelatedNotesPage(_store, _ai, entry))
+            {
+                Title = "Find Related Notes",
+                Subtitle = "Find notes related to this one using AI",
+                Icon = NotesVisuals.Related,
+                Tags = [NotesVisuals.MutedTag("ai")],
             },
             new ListItem(new TogglePinNoteCommand(_store, entry))
             {
@@ -80,13 +89,13 @@ internal sealed partial class NoteDetailPage : ListPage
                 Icon = NotesVisuals.Folder,
                 MoreCommands = [new CommandContextItem(new OpenNoteLocationCommand(entry.FilePath)) { RequestedShortcut = Reveal }],
             },
-            new ListItem(new DeleteNotePage(_store, entry.FilePath))
+            new ListItem(new DeleteNotePage(_store, _ai, entry.FilePath))
             {
                 Title = "Delete Note",
                 Subtitle = "Move this note to the Recycle Bin",
                 Icon = NotesVisuals.Delete,
                 Tags = [NotesVisuals.CriticalTag("delete")],
-                MoreCommands = [new CommandContextItem(new DeleteNotePage(_store, entry.FilePath)) { RequestedShortcut = Delete, IsCritical = true }],
+                MoreCommands = [new CommandContextItem(new DeleteNotePage(_store, _ai, entry.FilePath)) { RequestedShortcut = Delete, IsCritical = true }],
             },
         ];
     }
