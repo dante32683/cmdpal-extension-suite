@@ -13,7 +13,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuAwakeExtension | Shipped | 100% |
 | NpuOrganizeExtension | Shipped | 100% |
 | NpuImageEditorExtension | Shipped | ~98% |
-| NpuTextToolsExtension | Shipped (partial) | ~55% |
+| NpuTextToolsExtension | Shipped (partial) | ~80% |
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | MVP shipped | ~55% |
 | NpuObsidianExtension | M3 shipped | ~80% |
@@ -101,10 +101,13 @@ Six rewrite modes shipped. Quick selected-text rewrite — the core P1 different
 | Six rewrite modes (grammar, formal, concise, bullets, simplify, custom) | ✅ |
 | Result page with copy | ✅ |
 | Custom two-step flow (instruction → text) | ✅ |
-| Quick selected-text paste (TextSelectionHelper) | ❌ P1 |
-| Quick selected-text review before paste | ❌ P1 |
-| Selection diagnostics page | ❌ P1 |
-| Quick mode / quick instruction settings | ❌ P1 |
+| Quick Rewrite page (capture selected text + Phi rewrite) | ✅ |
+| Selection capture via Ctrl+C + clipboard polling | ✅ |
+| Toast notification on completion | ✅ |
+| Quick Rewrite with typed text (skip capture) | ✅ |
+| Quick selected-text review before paste | deferred |
+| Selection diagnostics page | deferred |
+| Quick mode default setting | deferred |
 
 The selected-text quick rewrite is the largest remaining gap. It requires a `TextSelectionHelper` binary that hides Command Palette, captures clipboard, sends Ctrl+C, reads selection, runs Phi rewrite, and optionally pastes result.
 

@@ -21,8 +21,14 @@ internal static partial class ClipboardHelper
     private static partial IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
 
     [LibraryImport("user32.dll")]
+    private static partial IntPtr GetClipboardData(uint uFormat);
+
+    [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool CloseClipboard();
+
+    [LibraryImport("user32.dll")]
+    internal static partial uint GetClipboardSequenceNumber();
 
     [LibraryImport("kernel32.dll", SetLastError = true)]
     private static partial IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
@@ -51,6 +57,30 @@ internal static partial class ClipboardHelper
             }
 
             SetClipboardData(CF_UNICODETEXT, hMem);
+        }
+        finally
+        {
+            CloseClipboard();
+        }
+    }
+
+    internal static string? GetText()
+    {
+        if (!OpenClipboard(IntPtr.Zero)) return null;
+        try
+        {
+            var hData = GetClipboardData(CF_UNICODETEXT);
+            if (hData == IntPtr.Zero) return null;
+            var ptr = GlobalLock(hData);
+            if (ptr == IntPtr.Zero) return null;
+            try
+            {
+                return Marshal.PtrToStringUni(ptr);
+            }
+            finally
+            {
+                GlobalUnlock(hData);
+            }
         }
         finally
         {
