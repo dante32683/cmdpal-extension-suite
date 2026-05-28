@@ -27,8 +27,8 @@ internal sealed partial class RenameAllPage : ListPage
         _proposals    = proposals;
         _indexService = indexService;
         Id    = "com.local.nputools.organize.rename-all";
-        Title = $"Process All ({proposals.Count})";
-        Name  = "Process All";
+        Title = $"Rename All ({proposals.Count})";
+        Name  = "Rename All";
         Icon  = OrganizeVisuals.Check;
         IsLoading = true;
     }
@@ -46,8 +46,8 @@ internal sealed partial class RenameAllPage : ListPage
             [
                 new ListItem(new NoOpCommand())
                 {
-                    Title    = "Processing…",
-                    Subtitle = $"Running OCR, AI rename, and indexing {_proposals.Count} screenshot{(_proposals.Count == 1 ? "" : "s")}",
+                    Title    = "Renaming…",
+                    Subtitle = $"Running AI naming and OCR on {_proposals.Count} screenshot{(_proposals.Count == 1 ? "" : "s")}",
                     Icon     = OrganizeVisuals.Check,
                 },
             ];
@@ -57,7 +57,7 @@ internal sealed partial class RenameAllPage : ListPage
         [
             new ListItem(new NoOpCommand())
             {
-                Title    = $"Processed {_success} screenshot{(_success == 1 ? "" : "s")}",
+                Title    = $"Renamed {_success} screenshot{(_success == 1 ? "" : "s")}",
                 Subtitle = _failed > 0 ? $"{_failed} failed — check permissions" : "All screenshots renamed and indexed",
                 Icon     = _failed > 0 ? OrganizeVisuals.Warning : OrganizeVisuals.Check,
             },

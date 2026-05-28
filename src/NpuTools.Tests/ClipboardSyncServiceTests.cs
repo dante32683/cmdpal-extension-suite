@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using NpuTools.Clipboard.Data;
 using Xunit;
 
@@ -163,7 +162,7 @@ public sealed class ClipboardSyncServiceTests : IDisposable
     }
 
     [Fact]
-    public void PruneOldEntries_NoopsWhenFolderMissing()
+    public void PruneOldEntries_IgnoresMissingFolder()
     {
         ClipboardSyncService.PruneOldEntries(Path.Combine(Path.GetTempPath(), "NpuNoSuchFolder_" + Guid.NewGuid()), DateTimeOffset.UtcNow);
     }
@@ -178,12 +177,12 @@ public sealed class ClipboardSyncServiceTests : IDisposable
         CreatedAt = DateTimeOffset.UtcNow,
         Title = text[..Math.Min(text.Length, 40)],
         Text = text,
-        ContentHash = ClipboardStore_BuildHash("text", text),
+        ContentHash = BuildContentHash("text", text),
         SourceDevice = device,
     };
 
     // Duplicate of ClipboardStore.BuildHash to avoid pulling in ClipboardStore (which has test-incompatible dependencies).
-    private static string ClipboardStore_BuildHash(string prefix, string value)
+    private static string BuildContentHash(string prefix, string value)
     {
         byte[] bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(prefix + "\n" + value));
         return Convert.ToHexString(bytes);
