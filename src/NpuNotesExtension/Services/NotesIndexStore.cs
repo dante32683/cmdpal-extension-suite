@@ -80,6 +80,35 @@ internal sealed class NotesIndexStore
         }
     }
 
+    public void Remap(NoteEntry oldEntry, NoteEntry newEntry)
+    {
+        EnsureLoaded();
+        lock (_lock)
+        {
+            bool changed = false;
+            foreach (var pin in _index.Pinned)
+            {
+                if (SamePath(pin.Path, oldEntry.RelativePath))
+                {
+                    pin.Path = newEntry.RelativePath;
+                    changed = true;
+                }
+            }
+
+            foreach (var recent in _index.Recent)
+            {
+                if (SamePath(recent.Path, oldEntry.RelativePath))
+                {
+                    recent.Path = newEntry.RelativePath;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                Save();
+        }
+    }
+
     public void Prune(IReadOnlyCollection<NoteEntry> entries)
     {
         EnsureLoaded();

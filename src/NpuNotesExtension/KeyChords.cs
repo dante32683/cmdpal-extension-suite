@@ -11,4 +11,6 @@ internal static class KeyChords
     internal static KeyChord Reveal { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.E);
     internal static KeyChord Pin { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.P);
     internal static KeyChord Delete { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.Delete);
+    internal static KeyChord Rename { get; } = KeyChordHelpers.FromModifiers(vkey: (int)VirtualKey.F2);
+    internal static KeyChord Move   { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.M);
 }
