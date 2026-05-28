@@ -130,6 +130,63 @@ Body text
             Directory.Delete(dir, recursive: true);
         }
     }
+
+    [Fact]
+    public void UpdateNote_SkipsWrite_WhenNoteWasModifiedAfterRead()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "NpuNotesTests_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var created = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+            var laterEdit = new DateTimeOffset(2026, 3, 1, 0, 0, 0, TimeSpan.Zero);
+            // On disk: note was edited at laterEdit
+            string editedMarkdown = $"---\nid: test-id\ntitle: Manually Edited\ncategory: misc\ncreatedUtc: {created:O}\nupdatedUtc: {laterEdit:O}\ntags:\n---\n\n# Manually Edited\n\nHuman edits.";
+            string filePath = Path.Combine(dir, "test.md");
+            File.WriteAllText(filePath, editedMarkdown);
+
+            // Entry snapshot from before the edit (stale)
+            string staleMarkdown = $"---\nid: test-id\ntitle: Original\ncategory: misc\ncreatedUtc: {created:O}\nupdatedUtc: {created:O}\ntags:\n---\n\n# Original\n\nOriginal body.";
+            var staleEntry = NotesStore.ParseMarkdown(filePath, dir, staleMarkdown, DateTime.UtcNow, DateTime.UtcNow);
+
+            var settings = new NotesSettingsStore();
+            var index = new NotesIndexStore(settings);
+            var store = new NotesStore(settings, index);
+
+            store.UpdateNote(staleEntry, "AI Overwrite", "AI cleaned body.");
+
+            string current = File.ReadAllText(filePath);
+            Assert.Contains("Manually Edited", current);
+            Assert.DoesNotContain("AI Overwrite", current);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void TryReadUpdatedUtc_ReadsFromFrontmatter()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "NpuNotesTests_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var expected = new DateTimeOffset(2026, 5, 27, 10, 30, 0, TimeSpan.Zero);
+            string markdown = $"---\nid: x\ntitle: T\ncategory: misc\ncreatedUtc: {expected:O}\nupdatedUtc: {expected:O}\ntags:\n---\n\n# T\n";
+            string filePath = Path.Combine(dir, "t.md");
+            File.WriteAllText(filePath, markdown);
+
+            bool found = NotesStore.TryReadUpdatedUtc(filePath, out var actual);
+
+            Assert.True(found);
+            Assert.Equal(expected.ToUniversalTime(), actual.ToUniversalTime());
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }
 
 public class NotesSearchServiceTests

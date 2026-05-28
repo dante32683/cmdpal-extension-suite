@@ -92,6 +92,7 @@ internal sealed class NotesSettingsStore
         NotesRoot = s.NotesRoot,
         DefaultCategory = s.DefaultCategory,
         OpenAfterCreate = s.OpenAfterCreate,
+        AiCleanupOnCreate = s.AiCleanupOnCreate,
         MaxRecentNotes = s.MaxRecentNotes,
         MaxSearchResults = s.MaxSearchResults,
     };

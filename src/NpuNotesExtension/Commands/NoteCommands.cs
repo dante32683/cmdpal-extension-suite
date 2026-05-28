@@ -176,11 +176,13 @@ internal sealed partial class CreateNoteCommand : InvokableCommand
     {
         try
         {
+            var settings = _settings.Current;
             var entry = _store.Create(_text, _category);
-            if (_settings.Current.OpenAfterCreate)
+            if (settings.OpenAfterCreate)
                 Process.Start(new ProcessStartInfo(entry.FilePath) { UseShellExecute = true });
 
-            _ = Task.Run(() => CleanupAsync(entry));
+            if (settings.AiCleanupOnCreate)
+                _ = Task.Run(() => CleanupAsync(entry));
 
             return CommandResult.ShowToast($"Created {entry.Title}");
         }
