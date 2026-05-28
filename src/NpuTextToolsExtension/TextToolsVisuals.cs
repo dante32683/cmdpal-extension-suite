@@ -11,6 +11,13 @@ internal static class TextToolsVisuals
     internal static readonly IconInfo Hub   = new("\uE8FD"); // List
     internal static readonly IconInfo Phi   = new("\uE945"); // Sparkle/AI
 
+    private static readonly Color GreenColor = new() { R = 108, G = 203, B = 95, A = 255 };
+
+    internal static Tag StatusTag(string text) => new(text)
+    {
+        Foreground = new OptionalColor { HasValue = true, Color = GreenColor },
+    };
+
     internal static Tag MutedTag(string text) => new(text)
     {
         Foreground = new OptionalColor(true, new Color(210, 210, 210, 255)),

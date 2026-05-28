@@ -8,6 +8,7 @@ namespace NpuTools.TextTools;
 internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
 {
     private readonly TextRewriteService _service = new();
+    private readonly TextToolsSettingsManager _settingsManager = new();
     private readonly ICommandItem[] _commands;
 
     public NpuTextToolsCommandsProvider()
@@ -15,6 +16,7 @@ internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
         Id          = "com.local.nputools.texttools";
         DisplayName = "NPU Text Tools";
         Icon        = TextToolsVisuals.Pen;
+        Settings    = _settingsManager.Settings;
 
         _commands =
         [
@@ -24,7 +26,7 @@ internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
                 Subtitle = "Six Phi-Silica rewrite modes",
                 Icon     = TextToolsVisuals.Hub,
             },
-            new CommandItem(new QuickRewritePage(_service))
+            new CommandItem(new QuickRewritePage(_service, _settingsManager))
             {
                 Title    = "Quick Rewrite",
                 Subtitle = "Select text, open Command Palette, pick a mode — result goes to clipboard",

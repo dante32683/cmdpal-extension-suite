@@ -15,11 +15,13 @@ internal sealed partial class SelectionRewriteCommand : InvokableCommand
 {
     private readonly TextRewriteMode _mode;
     private readonly TextRewriteService _service;
+    private readonly string? _customInstruction;
 
-    public SelectionRewriteCommand(TextRewriteMode mode, TextRewriteService service)
+    public SelectionRewriteCommand(TextRewriteMode mode, TextRewriteService service, string? customInstruction = null)
     {
         _mode = mode;
         _service = service;
+        _customInstruction = customInstruction;
         Name = $"Rewrite Selection — {TextRewriteService.ModeLabel(mode)}";
         Icon = TextToolsVisuals.Phi;
     }
@@ -42,7 +44,7 @@ internal sealed partial class SelectionRewriteCommand : InvokableCommand
                 return;
             }
 
-            string result = await _service.RewriteAsync(selection, _mode);
+            string result = await _service.RewriteAsync(selection, _mode, _customInstruction);
 
             if (string.IsNullOrWhiteSpace(result))
             {
