@@ -94,6 +94,25 @@ public sealed class ObsidianSearchTests
         Assert.Equal(manyBacklinks, threeBacklinks);
     }
 
+    // ── Scoring: exact title beats substring ──────────────────────────────────
+
+    [Fact]
+    public void ExactTitleMatch_ScoresHigherThan_TitleSubstringMatch()
+    {
+        int exact     = ObsidianSearchService.Score(Note("cat"), "cat");
+        int substring = ObsidianSearchService.Score(Note("cathedral notes"), "cat");
+        Assert.True(exact > substring, $"exact={exact} should beat substring={substring}");
+    }
+
+    [Fact]
+    public void ExactTitleMatch_BeatsSubstring_EvenWithBacklinkDisadvantage()
+    {
+        // "cathedral" has 3 extra backlink points but exact-title "cat" should still win.
+        int exact     = ObsidianSearchService.Score(Note("cat"), "cat");
+        int substring = ObsidianSearchService.Score(Note("cathedral notes", backlinks: ["a.md", "b.md", "c.md"]), "cat");
+        Assert.True(exact > substring, $"exact={exact} should beat substring+backlinks={substring}");
+    }
+
     // ── Scoring: zero for non-matching ────────────────────────────────────────
 
     [Fact]
@@ -111,7 +130,7 @@ public sealed class ObsidianSearchTests
         var notes = new List<ObsidianNote>
         {
             Note("body mention", "cats are nice"),          // body match (+2)
-            Note("cats are great", ""),                     // title match (+10 + whole-word +2)
+            Note("cats are great", ""),                     // title substring match (+10 + whole-word +2)
             Note("no match", ""),
         };
         var service = new ObsidianSearchService();

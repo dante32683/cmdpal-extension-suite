@@ -64,6 +64,42 @@ internal sealed partial class ObsidianMarkdownParser
         return links;
     }
 
+    public static List<string> ExtractMarkdownLinks(string body)
+    {
+        var links = new List<string>();
+        foreach (Match match in MarkdownLinkPattern().Matches(body))
+        {
+            string target = match.Groups[2].Value.Trim();
+
+            // Skip external URLs and special schemes.
+            if (target.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                target.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+                target.StartsWith("obsidian://", StringComparison.OrdinalIgnoreCase) ||
+                target.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            // Strip fragment anchor.
+            int hash = target.IndexOf('#', StringComparison.Ordinal);
+            if (hash >= 0)
+                target = target[..hash].Trim();
+
+            // Strip .md extension.
+            if (target.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+                target = target[..^3];
+
+            // Strip leading ./ path prefix.
+            if (target.StartsWith("./", StringComparison.Ordinal))
+                target = target[2..];
+
+            target = target.Replace('\\', '/');
+
+            if (target.Length > 0 && !links.Contains(target, StringComparer.OrdinalIgnoreCase))
+                links.Add(target);
+        }
+
+        return links;
+    }
+
     public static string Slugify(string value, int maxLength = 80)
     {
         string normalized = value.Normalize(NormalizationForm.FormD);
@@ -222,4 +258,8 @@ internal sealed partial class ObsidianMarkdownParser
     // Captures the link target from [[Target]], [[Target|Display]], [[Target#Heading]].
     [GeneratedRegex(@"\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]")]
     private static partial Regex WikiLinkPattern();
+
+    // Captures display text and target from [Display](target).
+    [GeneratedRegex(@"\[([^\]]*)\]\(([^)]+)\)")]
+    private static partial Regex MarkdownLinkPattern();
 }
