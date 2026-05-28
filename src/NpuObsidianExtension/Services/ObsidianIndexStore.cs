@@ -178,6 +178,15 @@ internal sealed partial class ObsidianIndexStore
             string markdown = File.ReadAllText(path, Encoding.UTF8);
             var note = ObsidianVaultStore.ParseMarkdown(path, vaultPath, markdown, info.LastWriteTimeUtc);
             var wikiLinks = ObsidianVaultStore.ExtractWikiLinks(note.Body);
+            var mdLinks = ObsidianMarkdownParser.ExtractMarkdownLinks(note.Body);
+
+            // Merge markdown links into wiki links (dedup, wiki links take priority).
+            var allLinks = new List<string>(wikiLinks);
+            foreach (string lnk in mdLinks)
+            {
+                if (!allLinks.Contains(lnk, StringComparer.OrdinalIgnoreCase))
+                    allLinks.Add(lnk);
+            }
 
             // Cap body at 32 KB to keep the index file manageable.
             string bodyText = note.Body.Length > 32768 ? note.Body[..32768] : note.Body;
@@ -190,7 +199,7 @@ internal sealed partial class ObsidianIndexStore
                 Aliases = note.Aliases,
                 Tags = note.Tags,
                 Headings = note.Headings,
-                WikiLinks = wikiLinks,
+                WikiLinks = allLinks,
                 BodyText = bodyText,
                 LastModifiedUtc = note.LastModifiedUtc,
                 IndexedUtc = DateTimeOffset.UtcNow,
@@ -210,25 +219,45 @@ internal sealed partial class ObsidianIndexStore
         foreach (var e in entries)
             e.Backlinks = [];
 
-        // Build lookup: note title / filename → entry.
+        // Build lookup: title / filename / relative-path-without-extension -> entry.
+        // The path key uses forward slashes to match [[Folder/Note]] and [text](Folder/Note.md) links.
         var byName = new Dictionary<string, ObsidianIndexEntry>(StringComparer.OrdinalIgnoreCase);
         foreach (var e in entries)
         {
             byName.TryAdd(e.Title, e);
             byName.TryAdd(Path.GetFileNameWithoutExtension(e.AbsolutePath), e);
+            string relNoExt = Path.ChangeExtension(e.RelativePath.Replace('\\', '/'), null);
+            if (!string.IsNullOrEmpty(relNoExt))
+                byName.TryAdd(relNoExt, e);
         }
 
         foreach (var source in entries)
         {
             foreach (string link in source.WikiLinks)
             {
-                if (byName.TryGetValue(link, out var target) && !SamePath(target.AbsolutePath, source.AbsolutePath))
+                string normalized = NormalizeLinkTarget(link);
+                if (byName.TryGetValue(normalized, out var target) && !SamePath(target.AbsolutePath, source.AbsolutePath))
                 {
                     if (!target.Backlinks.Contains(source.RelativePath, StringComparer.OrdinalIgnoreCase))
                         target.Backlinks.Add(source.RelativePath);
                 }
             }
         }
+    }
+
+    private static string NormalizeLinkTarget(string link)
+    {
+        // Strip anchor fragment.
+        int hash = link.IndexOf('#', StringComparison.Ordinal);
+        if (hash >= 0)
+            link = link[..hash].Trim();
+        // Strip .md extension (present in Markdown-link targets after merging).
+        if (link.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            link = link[..^3];
+        // Strip leading ./ path prefix.
+        if (link.StartsWith("./", StringComparison.Ordinal))
+            link = link[2..];
+        return link;
     }
 
     private static List<ObsidianIndexEntry> LoadFromDisk()

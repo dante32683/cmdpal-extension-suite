@@ -36,7 +36,9 @@ internal sealed class ObsidianSearchService
     {
         int score = 0;
 
-        if (note.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+        if (note.Title.Equals(query, StringComparison.OrdinalIgnoreCase))
+            score += 15;
+        else if (note.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
             score += 10;
 
         if (note.Aliases.Any(a => a.Contains(query, StringComparison.OrdinalIgnoreCase)))
