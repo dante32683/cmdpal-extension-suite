@@ -14,6 +14,8 @@ internal sealed class NotesAppSettings
 
     public bool OpenAfterCreate { get; set; } = true;
 
+    public bool AiCleanupOnCreate { get; set; } = true;
+
     public int MaxRecentNotes { get; set; } = DefaultMaxRecentNotes;
 
     public int MaxSearchResults { get; set; } = DefaultMaxSearchResults;

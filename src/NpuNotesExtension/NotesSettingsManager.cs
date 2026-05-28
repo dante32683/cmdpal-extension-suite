@@ -18,6 +18,7 @@ internal sealed class NotesSettingsManager : JsonSettingsManager
     private readonly TextSetting _notesRoot;
     private readonly ChoiceSetSetting _defaultCategory;
     private readonly ToggleSetting _openAfterCreate;
+    private readonly ToggleSetting _aiCleanupOnCreate;
     private readonly ChoiceSetSetting _maxRecentNotes;
     private readonly ChoiceSetSetting _maxSearchResults;
 
@@ -51,6 +52,12 @@ internal sealed class NotesSettingsManager : JsonSettingsManager
             "Open new notes in the default Markdown editor immediately after creation.",
             current.OpenAfterCreate);
 
+        _aiCleanupOnCreate = new ToggleSetting(
+            Namespaced(nameof(NotesAppSettings.AiCleanupOnCreate)),
+            "AI cleanup on create",
+            "After saving a note, Phi silently fixes grammar and improves the title in the background.",
+            current.AiCleanupOnCreate);
+
         _maxRecentNotes = new ChoiceSetSetting(
             Namespaced(nameof(NotesAppSettings.MaxRecentNotes)),
             "Recent notes",
@@ -82,6 +89,7 @@ internal sealed class NotesSettingsManager : JsonSettingsManager
         Settings.Add(_notesRoot);
         Settings.Add(_defaultCategory);
         Settings.Add(_openAfterCreate);
+        Settings.Add(_aiCleanupOnCreate);
         Settings.Add(_maxRecentNotes);
         Settings.Add(_maxSearchResults);
 
@@ -104,6 +112,7 @@ internal sealed class NotesSettingsManager : JsonSettingsManager
             settings.NotesRoot = string.IsNullOrWhiteSpace(_notesRoot.Value) ? NotesAppSettings.DefaultNotesRoot() : _notesRoot.Value.Trim();
             settings.DefaultCategory = NotesStore.NormalizeCategory(_defaultCategory.Value);
             settings.OpenAfterCreate = _openAfterCreate.Value;
+            settings.AiCleanupOnCreate = _aiCleanupOnCreate.Value;
             settings.MaxRecentNotes = ParseInt(_maxRecentNotes.Value, NotesAppSettings.DefaultMaxRecentNotes);
             settings.MaxSearchResults = ParseInt(_maxSearchResults.Value, NotesAppSettings.DefaultMaxSearchResults);
         });
