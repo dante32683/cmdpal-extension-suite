@@ -15,6 +15,7 @@ internal sealed class DevToolboxSettingsManager : JsonSettingsManager
     private readonly ChoiceSetSetting _ide;
     private readonly TextSetting _customTerminalExe;
     private readonly TextSetting _customIdeExe;
+    private readonly TextSetting _wtProfile;
 
     public DevToolboxSettingsManager(DevToolboxSettingsStore runtimeSettings)
     {
@@ -68,10 +69,20 @@ internal sealed class DevToolboxSettingsManager : JsonSettingsManager
             Placeholder = "e.g. C:\\Program Files\\MyIDE\\myide.exe",
         };
 
+        _wtProfile = new TextSetting(
+            Namespaced(nameof(DevToolboxSettings.WindowsTerminalProfile)),
+            "Windows Terminal profile",
+            "Profile name to use when opening Windows Terminal (leave blank for the default profile). Example: PowerShell",
+            current.WindowsTerminalProfile)
+        {
+            Placeholder = "e.g. PowerShell",
+        };
+
         Settings.Add(_terminal);
         Settings.Add(_ide);
         Settings.Add(_customTerminalExe);
         Settings.Add(_customIdeExe);
+        Settings.Add(_wtProfile);
 
         LoadSettings();
         ApplyToRuntimeSettings();
@@ -89,8 +100,9 @@ internal sealed class DevToolboxSettingsManager : JsonSettingsManager
         {
             s.PreferredTerminal = ParseTerminal(_terminal.Value);
             s.PreferredIde      = ParseIde(_ide.Value);
-            s.CustomTerminalExe = _customTerminalExe.Value?.Trim() ?? string.Empty;
-            s.CustomIdeExe      = _customIdeExe.Value?.Trim() ?? string.Empty;
+            s.CustomTerminalExe        = _customTerminalExe.Value?.Trim() ?? string.Empty;
+            s.CustomIdeExe             = _customIdeExe.Value?.Trim() ?? string.Empty;
+            s.WindowsTerminalProfile   = _wtProfile.Value?.Trim() ?? string.Empty;
         });
     }
 
