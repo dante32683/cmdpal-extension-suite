@@ -64,7 +64,7 @@ internal sealed partial class SearchNotesPage : DynamicListPage
         {
             return
             [
-                new ListItem(new CreateNotePage(_store, _settings))
+                new ListItem(new CreateNotePage(_store, _settings, _ai))
                 {
                     Title = string.IsNullOrWhiteSpace(query) ? "No notes yet" : $"No matches for \"{query}\"",
                     Subtitle = string.IsNullOrWhiteSpace(query)

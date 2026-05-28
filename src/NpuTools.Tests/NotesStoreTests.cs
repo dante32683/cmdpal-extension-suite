@@ -84,6 +84,52 @@ Body text
     {
         Assert.Equal("resume-notes-2026", NotesStore.Slugify("Résumé Notes 2026!"));
     }
+
+    [Fact]
+    public void ParseMarkdown_PreservesCreatedUtcFromFrontmatter()
+    {
+        var created = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var updated = new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero);
+        string markdown = $"---\nid: abc\ntitle: Round-trip\ncategory: misc\ncreatedUtc: {created:O}\nupdatedUtc: {updated:O}\ntags:\n---\n\n# Round-trip\n\nBody.";
+
+        var entry = NotesStore.ParseMarkdown(@"C:\notes\misc\test.md", @"C:\notes", markdown, DateTime.UtcNow, DateTime.UtcNow);
+
+        Assert.Equal(created, entry.CreatedUtc);
+        Assert.Equal(updated, entry.UpdatedUtc);
+    }
+
+    [Fact]
+    public void UpdateNote_OverwritesTitleAndBody_PreservesCreatedUtc()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "NpuNotesTests_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var created = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+            string originalMarkdown = $"---\nid: test-id\ntitle: Original Title\ncategory: misc\ncreatedUtc: {created:O}\nupdatedUtc: {created:O}\ntags:\n---\n\n# Original Title\n\nOriginal body.";
+            string filePath = Path.Combine(dir, "test.md");
+            File.WriteAllText(filePath, originalMarkdown);
+
+            var entry = NotesStore.ParseMarkdown(filePath, dir, originalMarkdown, DateTime.UtcNow, DateTime.UtcNow);
+            var settings = new NotesSettingsStore();
+            var index = new NotesIndexStore(settings);
+            var store = new NotesStore(settings, index);
+
+            store.UpdateNote(entry, "Updated Title", "Updated body.");
+
+            string written = File.ReadAllText(filePath);
+            var updated = NotesStore.ParseMarkdown(filePath, dir, written, DateTime.UtcNow, DateTime.UtcNow);
+
+            Assert.Equal("Updated Title", updated.Title);
+            Assert.Contains("Updated body.", updated.Body);
+            Assert.Equal(created, updated.CreatedUtc);
+            Assert.True(updated.UpdatedUtc > created);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }
 
 public class NotesSearchServiceTests
