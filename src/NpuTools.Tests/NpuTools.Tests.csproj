@@ -46,5 +46,11 @@
     <Compile Include="..\NpuObsidianExtension\Services\ObsidianMarkdownParser.cs" Link="Obsidian\ObsidianMarkdownParser.cs" />
     <Compile Include="..\NpuObsidianExtension\Services\ObsidianSearchService.cs" Link="Obsidian\ObsidianSearchService.cs" />
     <Compile Include="..\NpuObsidianExtension\Services\ObsidianUriService.cs" Link="Obsidian\ObsidianUriService.cs" />
+    <!-- Awake: JSON serialization types (no WinRT/MSIX dependencies) -->
+    <Compile Include="..\NpuAwakeExtension\Models\AwakeModels.cs" Link="Awake\AwakeModels.cs" />
+    <Compile Include="..\NpuAwakeExtension\Services\AwakeTime.cs" Link="Awake\AwakeTime.cs" />
+    <Compile Include="..\NpuAwakeExtension\Services\AwakeSmartTypes.cs" Link="Awake\AwakeSmartTypes.cs" />
+    <Compile Include="..\NpuAwakeExtension\Services\AwakeJsonContext.cs" Link="Awake\AwakeJsonContext.cs" />
+    <Compile Include="..\NpuAwakeExtension\Services\AwakeJson.cs" Link="Awake\AwakeJson.cs" />
   </ItemGroup>
 </Project>
