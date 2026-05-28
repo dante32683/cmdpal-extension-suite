@@ -10,6 +10,7 @@ internal sealed partial class NpuDevToolboxCommandsProvider : CommandProvider
 {
     private readonly DevToolboxSettingsStore _settingsStore = new();
     private readonly RecentWorkspacesStore _recents = new();
+    private readonly DevToolboxAiService _aiService = new();
     private readonly DevToolboxSettingsManager _settingsManager;
     private readonly ICommandItem[] _commands;
 
@@ -24,7 +25,7 @@ internal sealed partial class NpuDevToolboxCommandsProvider : CommandProvider
 
         _commands =
         [
-            new CommandItem(new DevToolboxHubPage(_settingsStore, _recents))
+            new CommandItem(new DevToolboxHubPage(_settingsStore, _recents, _aiService))
             {
                 Title    = "Dev Toolbox",
                 Subtitle = "Open workspaces in Explorer, Terminal, or IDE",

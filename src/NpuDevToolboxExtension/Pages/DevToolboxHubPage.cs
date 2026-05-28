@@ -16,13 +16,15 @@ internal sealed partial class DevToolboxHubPage : DynamicListPage
 {
     private readonly DevToolboxSettingsStore _settings;
     private readonly RecentWorkspacesStore _recents;
+    private readonly DevToolboxAiService _ai;
     private volatile List<WorkspaceEntry> _scannedWorkspaces = [];
     private IListItem[] _items;
 
-    public DevToolboxHubPage(DevToolboxSettingsStore settings, RecentWorkspacesStore recents)
+    public DevToolboxHubPage(DevToolboxSettingsStore settings, RecentWorkspacesStore recents, DevToolboxAiService ai)
     {
         _settings = settings;
         _recents = recents;
+        _ai = ai;
         Id = "com.local.nputools.devtoolbox.hub";
         Title = "Dev Toolbox";
         Name = "Open";
@@ -133,7 +135,7 @@ internal sealed partial class DevToolboxHubPage : DynamicListPage
         if (isExplicit)
             tags.Add(DevToolboxVisuals.StatusTag("path"));
 
-        return new ListItem(new WorkspaceActionsPage(ws.Path, _settings, _recents, ws.IsRecent))
+        return new ListItem(new WorkspaceActionsPage(ws.Path, _settings, _recents, _ai, ws.IsRecent))
         {
             Title = isExplicit ? $"Open: {ws.Path}" : name,
             Subtitle = ws.Path,
@@ -155,6 +157,11 @@ internal sealed partial class DevToolboxHubPage : DynamicListPage
                 {
                     Icon = DevToolboxVisuals.Ide,
                     RequestedShortcut = KeyChords.Ide,
+                },
+                new CommandContextItem(new GenerateCommitMessagePage(ws.Path, _ai))
+                {
+                    Icon = DevToolboxVisuals.Commit,
+                    RequestedShortcut = KeyChords.CommitMessage,
                 },
             ],
         };
