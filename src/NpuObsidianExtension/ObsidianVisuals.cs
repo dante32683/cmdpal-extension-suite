@@ -22,7 +22,7 @@ internal static class ObsidianVisuals
     internal static readonly IconInfo Warning  = new("\uE814");
     internal static readonly IconInfo Index    = new("\uE8A1");
     internal static readonly IconInfo Check    = new("\uE73E");
-    internal static readonly IconInfo Ai       = new("\uED0B");
+    internal static readonly IconInfo Ai       = new("\uE945"); // Sparkle/AI \u2014 matches TextToolsVisuals.Phi
     internal static readonly IconInfo Related  = new("\uE8A0");
 
     private static readonly Color PurpleColor = new() { R = 124, G = 58, B = 237, A = 255 };
