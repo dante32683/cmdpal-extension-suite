@@ -132,8 +132,50 @@ internal sealed partial class NotesStore
         if (!File.Exists(entry.FilePath))
             return;
 
+        // Staleness guard: skip if the note was edited after we read it.
+        if (TryReadUpdatedUtc(entry.FilePath, out var diskUtc) && diskUtc != entry.UpdatedUtc)
+        {
+            Debug.WriteLine($"NotesStore.UpdateNote skipped stale write: {entry.FilePath}");
+            return;
+        }
+
         string markdown = BuildMarkdown(entry.Id, newTitle, entry.Category, entry.CreatedUtc, DateTimeOffset.UtcNow, newBody);
         WriteAtomic(entry.FilePath, markdown, overwrite: true);
+    }
+
+    internal static bool TryReadUpdatedUtc(string filePath, out DateTimeOffset updatedUtc)
+    {
+        updatedUtc = default;
+        try
+        {
+            bool inFrontmatter = false;
+            foreach (string line in File.ReadLines(filePath))
+            {
+                if (!inFrontmatter)
+                {
+                    if (line == "---")
+                        inFrontmatter = true;
+                    else
+                        return false;
+                    continue;
+                }
+
+                if (line == "---")
+                    return false;
+
+                if (line.StartsWith("updatedUtc:", StringComparison.OrdinalIgnoreCase))
+                {
+                    string value = line["updatedUtc:".Length..].Trim();
+                    return DateTimeOffset.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out updatedUtc);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"NotesStore.TryReadUpdatedUtc failed for {filePath}: {ex.GetType().Name}: {ex.Message}");
+        }
+
+        return false;
     }
 
     public void DeleteToRecycleBin(NoteEntry entry)
