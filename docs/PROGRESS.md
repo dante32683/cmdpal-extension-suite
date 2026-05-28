@@ -12,7 +12,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | SimpleAnalyticsExtension | Shipped | 100% |
 | NpuAwakeExtension | Shipped | 100% |
 | NpuOrganizeExtension | Shipped | 100% |
-| NpuImageEditorExtension | Shipped | ~98% |
+| NpuImageEditorExtension | Clipboard input shipped | ~99% |
 | NpuTextToolsExtension | Quick mode setting shipped | ~88% |
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | Rebuild index shipped | ~88% |
@@ -87,8 +87,8 @@ All planned features shipped. ImageForegroundExtractor for automatic background 
 | Image browser (Pictures dir, recency sort, path fallback) | ✅ |
 | Settings (scale factor, auto-open, OCR auto-copy, OCR text file) | ✅ |
 | Context actions on file results: Open File Location (Ctrl+Shift+E), Copy Path (Ctrl+Shift+C) | ✅ bonus |
+| Clipboard image input | ✅ |
 | Make Sticker (WebP subject extraction) | future |
-| Clipboard image input | future |
 
 ---
 

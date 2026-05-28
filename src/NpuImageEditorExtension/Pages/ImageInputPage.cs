@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
+using NpuTools.ImageEditor.Services;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace NpuTools.ImageEditor.Pages;
 
@@ -25,6 +27,7 @@ internal sealed partial class ImageInputPage : DynamicListPage
 
     private int _initialized;
     private IListItem[] _browseItems = [];
+    private IListItem?  _clipboardItem;
     private IListItem[] _items = [];
 
     public ImageInputPage(ImageOperation operation, int scaleFactor, ImageEditorSettingsManager settings)
@@ -57,19 +60,50 @@ internal sealed partial class ImageInputPage : DynamicListPage
         return _items;
     }
 
-    private Task LoadBrowseItemsAsync()
+    private async Task LoadBrowseItemsAsync()
     {
-        _browseItems = ScanPictures();
-        _items       = _browseItems.Length > 0 ? _browseItems : EmptyPicturesItem();
-        IsLoading    = false;
+        _browseItems   = ScanPictures();
+        _clipboardItem = await TryBuildClipboardItemAsync();
+        _items         = BuildItems(string.Empty);
+        IsLoading      = false;
         RaiseItemsChanged(_items.Length);
-        return Task.CompletedTask;
+    }
+
+    private async Task<IListItem?> TryBuildClipboardItemAsync()
+    {
+        try
+        {
+            var content = Clipboard.GetContent();
+            if (!content.Contains(StandardDataFormats.Bitmap))
+                return null;
+
+            string? path = await ImageEditorService.SaveClipboardImageAsync();
+            if (path is null)
+                return null;
+
+            return new ListItem(new ImageResultPage(_operation, _scaleFactor, path, _settings))
+            {
+                Title    = "From Clipboard",
+                Subtitle = "Use the image currently in your clipboard",
+                Icon     = ImageEditorVisuals.Clipboard,
+                Tags     = [ImageEditorVisuals.MutedTag("press Enter")],
+            };
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private IListItem[] BuildItems(string query)
     {
         if (query.Length == 0)
-            return _browseItems.Length > 0 ? _browseItems : EmptyPicturesItem();
+        {
+            var defaults = new List<IListItem>();
+            if (_clipboardItem is not null) defaults.Add(_clipboardItem);
+            defaults.AddRange(_browseItems);
+            return defaults.Count > 0 ? [.. defaults] : EmptyPicturesItem();
+        }
 
         if (LooksLikePath(query))
             return BuildPathItems(query);
