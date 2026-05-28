@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.DevToolbox.Commands;
@@ -14,6 +16,7 @@ internal sealed partial class DevToolboxHubPage : DynamicListPage
 {
     private readonly DevToolboxSettingsStore _settings;
     private readonly RecentWorkspacesStore _recents;
+    private volatile List<WorkspaceEntry> _scannedWorkspaces = [];
     private IListItem[] _items;
 
     public DevToolboxHubPage(DevToolboxSettingsStore settings, RecentWorkspacesStore recents)
@@ -26,6 +29,19 @@ internal sealed partial class DevToolboxHubPage : DynamicListPage
         Icon = DevToolboxVisuals.Toolbox;
         PlaceholderText = "Search workspaces or type a folder path...";
         _items = BuildItems(string.Empty);
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                _scannedWorkspaces = WorkspaceScanner.Scan([]);
+                _items = BuildItems(SearchText?.Trim() ?? string.Empty);
+                RaiseItemsChanged(_items.Length);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"DevToolboxHubPage scan failed: {ex.GetType().Name}: {ex.Message}");
+            }
+        });
     }
 
     public override void UpdateSearchText(string oldSearch, string newSearch)
@@ -34,16 +50,12 @@ internal sealed partial class DevToolboxHubPage : DynamicListPage
         RaiseItemsChanged(_items.Length);
     }
 
-    public override IListItem[] GetItems()
-    {
-        _items = BuildItems(SearchText?.Trim() ?? string.Empty);
-        return _items;
-    }
+    public override IListItem[] GetItems() => _items;
 
     private IListItem[] BuildItems(string query)
     {
         var recent = _recents.GetAll();
-        var scanned = WorkspaceScanner.Scan([]);
+        var scanned = _scannedWorkspaces;
 
         var items = new List<IListItem>();
 
@@ -129,9 +141,21 @@ internal sealed partial class DevToolboxHubPage : DynamicListPage
             Tags = [.. tags],
             MoreCommands =
             [
-                new CommandContextItem(new OpenInExplorerCommand(ws.Path, _recents)) { Icon = DevToolboxVisuals.Explorer },
-                new CommandContextItem(new OpenInTerminalCommand(ws.Path, _settings, _recents)) { Icon = DevToolboxVisuals.Terminal },
-                new CommandContextItem(new OpenInIdeCommand(ws.Path, _settings, _recents)) { Icon = DevToolboxVisuals.Ide },
+                new CommandContextItem(new OpenInExplorerCommand(ws.Path, _recents))
+                {
+                    Icon = DevToolboxVisuals.Explorer,
+                    RequestedShortcut = KeyChords.Explorer,
+                },
+                new CommandContextItem(new OpenInTerminalCommand(ws.Path, _settings, _recents))
+                {
+                    Icon = DevToolboxVisuals.Terminal,
+                    RequestedShortcut = KeyChords.Terminal,
+                },
+                new CommandContextItem(new OpenInIdeCommand(ws.Path, _settings, _recents))
+                {
+                    Icon = DevToolboxVisuals.Ide,
+                    RequestedShortcut = KeyChords.Ide,
+                },
             ],
         };
     }
