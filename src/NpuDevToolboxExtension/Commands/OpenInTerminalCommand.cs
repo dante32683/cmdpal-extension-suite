@@ -44,7 +44,7 @@ internal sealed partial class OpenInTerminalCommand : InvokableCommand
         switch (s.PreferredTerminal)
         {
             case TerminalChoice.WindowsTerminal:
-                LaunchWindowsTerminal();
+                LaunchWindowsTerminal(s.WindowsTerminalProfile);
                 break;
             case TerminalChoice.PowerShell:
                 LaunchPowerShell();
@@ -63,13 +63,16 @@ internal sealed partial class OpenInTerminalCommand : InvokableCommand
         }
     }
 
-    private void LaunchWindowsTerminal()
+    private void LaunchWindowsTerminal(string profile)
     {
-        // wt.exe -d "<path>"
+        string args = string.IsNullOrWhiteSpace(profile)
+            ? $"-d \"{_path}\""
+            : $"new-tab -p \"{profile}\" -d \"{_path}\"";
+
         Process.Start(new ProcessStartInfo
         {
             FileName = "wt.exe",
-            Arguments = $"-d \"{_path}\"",
+            Arguments = args,
             UseShellExecute = true,
         });
     }
