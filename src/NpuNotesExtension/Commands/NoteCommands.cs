@@ -157,13 +157,15 @@ internal sealed partial class CreateNoteCommand : InvokableCommand
 {
     private readonly NotesStore _store;
     private readonly NotesSettingsStore _settings;
+    private readonly NotesAiService _ai;
     private readonly string _text;
     private readonly string? _category;
 
-    public CreateNoteCommand(NotesStore store, NotesSettingsStore settings, string text, string? category = null)
+    public CreateNoteCommand(NotesStore store, NotesSettingsStore settings, NotesAiService ai, string text, string? category = null)
     {
         _store = store;
         _settings = settings;
+        _ai = ai;
         _text = text;
         _category = category;
         Name = string.IsNullOrWhiteSpace(text) ? "Create Blank Note" : "Create Note";
@@ -178,12 +180,28 @@ internal sealed partial class CreateNoteCommand : InvokableCommand
             if (_settings.Current.OpenAfterCreate)
                 Process.Start(new ProcessStartInfo(entry.FilePath) { UseShellExecute = true });
 
+            _ = Task.Run(() => CleanupAsync(entry));
+
             return CommandResult.ShowToast($"Created {entry.Title}");
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"CreateNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
             return CommandResult.ShowToast("Could not create note.");
+        }
+    }
+
+    private async Task CleanupAsync(NoteEntry entry)
+    {
+        try
+        {
+            var (newTitle, newBody) = await _ai.CleanupNoteAsync(entry.Title, entry.Body);
+            if (!string.Equals(newTitle, entry.Title, StringComparison.Ordinal) || !string.Equals(newBody, entry.Body, StringComparison.Ordinal))
+                _store.UpdateNote(entry, newTitle, newBody);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"CreateNoteCommand cleanup failed: {ex.GetType().Name}: {ex.Message}");
         }
     }
 }

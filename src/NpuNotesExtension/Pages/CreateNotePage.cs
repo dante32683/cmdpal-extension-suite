@@ -10,12 +10,14 @@ internal sealed partial class CreateNotePage : DynamicListPage
 {
     private readonly NotesStore _store;
     private readonly NotesSettingsStore _settings;
+    private readonly NotesAiService _ai;
     private IListItem[] _items;
 
-    public CreateNotePage(NotesStore store, NotesSettingsStore settings)
+    public CreateNotePage(NotesStore store, NotesSettingsStore settings, NotesAiService ai)
     {
         _store = store;
         _settings = settings;
+        _ai = ai;
         Id = "com.local.nputools.notes.create";
         Title = "Create Note";
         Name = "Create";
@@ -38,7 +40,7 @@ internal sealed partial class CreateNotePage : DynamicListPage
         {
             return
             [
-                new ListItem(new CreateNoteCommand(_store, _settings, string.Empty))
+                new ListItem(new CreateNoteCommand(_store, _settings, _ai, string.Empty))
                 {
                     Title = "Create Blank Note",
                     Subtitle = $"Default category: {_settings.Current.DefaultCategory}",
@@ -62,7 +64,7 @@ internal sealed partial class CreateNotePage : DynamicListPage
         var parsed = NotesStore.ParseRawNote(text);
         return
         [
-            new ListItem(new CreateNoteCommand(_store, _settings, text))
+            new ListItem(new CreateNoteCommand(_store, _settings, _ai, text))
             {
                 Title = $"Create: {parsed.Title}",
                 Subtitle = Preview(text),

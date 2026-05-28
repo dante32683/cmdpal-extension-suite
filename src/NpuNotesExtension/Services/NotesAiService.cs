@@ -15,6 +15,67 @@ namespace NpuTools.Notes.Services;
 internal sealed partial class NotesAiService
 {
     [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform instance call sites.")]
+    public async Task<(string Title, string Body)> CleanupNoteAsync(string title, string body)
+    {
+        if (string.IsNullOrWhiteSpace(body) && string.Equals(title, "Untitled Note", StringComparison.Ordinal))
+            return (title, body);
+
+        _ = TryUnlockNpuFeature();
+
+        if (LanguageModel.GetReadyState() != AIFeatureReadyState.Ready)
+            return (title, body);
+
+        try
+        {
+            string prompt = $"""
+                Clean up this quick note for grammar and readability.
+                Also suggest a concise title (10 words or fewer) capturing the main idea.
+                Current title: {title}
+                Note body:
+                {body}
+
+                Respond with exactly two sections and no other text:
+                TITLE: <your title>
+                BODY:
+                <cleaned body>
+                """;
+
+            using var model = await LanguageModel.CreateAsync();
+            var response = await model.GenerateResponseAsync(prompt);
+            string raw = (response.Text ?? string.Empty).Trim();
+
+            string cleanTitle = title;
+            string cleanBody = body;
+            string[] lines = raw.Split('\n');
+            int bodyStart = -1;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i].Trim();
+                if (line.StartsWith("TITLE:", StringComparison.OrdinalIgnoreCase))
+                    cleanTitle = line["TITLE:".Length..].Trim();
+                else if (line.StartsWith("BODY:", StringComparison.OrdinalIgnoreCase))
+                {
+                    bodyStart = i + 1;
+                    break;
+                }
+            }
+
+            if (bodyStart >= 0 && bodyStart < lines.Length)
+                cleanBody = string.Join('\n', lines[bodyStart..]).Trim();
+
+            if (string.IsNullOrWhiteSpace(cleanTitle))
+                cleanTitle = title;
+
+            return (cleanTitle, cleanBody);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"NotesAiService.CleanupNoteAsync failed: {ex.GetType().Name}: {ex.Message}");
+            return (title, body);
+        }
+    }
+
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform instance call sites.")]
     public async Task<List<string>> RerankRelatedAsync(
         string targetTitle,
         List<(string Id, string Title, string Snippet)> candidates)
