@@ -65,7 +65,7 @@ internal sealed partial class SmartCaptureProposalPage : ListPage
             [
                 new ListItem(new NoOpCommand())
                 {
-                    Title = "Thinking…",
+                    Title = "Thinking...",
                     Subtitle = "Phi is processing your text",
                     Icon = ObsidianVisuals.Ai,
                 },
@@ -82,7 +82,7 @@ internal sealed partial class SmartCaptureProposalPage : ListPage
             new ListItem(new CreateNoteAndOpenCommand(_store, _settings, p.Title, BuildBody(p), subfolder))
             {
                 Title = $"Create: {p.Title}",
-                Subtitle = $"Folder: {folderDisplay} · Tags: {tagsDisplay}",
+                Subtitle = $"Folder: {folderDisplay} | Tags: {tagsDisplay}",
                 Icon = ObsidianVisuals.Add,
                 Tags = [ObsidianVisuals.StatusTag("Phi proposal")],
                 Details = new Details
