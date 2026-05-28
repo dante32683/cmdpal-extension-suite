@@ -12,7 +12,8 @@ internal static class ImageEditorVisuals
     internal static readonly IconInfo Ocr     = new("\uE8F4"); // ScanQR
     internal static readonly IconInfo Copy    = new("\uE8C8"); // Copy
     internal static readonly IconInfo Folder  = new("\uE8DA"); // FolderOpen
-    internal static readonly IconInfo Check   = new("\uE73E"); // Accept
+    internal static readonly IconInfo Check     = new("\uE73E"); // Accept
+    internal static readonly IconInfo Clipboard = new("\uE77F"); // Paste
 
     internal static Tag MutedTag(string text) => new(text)
     {
