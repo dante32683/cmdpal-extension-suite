@@ -10,6 +10,7 @@ internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
     private readonly TextRewriteService _service = new();
     private readonly TextToolsSettingsManager _settingsManager = new();
     private readonly PendingRewriteStore _pending = new();
+    private readonly CaptureDiagnosticsStore _diag = new();
     private readonly ICommandItem[] _commands;
 
     public NpuTextToolsCommandsProvider()
@@ -21,13 +22,13 @@ internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
 
         _commands =
         [
-            new CommandItem(new TextToolsHubPage(_service, _pending))
+            new CommandItem(new TextToolsHubPage(_service, _pending, _diag))
             {
                 Title    = "Text Tools",
                 Subtitle = "Six Phi-Silica rewrite modes",
                 Icon     = TextToolsVisuals.Hub,
             },
-            new CommandItem(new QuickRewritePage(_service, _settingsManager, _pending))
+            new CommandItem(new QuickRewritePage(_service, _settingsManager, _pending, _diag))
             {
                 Title    = "Quick Rewrite",
                 Subtitle = "Select text, open Command Palette, pick a mode — result goes to clipboard",
@@ -69,6 +70,12 @@ internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
                 Title    = "Custom Rewrite",
                 Subtitle = "Two steps: type instruction, then paste text",
                 Icon     = TextToolsVisuals.Phi,
+            },
+            new CommandItem(new SelectionDiagnosticsPage(_diag, _pending, _service))
+            {
+                Title    = "Selection Diagnostics",
+                Subtitle = "Troubleshoot Quick Rewrite capture failures",
+                Icon     = TextToolsVisuals.Hub,
             },
         ];
     }

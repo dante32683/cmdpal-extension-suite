@@ -106,7 +106,7 @@ Six rewrite modes + Quick Rewrite with selection capture shipped.
 | Toast notification on completion | ✅ |
 | Quick Rewrite with typed text (skip capture) | ✅ |
 | Quick selected-text review before paste | ✅ |
-| Selection diagnostics page | deferred |
+| Selection diagnostics page | ✅ |
 | Quick mode default setting | ✅ |
 
 The pending review feature stores each selection rewrite in a `PendingRewriteStore` singleton. The Quick Rewrite page and Text Tools hub both surface a "Review Last Rewrite" item at the top when a result is waiting. Opening the review page shows result + original side-by-side with a Copy action; copying clears the pending entry.

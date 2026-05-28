@@ -9,11 +9,13 @@ internal sealed partial class TextToolsHubPage : ListPage
 {
     private readonly TextRewriteService _service;
     private readonly PendingRewriteStore _pending;
+    private readonly CaptureDiagnosticsStore? _diag;
 
-    public TextToolsHubPage(TextRewriteService service, PendingRewriteStore pending)
+    public TextToolsHubPage(TextRewriteService service, PendingRewriteStore pending, CaptureDiagnosticsStore? diag = null)
     {
         _service = service;
         _pending = pending;
+        _diag    = diag;
         Id    = "com.local.nputools.texttools.hub";
         Title = "Text Tools";
         Name  = "Open";
@@ -68,7 +70,7 @@ internal sealed partial class TextToolsHubPage : ListPage
             Tags     = [TextToolsVisuals.MutedTag("type instruction")],
         });
 
-        items.Add(new ListItem(new QuickRewritePage(_service, pending: _pending))
+        items.Add(new ListItem(new QuickRewritePage(_service, pending: _pending, diag: _diag))
         {
             Title    = "Quick Rewrite",
             Subtitle = "Leave empty to rewrite selected text, or type text directly",

@@ -16,13 +16,15 @@ internal sealed partial class SelectionRewriteCommand : InvokableCommand
     private readonly TextRewriteMode _mode;
     private readonly TextRewriteService _service;
     private readonly PendingRewriteStore _pending;
+    private readonly CaptureDiagnosticsStore? _diag;
     private readonly string? _customInstruction;
 
-    public SelectionRewriteCommand(TextRewriteMode mode, TextRewriteService service, PendingRewriteStore pending, string? customInstruction = null)
+    public SelectionRewriteCommand(TextRewriteMode mode, TextRewriteService service, PendingRewriteStore pending, CaptureDiagnosticsStore? diag = null, string? customInstruction = null)
     {
         _mode = mode;
         _service = service;
         _pending = pending;
+        _diag = diag;
         _customInstruction = customInstruction;
         Name = $"Rewrite Selection — {TextRewriteService.ModeLabel(mode)}";
         Icon = TextToolsVisuals.Phi;
@@ -42,14 +44,17 @@ internal sealed partial class SelectionRewriteCommand : InvokableCommand
 
             if (string.IsNullOrWhiteSpace(selection))
             {
+                _diag?.RecordFailure(CaptureStatus.NoTextCaptured, "Clipboard did not change after Ctrl+C");
                 ShowToast("Quick Rewrite", "No text was captured. Select text first, then try again.");
                 return;
             }
 
+            _diag?.RecordSuccess(selection);
             string result = await _service.RewriteAsync(selection, _mode, _customInstruction);
 
             if (string.IsNullOrWhiteSpace(result))
             {
+                _diag?.RecordFailure(CaptureStatus.EmptyRewrite, "Phi returned empty output");
                 ShowToast("Quick Rewrite", "Phi returned an empty result. Try selecting more text.");
                 return;
             }
@@ -60,6 +65,7 @@ internal sealed partial class SelectionRewriteCommand : InvokableCommand
         }
         catch (Exception ex)
         {
+            _diag?.RecordFailure(CaptureStatus.Error, ex.Message);
             Debug.WriteLine($"SelectionRewriteCommand failed: {ex.GetType().Name}: {ex.Message}");
             ShowToast("Quick Rewrite Failed", ex.Message.Length > 100 ? ex.Message[..100] : ex.Message);
         }
