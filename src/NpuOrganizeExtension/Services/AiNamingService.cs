@@ -30,20 +30,7 @@ internal static partial class AiNamingService
     [GeneratedRegex(@"[^a-z0-9]+")]
     private static partial Regex NonAlphanumeric();
 
-    internal static string BuildProposedPath(string originalPath)
-    {
-        string slug = GenerateSlug(originalPath);
-        if (!string.IsNullOrEmpty(slug))
-        {
-            string dir  = Path.GetDirectoryName(originalPath) ?? string.Empty;
-            string ext  = Path.GetExtension(originalPath);
-            string date = File.GetCreationTime(originalPath).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            return SlugService.CollisionSafe(dir, $"{date}_{slug}{ext}", ext);
-        }
 
-        // Fallback to time-digit slug when image description unavailable.
-        return SlugService.BuildProposedPath(originalPath);
-    }
 
     internal static async Task<string> BuildProposedPathAsync(string originalPath)
     {
@@ -127,18 +114,7 @@ internal static partial class AiNamingService
         return result.Text;
     }
 
-    private static string GenerateSlug(string imagePath)
-    {
-        try
-        {
-            string description = DescribeAsync(imagePath).GetAwaiter().GetResult();
-            return Slugify(description);
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
+
 
     private static async Task<string> GenerateSlugAsync(string imagePath)
     {
