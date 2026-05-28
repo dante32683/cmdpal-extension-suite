@@ -9,7 +9,7 @@ internal sealed class AwakeService
     [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public AwakeSettings GetSettings()
     {
-        var settings = AwakeJson.Read(AwakePaths.SettingsPath, new AwakeSettings());
+        var settings = AwakeJson.Read(AwakePaths.SettingsPath, new AwakeSettings(), AwakeJsonContext.Default.AwakeSettings);
         settings.DefaultAwakeMode = settings.DefaultAwakeMode == "screen-off" ? "screen-off" : "indefinite";
         settings.DefaultDurationMinutes = Math.Clamp(settings.DefaultDurationMinutes, 1, 24 * 60);
         return settings;
@@ -18,12 +18,12 @@ internal sealed class AwakeService
     [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public void SaveSettings(AwakeSettings settings)
     {
-        AwakeJson.AtomicWrite(AwakePaths.SettingsPath, settings);
+        AwakeJson.AtomicWrite(AwakePaths.SettingsPath, settings, AwakeJsonContext.Default.AwakeSettings);
     }
 
     public AwakeStatus GetStatus()
     {
-        var state = AwakeJson.Read(AwakePaths.StatePath, new AwakeStateFile());
+        var state = AwakeJson.Read(AwakePaths.StatePath, new AwakeStateFile(), AwakeJsonContext.Default.AwakeStateFile);
         var schedules = GetSchedules();
         int? pid = ReadDaemonPid();
         if (pid is int value && !IsPidAlive(value))
@@ -37,14 +37,14 @@ internal sealed class AwakeService
             DaemonPid = pid,
             Override = NormalizeOverride(state.Override),
             Schedules = schedules,
-            Heartbeat = AwakeJson.Read<AwakeHeartbeat?>(AwakePaths.HeartbeatPath, null),
+            Heartbeat = AwakeJson.Read(AwakePaths.HeartbeatPath, null!, AwakeJsonContext.Default.AwakeHeartbeat),
         };
     }
 
     [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public IReadOnlyList<AwakeSchedule> GetSchedules()
     {
-        return AwakeJson.Read(AwakePaths.SchedulesPath, new List<AwakeSchedule>())
+        return AwakeJson.Read(AwakePaths.SchedulesPath, new List<AwakeSchedule>(), AwakeJsonContext.Default.ListAwakeSchedule)
             .Where(IsValidSchedule)
             .ToList();
     }
@@ -63,8 +63,8 @@ internal sealed class AwakeService
 
     public bool SetOverride(AwakeOverride? awakeOverride)
     {
-        var previous = AwakeJson.Read(AwakePaths.StatePath, new AwakeStateFile());
-        AwakeJson.AtomicWrite(AwakePaths.StatePath, awakeOverride is null ? new AwakeStateFile() : new AwakeStateFile { Override = awakeOverride });
+        var previous = AwakeJson.Read(AwakePaths.StatePath, new AwakeStateFile(), AwakeJsonContext.Default.AwakeStateFile);
+        AwakeJson.AtomicWrite(AwakePaths.StatePath, awakeOverride is null ? new AwakeStateFile() : new AwakeStateFile { Override = awakeOverride }, AwakeJsonContext.Default.AwakeStateFile);
 
         var schedules = GetSchedules();
         if (awakeOverride is not null || schedules.Count > 0)
@@ -74,7 +74,7 @@ internal sealed class AwakeService
                 return true;
             }
 
-            AwakeJson.AtomicWrite(AwakePaths.StatePath, previous);
+            AwakeJson.AtomicWrite(AwakePaths.StatePath, previous, AwakeJsonContext.Default.AwakeStateFile);
             return false;
         }
 
@@ -85,7 +85,7 @@ internal sealed class AwakeService
     public void SetSchedules(IEnumerable<AwakeSchedule> schedules)
     {
         var safe = schedules.Where(IsValidSchedule).ToList();
-        AwakeJson.AtomicWrite(AwakePaths.SchedulesPath, safe);
+        AwakeJson.AtomicWrite(AwakePaths.SchedulesPath, safe, AwakeJsonContext.Default.ListAwakeSchedule);
         if (safe.Count > 0)
         {
             EnsureDaemonRunning();
