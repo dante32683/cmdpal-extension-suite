@@ -69,6 +69,18 @@ internal sealed class ObsidianMetadataStore
         }
     }
 
+    public void Remove(ObsidianNote note)
+    {
+        EnsureLoaded();
+        lock (_lock)
+        {
+            int pinned = _index.Pinned.RemoveAll(p => SamePath(p.Path, note.RelativePath));
+            int recent = _index.Recent.RemoveAll(r => SamePath(r.Path, note.RelativePath));
+            if (pinned > 0 || recent > 0)
+                Save();
+        }
+    }
+
     public void Prune(IReadOnlyCollection<ObsidianNote> notes)
     {
         EnsureLoaded();

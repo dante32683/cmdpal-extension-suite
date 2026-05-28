@@ -118,6 +118,14 @@ internal sealed partial class NotePreviewPage : ListPage
                 Icon = ObsidianVisuals.Folder,
                 MoreCommands = [new CommandContextItem(new RevealNoteCommand(note.AbsolutePath)) { RequestedShortcut = Reveal }],
             },
+            new ListItem(new DeleteObsidianNotePage(_store, _indexStore, _settings, _ai, note.AbsolutePath))
+            {
+                Title = "Delete Note",
+                Subtitle = "Move to the Recycle Bin",
+                Icon = ObsidianVisuals.Delete,
+                Tags = [ObsidianVisuals.CriticalTag("destructive")],
+                MoreCommands = [new CommandContextItem(new DeleteObsidianNotePage(_store, _indexStore, _settings, _ai, note.AbsolutePath)) { RequestedShortcut = Delete, IsCritical = true }],
+            },
         ];
     }
 }
