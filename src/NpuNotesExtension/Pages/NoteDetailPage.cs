@@ -1,6 +1,7 @@
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Notes.Commands;
+using NpuTools.Notes.Models;
 using NpuTools.Notes.Services;
 using static NpuTools.Notes.KeyChords;
 
@@ -73,6 +74,20 @@ internal sealed partial class NoteDetailPage : ListPage
                 Subtitle = "Find notes related to this one using AI",
                 Icon = NotesVisuals.Related,
                 Tags = [NotesVisuals.MutedTag("ai")],
+            },
+            new ListItem(new RenameNotePage(_store, entry))
+            {
+                Title = "Rename Note",
+                Subtitle = "Change the title and filename of this note",
+                Icon = NotesVisuals.Note,
+                MoreCommands = [new CommandContextItem(new RenameNotePage(_store, entry)) { RequestedShortcut = Rename }],
+            },
+            new ListItem(new MoveNotePage(_store, entry))
+            {
+                Title = "Move Note",
+                Subtitle = $"Current category: {entry.Category}",
+                Icon = NotesVisuals.Folder,
+                MoreCommands = [new CommandContextItem(new MoveNotePage(_store, entry)) { RequestedShortcut = Move }],
             },
             new ListItem(new TogglePinNoteCommand(_store, entry))
             {

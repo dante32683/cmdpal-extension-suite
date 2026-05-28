@@ -56,6 +56,8 @@ internal static class NoteItemFactory
             new Separator(),
             new CommandContextItem(new FindRelatedNotesPage(store, ai, entry)) { Icon = NotesVisuals.Related },
             new Separator(),
+            new CommandContextItem(new RenameNotePage(store, entry)) { Icon = NotesVisuals.Note, RequestedShortcut = Rename },
+            new CommandContextItem(new MoveNotePage(store, entry)) { Icon = NotesVisuals.Folder, RequestedShortcut = Move },
             new CommandContextItem(new TogglePinNoteCommand(store, entry)) { Icon = NotesVisuals.Pin, RequestedShortcut = Pin },
             new Separator(),
             new CommandContextItem(new DeleteNotePage(store, ai, entry.FilePath)) { Icon = NotesVisuals.Delete, RequestedShortcut = Delete, IsCritical = true },
