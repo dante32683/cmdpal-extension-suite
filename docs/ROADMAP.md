@@ -41,9 +41,9 @@ Status: in progress
 
 - Add CI for restore/build.
 - Publish release artifacts per extension.
-- Extend NPU Notes with Phi cleanup, Find Related Notes, and semantic fallback search.
-- Add NPU Obsidian as a separate vault-backed extension using `docs/NPU_OBSIDIAN_EXTENSION_GUIDE.md`.
-- Implement NPU Dev Toolbox (open workspace in Explorer/terminal/IDE per migration plan Phase 6).
+- NPU Notes: Find Related Notes, semantic fallback search, and AI cleanup on create are shipped. Remaining: RAG Q&A, rebuild index action.
+- NPU Obsidian: M1-M3 shipped (vault browser, persistent index, AI summarize/find-related/smart-capture). Remaining: M4 delete note, bulk operations.
+- NPU Dev Toolbox: MVP shipped. Remaining: Commit Message with Phi, Windows Terminal profile selection.
 - Continue Raycast migration using `RAYCAST_MIGRATION_PLAN.md`.
 
 ## OrganizeKeeper Design Notes
