@@ -92,7 +92,7 @@ All planned features shipped. ImageForegroundExtractor for automatic background 
 
 ---
 
-## NPU Text Tools — ~80%
+## NPU Text Tools — ~88%
 
 Six rewrite modes + Quick Rewrite with selection capture shipped.
 
@@ -138,9 +138,9 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 
 ---
 
-## NPU Obsidian — ~80%
+## NPU Obsidian — ~95%
 
-M3 shipped. Vault index, AI summarization, Find Related Notes, and Smart Capture all implemented.
+M4 shipped. Vault index, AI summarization, Find Related Notes, Smart Capture, delete/rename/move all implemented.
 
 | Feature | Status |
 |---|---|
@@ -213,7 +213,7 @@ MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspace
 
 Roughly in priority order:
 
-1. **DevToolbox: Windows Terminal profile selection**
-2. **Text Tools: Quick mode default setting**
-3. **CI: restore/build pipeline** — build validation per push
-4. **Publish: release artifacts** — per-extension MSIX publish flow
+1. **CI: restore/build pipeline** — build validation per push
+2. **Publish: release artifacts** — per-extension MSIX publish flow
+3. **Notes: rebuild index action** — simple command to re-scan notes
+4. **Obsidian: bulk operations** — multi-select delete/move
