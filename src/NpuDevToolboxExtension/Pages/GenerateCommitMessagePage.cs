@@ -13,7 +13,15 @@ internal sealed partial class GenerateCommitMessagePage : ListPage
     private readonly string _workspacePath;
     private readonly DevToolboxAiService _ai;
     private int _started;
-    private IListItem[] _items = [];
+    private IListItem[] _items =
+    [
+        new ListItem(new NoOpCommand())
+        {
+            Title = "Generating commit message...",
+            Subtitle = "Running git diff and asking Phi to suggest a message.",
+            Icon = DevToolboxVisuals.Commit,
+        },
+    ];
 
     public GenerateCommitMessagePage(string workspacePath, DevToolboxAiService ai)
     {
