@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Clipboard.Commands;
@@ -19,6 +21,9 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
     private readonly ClipboardEntryKind? _filter;
     private readonly Dictionary<string, IconInfo> _imageIcons = new(StringComparer.OrdinalIgnoreCase);
     private IListItem[] _items;
+    private int _syncRunning = 0;
+    private DateTimeOffset _lastSync = DateTimeOffset.MinValue;
+    private static readonly TimeSpan SyncInterval = TimeSpan.FromMinutes(5);
 
     public ClipboardHistoryPage(ClipboardStore store, ClipboardSettingsStore settings, ClipboardContentService content, ClipboardEntryKind? filter = null)
     {
@@ -46,10 +51,24 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         _settings.Reload();
         ShowDetails = _settings.Current.PreviewMode == ClipboardPreviewMode.Always;
 
-        // Merge in any entries that arrived via sync folder from other devices.
+        // Kick off sync on a background thread so filesystem IO never blocks the COM/UI thread.
+        // Rate-limited to SyncInterval so rapid refreshes don't hammer the sync folder.
         string? syncFolder = _settings.Current.SyncFolder;
-        if (!string.IsNullOrWhiteSpace(syncFolder))
-            _store.SyncFrom(syncFolder);
+        if (!string.IsNullOrWhiteSpace(syncFolder)
+            && (DateTimeOffset.UtcNow - _lastSync) > SyncInterval
+            && Interlocked.Exchange(ref _syncRunning, 1) == 0)
+        {
+            _lastSync = DateTimeOffset.UtcNow;
+            _ = Task.Run(() =>
+            {
+                try { _store.SyncFrom(syncFolder); }
+                finally
+                {
+                    Interlocked.Exchange(ref _syncRunning, 0);
+                    RaiseItemsChanged(0);
+                }
+            });
+        }
 
         _items = BuildItems(SearchText?.Trim() ?? string.Empty);
         return _items;

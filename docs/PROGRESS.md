@@ -219,4 +219,7 @@ Roughly in priority order:
 1. **CI: restore/build pipeline** — build validation per push
 2. **Publish: release artifacts** — per-extension MSIX publish flow
 3. **DevToolbox: Open Explorer window detection** — detect open Explorer windows as workspace
-4. **Obsidian: bulk operations** — multi-select delete/move
+
+### Future Enhancements (post-migration)
+
+- **Obsidian: bulk operations** — multi-select delete/move (out of scope for current migration)
