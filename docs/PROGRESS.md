@@ -15,9 +15,9 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuImageEditorExtension | Clipboard input shipped | ~99% |
 | NpuTextToolsExtension | All planned features shipped | 100% |
 | NpuClipboardExtension | Shipped | ~92% |
-| NpuNotesExtension | Rename/Move shipped | ~93% |
-| NpuObsidianExtension | M4 complete | ~95% |
-| NpuDevToolboxExtension | WT profiles shipped | ~95% |
+| NpuNotesExtension | All planned features shipped | ~95% |
+| NpuObsidianExtension | All planned features shipped | 100% |
+| NpuDevToolboxExtension | All planned features shipped | ~98% |
 
 ---
 
@@ -138,9 +138,9 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 
 ---
 
-## NPU Obsidian — ~95%
+## NPU Obsidian — 100%
 
-M4 shipped. Vault index, AI summarization, Find Related Notes, Smart Capture, delete/rename/move all implemented.
+M4 shipped. All planned features complete. Vault index, AI summarization, Find Related Notes, Smart Capture, delete/rename/move all implemented.
 
 | Feature | Status |
 |---|---|
@@ -162,9 +162,9 @@ M4 shipped. Vault index, AI summarization, Find Related Notes, Smart Capture, de
 
 ---
 
-## NPU Notes — ~85%
+## NPU Notes — ~95%
 
-File-backed Markdown MVP + AI features implemented.
+All planned features shipped. AI cleanup, rename, move, find related, and semantic fallback all implemented.
 
 Implementation guide: `docs/NPU_NOTES_EXTENSION_GUIDE.md`.
 
@@ -191,9 +191,9 @@ Future: AppContentIndexer semantic index, RAG Q&A over notes, inline editor help
 
 ---
 
-## NPU Dev Toolbox — ~90%
+## NPU Dev Toolbox — ~98%
 
-MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspaces, settings, and AI commit message generation.
+All planned features shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspaces, settings, WT profile selection, and AI commit message generation.
 
 | Feature | Status |
 |---|---|
