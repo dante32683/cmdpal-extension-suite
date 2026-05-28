@@ -32,24 +32,17 @@ internal sealed partial class OrganizeHubPage : ListPage
             },
             new ListItem(new ScreenshotRenameListPage(_scanner, _indexService))
             {
-                Title    = "Rename New Screenshots",
-                Subtitle = "Propose date-based renames for unorganized screenshots",
+                Title    = "Process Unprocessed Screenshots",
+                Subtitle = "OCR, AI rename, and index screenshots not yet organized",
                 Icon     = OrganizeVisuals.Rename,
-                Tags     = [OrganizeVisuals.MutedTag("batch rename")],
+                Tags     = [OrganizeVisuals.MutedTag("process")],
             },
             new ListItem(new ScreenshotRenameListPage(_scanner, _indexService, dryRun: true))
             {
-                Title    = "Dry Run Screenshot Rename",
-                Subtitle = "Preview proposals without making any changes",
+                Title    = "Preview Processing",
+                Subtitle = "Show AI rename proposals without making any changes",
                 Icon     = OrganizeVisuals.DryRun,
-                Tags     = [OrganizeVisuals.MutedTag("preview only")],
-            },
-            new ListItem(new IndexAllPage(_scanner, _indexService))
-            {
-                Title    = "Index All Screenshots",
-                Subtitle = "Run OCR and AI description on all screenshots for search",
-                Icon     = OrganizeVisuals.Watcher,
-                Tags     = [OrganizeVisuals.MutedTag("index")],
+                Tags     = [OrganizeVisuals.MutedTag("preview")],
             },
             new ListItem(new WatcherDashboardPage())
             {
