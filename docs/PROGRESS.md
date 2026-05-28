@@ -113,7 +113,7 @@ The pending review feature stores each selection rewrite in a `PendingRewriteSto
 
 ---
 
-## NPU Clipboard — ~92%
+## NPU Clipboard — ~98%
 
 All planned features implemented including cross-device sync via shared folder.
 
