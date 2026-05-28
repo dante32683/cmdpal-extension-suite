@@ -10,13 +10,15 @@ internal sealed partial class WorkspaceActionsPage : ListPage
     private readonly string _path;
     private readonly DevToolboxSettingsStore _settings;
     private readonly RecentWorkspacesStore _recents;
+    private readonly DevToolboxAiService _ai;
     private readonly bool _isRecent;
 
-    public WorkspaceActionsPage(string path, DevToolboxSettingsStore settings, RecentWorkspacesStore recents, bool isRecent = false)
+    public WorkspaceActionsPage(string path, DevToolboxSettingsStore settings, RecentWorkspacesStore recents, DevToolboxAiService ai, bool isRecent = false)
     {
         _path = path;
         _settings = settings;
         _recents = recents;
+        _ai = ai;
         _isRecent = isRecent;
         Id = "com.local.nputools.devtoolbox.workspace";
         Title = System.IO.Path.GetFileName(path.TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar)) ?? path;
@@ -51,6 +53,12 @@ internal sealed partial class WorkspaceActionsPage : ListPage
                 Title = "Copy Path",
                 Subtitle = _path,
                 Icon = DevToolboxVisuals.Copy,
+            },
+            new ListItem(new GenerateCommitMessagePage(_path, _ai))
+            {
+                Title = "Generate Commit Message",
+                Subtitle = "Use Phi to write a commit message from the current diff",
+                Icon = DevToolboxVisuals.Commit,
             },
         };
 
