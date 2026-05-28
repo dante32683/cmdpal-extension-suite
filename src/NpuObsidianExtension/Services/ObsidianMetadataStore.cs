@@ -81,6 +81,35 @@ internal sealed class ObsidianMetadataStore
         }
     }
 
+    public void Remap(ObsidianNote oldNote, ObsidianNote newNote)
+    {
+        EnsureLoaded();
+        lock (_lock)
+        {
+            bool changed = false;
+            foreach (var pin in _index.Pinned)
+            {
+                if (SamePath(pin.Path, oldNote.RelativePath))
+                {
+                    pin.Path = newNote.RelativePath;
+                    changed = true;
+                }
+            }
+
+            foreach (var recent in _index.Recent)
+            {
+                if (SamePath(recent.Path, oldNote.RelativePath))
+                {
+                    recent.Path = newNote.RelativePath;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                Save();
+        }
+    }
+
     public void Prune(IReadOnlyCollection<ObsidianNote> notes)
     {
         EnsureLoaded();

@@ -82,7 +82,8 @@ internal sealed partial class ObsidianVaultStore
 
     public ObsidianNote RenameNote(ObsidianNote note, string newTitle)
     {
-        string vaultPath = Path.GetFullPath(_settings.Current.VaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        string currentVaultPath = _settings.Current.VaultPath;
+        string vaultPath = Path.GetFullPath(currentVaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         string sourcePath = Path.GetFullPath(note.AbsolutePath);
 
         if (!sourcePath.StartsWith(vaultPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
@@ -97,40 +98,46 @@ internal sealed partial class ObsidianVaultStore
 
         string dir = Path.GetDirectoryName(sourcePath)!;
         string newPath = ResolveCollision(Path.Combine(dir, slug + ".md"));
+        bool pathChanged = !string.Equals(sourcePath, newPath, StringComparison.OrdinalIgnoreCase);
 
-        // Avoid collision that resolves to the original path after slugifying.
-        if (string.Equals(sourcePath, newPath, StringComparison.OrdinalIgnoreCase))
+        if (pathChanged)
         {
-            // Content may have changed (H1 update) even if path stays the same.
-            WriteAtomic(sourcePath, updated, overwrite: true);
+            // Write new content to a temp file in the same directory, then atomically
+            // move it into position. Only delete the original after the new file exists.
+            string tmp = $"{newPath}.{Environment.ProcessId}.tmp";
+            File.WriteAllText(tmp, updated, Encoding.UTF8);
+            File.Move(tmp, newPath, false);
+            File.Delete(sourcePath);
         }
         else
         {
-            WriteAtomic(newPath, updated);
-            File.Delete(sourcePath);
+            WriteAtomic(sourcePath, updated, overwrite: true);
         }
 
-        _metadata.Remove(note);
-
-        var newNote = TryLoad(newPath, _settings.Current.VaultPath)
+        var newNote = TryLoad(newPath, currentVaultPath)
             ?? throw new IOException($"Renamed note could not be read back from '{newPath}'.");
+        _metadata.Remap(note, newNote);
         _metadata.Apply(newNote);
         return newNote;
     }
 
     public ObsidianNote MoveNote(ObsidianNote note, string targetRelativeDir)
     {
-        string vaultPath = Path.GetFullPath(_settings.Current.VaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        string currentVaultPath = _settings.Current.VaultPath;
+        string vaultPath = Path.GetFullPath(currentVaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         string sourcePath = Path.GetFullPath(note.AbsolutePath);
+        string vaultWithSep = vaultPath + Path.DirectorySeparatorChar;
 
-        if (!sourcePath.StartsWith(vaultPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        if (!sourcePath.StartsWith(vaultWithSep, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException($"Note is outside the configured vault: {sourcePath}");
 
         string targetDir = string.IsNullOrWhiteSpace(targetRelativeDir)
             ? vaultPath
             : Path.GetFullPath(Path.Combine(vaultPath, targetRelativeDir));
 
-        if (!targetDir.StartsWith(vaultPath, StringComparison.OrdinalIgnoreCase))
+        // Guard: target must equal the vault root or be a proper subdirectory.
+        if (!string.Equals(targetDir, vaultPath, StringComparison.OrdinalIgnoreCase)
+            && !targetDir.StartsWith(vaultWithSep, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException($"Target directory is outside the configured vault: {targetDir}");
 
         Directory.CreateDirectory(targetDir);
@@ -142,10 +149,10 @@ internal sealed partial class ObsidianVaultStore
             return note;
 
         File.Move(sourcePath, newPath);
-        _metadata.Remove(note);
 
-        var newNote = TryLoad(newPath, _settings.Current.VaultPath)
+        var newNote = TryLoad(newPath, currentVaultPath)
             ?? throw new IOException($"Moved note could not be read back from '{newPath}'.");
+        _metadata.Remap(note, newNote);
         _metadata.Apply(newNote);
         return newNote;
     }
@@ -220,8 +227,8 @@ internal sealed partial class ObsidianVaultStore
         if (!File.Exists(targetPath))
             return;
 
-        _metadata.Remove(note);
         FileSystem.DeleteFile(targetPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+        _metadata.Remove(note);
     }
 
     public ObsidianNote Create(string title, string body, string? subfolder = null)
