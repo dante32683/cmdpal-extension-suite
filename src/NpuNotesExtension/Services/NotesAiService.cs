@@ -44,15 +44,16 @@ internal sealed partial class NotesAiService
             var response = await model.GenerateResponseAsync(prompt);
             string raw = (response.Text ?? string.Empty).Trim();
 
-            string cleanTitle = title;
-            string cleanBody = body;
             string[] lines = raw.Split('\n');
+            string? parsedTitle = null;
+            string? parsedBody = null;
             int bodyStart = -1;
+
             for (int i = 0; i < lines.Length; i++)
             {
                 string line = lines[i].Trim();
                 if (line.StartsWith("TITLE:", StringComparison.OrdinalIgnoreCase))
-                    cleanTitle = line["TITLE:".Length..].Trim();
+                    parsedTitle = line["TITLE:".Length..].Trim();
                 else if (line.StartsWith("BODY:", StringComparison.OrdinalIgnoreCase))
                 {
                     bodyStart = i + 1;
@@ -60,13 +61,17 @@ internal sealed partial class NotesAiService
                 }
             }
 
-            if (bodyStart >= 0 && bodyStart < lines.Length)
-                cleanBody = string.Join('\n', lines[bodyStart..]).Trim();
+            // Require both sections; if either is missing, return original unchanged.
+            if (parsedTitle is null || bodyStart < 0)
+                return (title, body);
 
-            if (string.IsNullOrWhiteSpace(cleanTitle))
-                cleanTitle = title;
+            parsedBody = string.Join('\n', lines[bodyStart..]).Trim();
 
-            return (cleanTitle, cleanBody);
+            // Require non-empty outputs to avoid blanking content.
+            if (string.IsNullOrWhiteSpace(parsedTitle) || string.IsNullOrWhiteSpace(parsedBody))
+                return (title, body);
+
+            return (parsedTitle, parsedBody);
         }
         catch (Exception ex)
         {
