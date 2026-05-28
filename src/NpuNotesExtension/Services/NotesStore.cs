@@ -178,6 +178,68 @@ internal sealed partial class NotesStore
         return false;
     }
 
+    public NoteEntry RenameNote(NoteEntry entry, string newTitle)
+    {
+        string root = _settings.Current.NotesRoot;
+        string srcPath = Path.GetFullPath(entry.FilePath);
+        string trimmedTitle = TrimTitle(newTitle);
+        string markdown = BuildMarkdown(entry.Id, trimmedTitle, entry.Category, entry.CreatedUtc, DateTimeOffset.UtcNow, entry.Body);
+
+        string dir = Path.GetDirectoryName(srcPath)!;
+        string slug = Slugify(trimmedTitle);
+        if (string.IsNullOrWhiteSpace(slug))
+            slug = "untitled-note";
+
+        string datePart = ExtractDatePrefix(Path.GetFileNameWithoutExtension(srcPath));
+        string newFileName = $"{datePart}{slug}.md";
+        string newPath = ResolveCollision(Path.Combine(dir, newFileName));
+        bool pathChanged = !string.Equals(srcPath, newPath, StringComparison.OrdinalIgnoreCase);
+
+        if (pathChanged)
+        {
+            string tmp = $"{newPath}.{Environment.ProcessId}.tmp";
+            File.WriteAllText(tmp, markdown, Encoding.UTF8);
+            File.Move(tmp, newPath, false);
+            File.Delete(srcPath);
+        }
+        else
+        {
+            WriteAtomic(srcPath, markdown, overwrite: true);
+        }
+
+        var newEntry = TryLoad(newPath, root) ?? throw new IOException($"Renamed note could not be read back from '{newPath}'.");
+        _index.Remap(entry, newEntry);
+        _index.Apply(newEntry);
+        return newEntry;
+    }
+
+    public NoteEntry MoveNote(NoteEntry entry, string targetCategory)
+    {
+        string root = _settings.Current.NotesRoot;
+        string srcPath = Path.GetFullPath(entry.FilePath);
+        string normalized = NormalizeCategory(targetCategory);
+
+        string targetDir = Path.Combine(root, normalized);
+        Directory.CreateDirectory(targetDir);
+
+        string fileName = Path.GetFileName(srcPath);
+        string newPath = ResolveCollision(Path.Combine(targetDir, fileName));
+
+        if (string.Equals(srcPath, newPath, StringComparison.OrdinalIgnoreCase))
+            return entry;
+
+        string markdown = BuildMarkdown(entry.Id, entry.Title, normalized, entry.CreatedUtc, entry.UpdatedUtc, entry.Body);
+        string tmp = $"{newPath}.{Environment.ProcessId}.tmp";
+        File.WriteAllText(tmp, markdown, Encoding.UTF8);
+        File.Move(tmp, newPath, false);
+        File.Delete(srcPath);
+
+        var newEntry = TryLoad(newPath, root) ?? throw new IOException($"Moved note could not be read back from '{newPath}'.");
+        _index.Remap(entry, newEntry);
+        _index.Apply(newEntry);
+        return newEntry;
+    }
+
     public void DeleteToRecycleBin(NoteEntry entry)
     {
         if (!File.Exists(entry.FilePath))
@@ -321,6 +383,19 @@ internal sealed partial class NotesStore
         Directory.CreateDirectory(root);
         foreach (string category in Categories)
             Directory.CreateDirectory(Path.Combine(root, category));
+    }
+
+    private static string ExtractDatePrefix(string nameWithoutExtension)
+    {
+        // Format: yyyy-MM-dd_HHmm_slug → date prefix is first 15 chars + underscore
+        if (nameWithoutExtension.Length > 16 && nameWithoutExtension[15] == '_')
+        {
+            string potentialDate = nameWithoutExtension[..15];
+            if (DateTime.TryParseExact(potentialDate, "yyyy-MM-dd_HHmm", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+                return potentialDate + "_";
+        }
+
+        return DateTimeOffset.Now.LocalDateTime.ToString("yyyy-MM-dd_HHmm", CultureInfo.InvariantCulture) + "_";
     }
 
     private static string BuildFileName(string title, DateTimeOffset now)
