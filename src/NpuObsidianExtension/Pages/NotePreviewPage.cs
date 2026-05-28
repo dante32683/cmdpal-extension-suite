@@ -118,6 +118,20 @@ internal sealed partial class NotePreviewPage : ListPage
                 Icon = ObsidianVisuals.Folder,
                 MoreCommands = [new CommandContextItem(new RevealNoteCommand(note.AbsolutePath)) { RequestedShortcut = Reveal }],
             },
+            new ListItem(new RenameObsidianNotePage(_store, _indexStore, note))
+            {
+                Title = "Rename Note",
+                Subtitle = note.Title,
+                Icon = ObsidianVisuals.Edit,
+                MoreCommands = [new CommandContextItem(new RenameObsidianNotePage(_store, _indexStore, note)) { RequestedShortcut = Rename }],
+            },
+            new ListItem(new MoveObsidianNotePage(_store, _indexStore, note))
+            {
+                Title = "Move Note",
+                Subtitle = System.IO.Path.GetDirectoryName(note.RelativePath) is { Length: > 0 } d ? $"Currently in {d}" : "Currently in vault root",
+                Icon = ObsidianVisuals.Folder,
+                MoreCommands = [new CommandContextItem(new MoveObsidianNotePage(_store, _indexStore, note)) { RequestedShortcut = Move }],
+            },
             new ListItem(new DeleteObsidianNotePage(_store, _indexStore, _settings, _ai, note.AbsolutePath))
             {
                 Title = "Delete Note",
