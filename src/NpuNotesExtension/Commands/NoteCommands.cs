@@ -208,6 +208,77 @@ internal sealed partial class CreateNoteCommand : InvokableCommand
     }
 }
 
+internal sealed partial class RenameNoteCommand : InvokableCommand
+{
+    private readonly NotesStore _store;
+    private readonly string _path;
+    private readonly string _newTitle;
+
+    public RenameNoteCommand(NotesStore store, string path, string newTitle)
+    {
+        _store = store;
+        _path = path;
+        _newTitle = newTitle;
+        Name = "Rename Note";
+        Icon = NotesVisuals.Note;
+    }
+
+    public override CommandResult Invoke()
+    {
+        if (string.IsNullOrWhiteSpace(_newTitle))
+            return CommandResult.ShowToast("Title cannot be empty.");
+
+        var entry = _store.GetByPath(_path);
+        if (entry is null)
+            return CommandResult.ShowToast("Note no longer exists.");
+
+        try
+        {
+            var renamed = _store.RenameNote(entry, _newTitle);
+            return CommandResult.ShowToast($"Renamed to \"{renamed.Title}\".");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"RenameNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not rename note.");
+        }
+    }
+}
+
+internal sealed partial class MoveNoteCommand : InvokableCommand
+{
+    private readonly NotesStore _store;
+    private readonly string _path;
+    private readonly string _targetCategory;
+
+    public MoveNoteCommand(NotesStore store, string path, string targetCategory)
+    {
+        _store = store;
+        _path = path;
+        _targetCategory = targetCategory;
+        Name = "Move Note";
+        Icon = NotesVisuals.Folder;
+    }
+
+    public override CommandResult Invoke()
+    {
+        var entry = _store.GetByPath(_path);
+        if (entry is null)
+            return CommandResult.ShowToast("Note no longer exists.");
+
+        try
+        {
+            var moved = _store.MoveNote(entry, _targetCategory);
+            return CommandResult.ShowToast($"Moved to \"{moved.Category}\".");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MoveNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not move note.");
+        }
+    }
+}
+
 internal sealed partial class RebuildNotesIndexCommand : InvokableCommand
 {
     private readonly NotesStore _store;
