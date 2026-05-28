@@ -43,6 +43,7 @@ static async Task<int> RunWatchAsync()
     SaveState(state);
 
     uint lastSequence = NativeMethods.GetClipboardSequenceNumber();
+    DateTimeOffset lastPrune = DateTimeOffset.UtcNow;
     AppendLog($"watch  start sequence={lastSequence}");
 
     while (!File.Exists(ClipboardPaths.StopFlagPath()))
@@ -78,6 +79,13 @@ static async Task<int> RunWatchAsync()
             state.Errors++;
             state.LastError = $"{ex.GetType().Name}: {ex.Message}";
             AppendLog($"error  {state.LastError}");
+        }
+
+        // Prune sync folder entries older than 30 days once per hour.
+        if ((DateTimeOffset.UtcNow - lastPrune).TotalHours >= 1)
+        {
+            ClipboardSyncService.PruneOldEntries(settings.Current.SyncFolder, DateTimeOffset.UtcNow.AddDays(-30));
+            lastPrune = DateTimeOffset.UtcNow;
         }
 
         SaveState(state);

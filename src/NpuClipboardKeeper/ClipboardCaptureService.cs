@@ -91,6 +91,7 @@ internal sealed class ClipboardCaptureService
             entry.Text = text;
             entry.Title = ClipboardClassifier.BuildTitle(kind, text, 0);
             _store.AddOrPromote(entry, settings);
+            ClipboardSyncService.WriteEntry(entry, settings.SyncFolder);
             return new(true, entry.Title);
         }
 
@@ -105,6 +106,7 @@ internal sealed class ClipboardCaptureService
         CreatedAt = now,
         SourceApplication = sourceApp,
         ContentHash = hash,
+        SourceDevice = Environment.MachineName,
     };
 
     private static async Task<CapturedImage> SaveBitmapAsync(DataPackageView content, DateTimeOffset now)

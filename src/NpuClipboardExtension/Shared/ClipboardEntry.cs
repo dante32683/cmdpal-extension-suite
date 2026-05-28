@@ -48,6 +48,10 @@ public sealed class ClipboardEntry
     [JsonPropertyName("isPinned")]
     public bool IsPinned { get; set; }
 
+    // Set to Environment.MachineName by the device that captured the entry; null for local-origin entries.
+    [JsonPropertyName("sourceDevice")]
+    public string? SourceDevice { get; set; }
+
     [JsonIgnore]
     public string DisplayName => string.IsNullOrWhiteSpace(CustomName) ? Title : CustomName!;
 }

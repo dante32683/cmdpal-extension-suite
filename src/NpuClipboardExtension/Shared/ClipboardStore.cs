@@ -198,6 +198,36 @@ public sealed class ClipboardStore
         }
     }
 
+    // Merges text entries from the sync folder that aren't already in local history.
+    // Called by the extension when the user opens Clipboard History (not by the keeper).
+    public void SyncFrom(string syncFolder)
+    {
+        var newEntries = ClipboardSyncService.ReadNewEntries(syncFolder, GetKnownIds());
+        if (newEntries.Count == 0) return;
+
+        lock (_lock)
+        {
+            foreach (var entry in newEntries)
+            {
+                if (_entries.Any(e => e.Id == entry.Id || e.ContentHash == entry.ContentHash))
+                    continue;
+                // Insert in chronological position (most recent first).
+                int pos = _entries.FindIndex(e => e.CreatedAt <= entry.CreatedAt);
+                if (pos < 0)
+                    _entries.Add(entry);
+                else
+                    _entries.Insert(pos, entry);
+            }
+            Save();
+        }
+    }
+
+    private HashSet<string> GetKnownIds()
+    {
+        lock (_lock)
+            return _entries.Select(e => e.Id).ToHashSet();
+    }
+
     public static string BuildHash(string prefix, string value)
     {
         byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(prefix + "\n" + value));
@@ -273,5 +303,6 @@ public sealed class ClipboardStore
         SourceApplication = e.SourceApplication,
         ContentHash = e.ContentHash,
         IsPinned = e.IsPinned,
+        SourceDevice = e.SourceDevice,
     };
 }

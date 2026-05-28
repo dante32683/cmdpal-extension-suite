@@ -24,13 +24,17 @@ internal static class ClipboardVisuals
     internal static readonly IconInfo Stop   = new("\uE71A");
     internal static readonly IconInfo Folder = new("\uE8DA"); // FolderOpen (Open File Location)
 
-    private static readonly Color GreenColor = new() { R = 108, G = 203, B = 95, A = 255 };
-    private static readonly Color YellowColor = new() { R = 255, G = 192, B = 0, A = 255 };
-    private static readonly Color RedColor = new() { R = 255, G = 95, B = 95, A = 255 };
+    internal static readonly IconInfo Sync = new(""); // Sync icon
+
+    private static readonly Color GreenColor  = new() { R = 108, G = 203, B = 95,  A = 255 };
+    private static readonly Color YellowColor = new() { R = 255, G = 192, B = 0,   A = 255 };
+    private static readonly Color RedColor    = new() { R = 255, G = 95,  B = 95,  A = 255 };
+    private static readonly Color BlueColor   = new() { R = 100, G = 180, B = 255, A = 255 };
 
     internal static Tag StatusTag(string text) => new(text) { Foreground = Colored(GreenColor) };
     internal static Tag WarningTag(string text) => new(text) { Foreground = Colored(YellowColor) };
     internal static Tag CriticalTag(string text) => new(text) { Foreground = Colored(RedColor) };
+    internal static Tag SyncTag(string deviceName) => new($"synced · {deviceName}") { Foreground = Colored(BlueColor) };
     internal static Tag MutedTag(string text) => new(text);
 
     private static OptionalColor Colored(Color c) => new() { HasValue = true, Color = c };
