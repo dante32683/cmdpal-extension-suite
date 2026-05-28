@@ -208,6 +208,24 @@ internal sealed partial class CreateNoteCommand : InvokableCommand
     }
 }
 
+internal sealed partial class RebuildNotesIndexCommand : InvokableCommand
+{
+    private readonly NotesStore _store;
+
+    public RebuildNotesIndexCommand(NotesStore store)
+    {
+        _store = store;
+        Name = "Rebuild Index";
+        Icon = NotesVisuals.Refresh;
+    }
+
+    public override CommandResult Invoke()
+    {
+        var entries = _store.GetAll();
+        return CommandResult.ShowToast($"Index rebuilt — {entries.Count} note(s) found.");
+    }
+}
+
 internal sealed partial class CreateNoteFromClipboardCommand : InvokableCommand
 {
     private readonly NotesStore _store;

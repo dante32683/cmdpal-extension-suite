@@ -15,7 +15,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuImageEditorExtension | Shipped | ~98% |
 | NpuTextToolsExtension | Quick mode setting shipped | ~88% |
 | NpuClipboardExtension | Shipped | ~92% |
-| NpuNotesExtension | AI cleanup shipped | ~85% |
+| NpuNotesExtension | Rebuild index shipped | ~88% |
 | NpuObsidianExtension | M4 complete | ~95% |
 | NpuDevToolboxExtension | WT profiles shipped | ~95% |
 
@@ -181,6 +181,7 @@ Implementation guide: `docs/NPU_NOTES_EXTENSION_GUIDE.md`.
 | Find Related Notes (deterministic scoring + Phi rerank) | ✅ |
 | Semantic fallback search (Phi when keyword results < 3) | ✅ |
 | AI cleanup on create (Phi grammar/title fix, background) | ✅ |
+| Rebuild Index action (prune stale entries) | ✅ |
 
 V1 should avoid building a full editor inside Command Palette. Store notes as normal Markdown files with YAML frontmatter, open them in the user's configured editor for rich editing, and keep Command Palette optimized for create/search/browse/action workflows.
 
@@ -215,5 +216,5 @@ Roughly in priority order:
 
 1. **CI: restore/build pipeline** — build validation per push
 2. **Publish: release artifacts** — per-extension MSIX publish flow
-3. **Notes: rebuild index action** — simple command to re-scan notes
+3. **Notes: Rename/Move Note** — rename or move a note to another category
 4. **Obsidian: bulk operations** — multi-select delete/move

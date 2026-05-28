@@ -18,6 +18,7 @@ internal static class NotesVisuals
     internal static readonly IconInfo Open = new("\uE8A7");
     internal static readonly IconInfo Ai = new("\uED0B");
     internal static readonly IconInfo Related = new("\uE8A0");
+    internal static readonly IconInfo Refresh = new("\uE72C");
 
     private static readonly Color GreenColor = new() { R = 108, G = 203, B = 95, A = 255 };
     private static readonly Color RedColor = new() { R = 255, G = 95, B = 95, A = 255 };
