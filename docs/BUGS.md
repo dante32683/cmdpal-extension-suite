@@ -8,6 +8,86 @@ No open bugs currently tracked.
 
 ## Resolved
 
+### ~~BUG-015: DevToolbox WorkspaceScanner.Scan() called on COM thread~~ — RESOLVED 2026-05-27
+
+Extension: NpuDevToolboxExtension  
+Severity: High — freezes Command Palette UI while scanning filesystem on every keystroke  
+Discovered: 2026-05-27 / Fixed: 2026-05-27
+
+`DevToolboxHubPage.BuildItems()` and `QuickOpenCommand.BuildItems()` both called
+`WorkspaceScanner.Scan([])` synchronously on every `UpdateSearchText` call. Scanning
+~/source/repos and similar roots involves directory enumeration that can take 100–1000 ms
+on machines with many directories, freezing the palette UI.
+
+Fix: scan is started once with `Task.Run` in each page/command constructor. Result is
+cached in a `volatile List<WorkspaceEntry> _scannedWorkspaces` field. `BuildItems()` reads
+from the cache; initial render shows only recents while the scan runs in the background.
+`RaiseItemsChanged` updates the display when the scan completes.
+
+### ~~BUG-014: DevToolbox missing KeyChords.cs and RequestedShortcut on MoreCommands~~ — RESOLVED 2026-05-27
+
+Extension: NpuDevToolboxExtension  
+Severity: Medium — convention violation; users cannot use keyboard shortcuts on workspace actions  
+Discovered: 2026-05-27 / Fixed: 2026-05-27
+
+`DevToolboxHubPage.BuildWorkspaceItem()` created `CommandContextItem` entries in
+`MoreCommands` with no `RequestedShortcut` set. `CONVENTIONS.md` requires a shortcut on
+every primary-action `CommandContextItem`. No `KeyChords.cs` file existed.
+
+Fix: added `KeyChords.cs` (Ctrl+E Explorer, Ctrl+T Terminal, Ctrl+I IDE, Ctrl+C CopyPath,
+Ctrl+Shift+Delete RemoveRecent) and applied `RequestedShortcut` to all three MoreCommands
+context items in `DevToolboxHubPage`.
+
+### ~~BUG-013: DevToolbox wt.exe UseShellExecute=false bypasses OS PATH resolution~~ — RESOLVED 2026-05-27
+
+Extension: NpuDevToolboxExtension  
+Severity: Medium — Windows Terminal launch can silently fail on some configurations  
+Discovered: 2026-05-27 / Fixed: 2026-05-27
+
+`LaunchWindowsTerminal()` in `OpenInTerminalCommand` used `UseShellExecute = false`,
+which requires `wt.exe` to be reachable through `Process.Start`'s own PATH lookup.
+Windows Terminal is a Store app whose PATH registration can be unavailable in some
+non-interactive process contexts (e.g. COM server launched without full user environment).
+
+Fix: changed to `UseShellExecute = true` so ShellExecuteEx handles the path resolution,
+consistent with all other IDE/app launches.
+
+### ~~BUG-012: Obsidian search ranking did not distinguish exact title matches~~ — RESOLVED 2026-05-27
+
+Extension: NpuObsidianExtension  
+Severity: Low — search ranking could return longer-title notes above exact matches when backlinks differed  
+Discovered: 2026-05-27 (audit) / Fixed: 2026-05-27
+
+`ObsidianSearchService.Score()` gave +10 for any title substring match, including exact
+matches. A note with title `Cathedral Notes` and 3 backlinks (total +13) could outrank
+a note with an exact title match `cat` (+10 + whole-word +2 = +12).
+
+Fix: exact title match now scores +15; substring match scores +10. This ensures exact title
+matches always beat shorter-substring matches regardless of backlink count up to the cap
+of +3. Two new tests added.
+
+### ~~BUG-011: Obsidian backlink indexing missed Markdown links and path-qualified wiki targets~~ — RESOLVED 2026-05-27
+
+Extension: NpuObsidianExtension  
+Severity: Medium — notes with `[text](Note.md)` or `[[Folder/Note]]` links never generated backlinks  
+Discovered: 2026-05-27 (audit) / Fixed: 2026-05-27
+
+`ObsidianMarkdownParser.ExtractWikiLinks` only extracted `[[WikiLink]]` syntax.
+Markdown `[text](path.md)` links were never extracted and never contributed to backlinks.
+`BuildBacklinks` looked up link targets only by title and filename stem, missing
+`[[Folder/Sub Note]]` links whose target had no entry keyed by the full relative path.
+
+Fix:
+- Added `ObsidianMarkdownParser.ExtractMarkdownLinks()` with a `[text](target)` regex that
+  strips anchors, `.md` extension, `./` prefix, and ignores HTTP/HTTPS/obsidian:// URLs.
+- `ObsidianIndexStore.IndexFile()` merges markdown links into the `WikiLinks` field (no schema change; existing index files gain the field from the next re-index).
+- `BuildBacklinks` now adds relative-path-without-extension keys (forward slashes) to the
+  lookup so `[[Folder/Note]]` resolves to `RelativePath = "Folder\Note.md"`.
+- `NormalizeLinkTarget` helper strips anchors and `.md` from all link targets before lookup.
+- Six new parser tests and the Obsidian extension and test suite both build clean.
+
+## Resolved
+
 ### ~~BUG-010: Awake keeper not running after extension reload~~ — RESOLVED 2026-05-18
 
 Extension: NpuAwakeExtension / NpuAwakeKeeper  
