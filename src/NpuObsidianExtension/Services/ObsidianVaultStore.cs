@@ -80,6 +80,132 @@ internal sealed partial class ObsidianVaultStore
 
     public void SetPinned(ObsidianNote note, bool pinned) => _metadata.SetPinned(note, pinned);
 
+    public ObsidianNote RenameNote(ObsidianNote note, string newTitle)
+    {
+        string vaultPath = Path.GetFullPath(_settings.Current.VaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        string sourcePath = Path.GetFullPath(note.AbsolutePath);
+
+        if (!sourcePath.StartsWith(vaultPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Note is outside the configured vault: {sourcePath}");
+
+        string content = File.ReadAllText(sourcePath, Encoding.UTF8);
+        string updated = UpdateFirstH1(content, newTitle);
+
+        string slug = ObsidianMarkdownParser.Slugify(newTitle);
+        if (string.IsNullOrWhiteSpace(slug))
+            slug = "untitled";
+
+        string dir = Path.GetDirectoryName(sourcePath)!;
+        string newPath = ResolveCollision(Path.Combine(dir, slug + ".md"));
+
+        // Avoid collision that resolves to the original path after slugifying.
+        if (string.Equals(sourcePath, newPath, StringComparison.OrdinalIgnoreCase))
+        {
+            // Content may have changed (H1 update) even if path stays the same.
+            WriteAtomic(sourcePath, updated, overwrite: true);
+        }
+        else
+        {
+            WriteAtomic(newPath, updated);
+            File.Delete(sourcePath);
+        }
+
+        _metadata.Remove(note);
+
+        var newNote = TryLoad(newPath, _settings.Current.VaultPath)
+            ?? throw new IOException($"Renamed note could not be read back from '{newPath}'.");
+        _metadata.Apply(newNote);
+        return newNote;
+    }
+
+    public ObsidianNote MoveNote(ObsidianNote note, string targetRelativeDir)
+    {
+        string vaultPath = Path.GetFullPath(_settings.Current.VaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        string sourcePath = Path.GetFullPath(note.AbsolutePath);
+
+        if (!sourcePath.StartsWith(vaultPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Note is outside the configured vault: {sourcePath}");
+
+        string targetDir = string.IsNullOrWhiteSpace(targetRelativeDir)
+            ? vaultPath
+            : Path.GetFullPath(Path.Combine(vaultPath, targetRelativeDir));
+
+        if (!targetDir.StartsWith(vaultPath, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Target directory is outside the configured vault: {targetDir}");
+
+        Directory.CreateDirectory(targetDir);
+
+        string fileName = Path.GetFileName(sourcePath);
+        string newPath = ResolveCollision(Path.Combine(targetDir, fileName));
+
+        if (string.Equals(sourcePath, newPath, StringComparison.OrdinalIgnoreCase))
+            return note;
+
+        File.Move(sourcePath, newPath);
+        _metadata.Remove(note);
+
+        var newNote = TryLoad(newPath, _settings.Current.VaultPath)
+            ?? throw new IOException($"Moved note could not be read back from '{newPath}'.");
+        _metadata.Apply(newNote);
+        return newNote;
+    }
+
+    public IReadOnlyList<string> GetVaultSubfolders()
+    {
+        string vaultPath = _settings.Current.VaultPath;
+        if (!Directory.Exists(vaultPath))
+            return [];
+
+        var folders = new List<string>();
+        foreach (string dir in Directory.EnumerateDirectories(vaultPath, "*", System.IO.SearchOption.AllDirectories))
+        {
+            string name = Path.GetFileName(dir);
+            if (ObsidianVaultStore.IgnoredDirs.Contains(name))
+                continue;
+
+            string relative = Path.GetRelativePath(vaultPath, dir);
+            folders.Add(relative);
+        }
+
+        folders.Sort(StringComparer.OrdinalIgnoreCase);
+        return folders;
+    }
+
+    private static string UpdateFirstH1(string markdown, string newTitle)
+    {
+        string normalized = markdown.Replace("\r\n", "\n").Replace('\r', '\n');
+        string[] lines = normalized.Split('\n');
+        int bodyStart = 0;
+
+        // Skip YAML frontmatter.
+        if (lines.Length > 0 && lines[0] == "---")
+        {
+            for (int i = 1; i < lines.Length; i++)
+            {
+                if (lines[i] == "---")
+                {
+                    bodyStart = i + 1;
+                    break;
+                }
+            }
+        }
+
+        for (int i = bodyStart; i < lines.Length; i++)
+        {
+            if (lines[i].StartsWith("# ", StringComparison.Ordinal))
+            {
+                lines[i] = $"# {newTitle}";
+                return string.Join("\n", lines);
+            }
+        }
+
+        // No H1 found — prepend one after frontmatter.
+        var result = new System.Collections.Generic.List<string>(lines);
+        result.Insert(bodyStart, string.Empty);
+        result.Insert(bodyStart, $"# {newTitle}");
+        return string.Join("\n", result);
+    }
+
     public void DeleteToRecycleBin(ObsidianNote note)
     {
         string vaultPath = Path.GetFullPath(_settings.Current.VaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
@@ -212,10 +338,10 @@ internal sealed partial class ObsidianVaultStore
         return Path.Combine(dir, $"{name}-{Guid.NewGuid():N}{ext}");
     }
 
-    private static void WriteAtomic(string path, string content)
+    private static void WriteAtomic(string path, string content, bool overwrite = false)
     {
         string tmp = $"{path}.{Environment.ProcessId}.tmp";
         File.WriteAllText(tmp, content, Encoding.UTF8);
-        File.Move(tmp, path, false);
+        File.Move(tmp, path, overwrite);
     }
 }

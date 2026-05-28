@@ -324,6 +324,80 @@ internal sealed partial class CreateNoteAndOpenCommand : InvokableCommand
     }
 }
 
+internal sealed partial class RenameObsidianNoteCommand : InvokableCommand
+{
+    private readonly ObsidianVaultStore _store;
+    private readonly ObsidianIndexStore _indexStore;
+    private readonly string _path;
+    private readonly string _newTitle;
+
+    public RenameObsidianNoteCommand(ObsidianVaultStore store, ObsidianIndexStore indexStore, string path, string newTitle)
+    {
+        _store = store;
+        _indexStore = indexStore;
+        _path = path;
+        _newTitle = newTitle;
+        Name = $"Rename to: {newTitle}";
+        Icon = ObsidianVisuals.Edit;
+    }
+
+    public override CommandResult Invoke()
+    {
+        var note = _store.GetByPath(_path);
+        if (note is null)
+            return CommandResult.ShowToast("Note no longer exists.");
+
+        try
+        {
+            var renamed = _store.RenameNote(note, _newTitle);
+            _indexStore.Remove(note.AbsolutePath);
+            return CommandResult.ShowToast($"Renamed to \"{renamed.Title}\".");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"RenameObsidianNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not rename note.");
+        }
+    }
+}
+
+internal sealed partial class MoveObsidianNoteCommand : InvokableCommand
+{
+    private readonly ObsidianVaultStore _store;
+    private readonly ObsidianIndexStore _indexStore;
+    private readonly string _path;
+    private readonly string _targetRelativeDir;
+
+    public MoveObsidianNoteCommand(ObsidianVaultStore store, ObsidianIndexStore indexStore, string path, string targetRelativeDir)
+    {
+        _store = store;
+        _indexStore = indexStore;
+        _path = path;
+        _targetRelativeDir = targetRelativeDir;
+        Name = string.IsNullOrWhiteSpace(targetRelativeDir) ? "Move to vault root" : $"Move to: {targetRelativeDir}";
+        Icon = ObsidianVisuals.Folder;
+    }
+
+    public override CommandResult Invoke()
+    {
+        var note = _store.GetByPath(_path);
+        if (note is null)
+            return CommandResult.ShowToast("Note no longer exists.");
+
+        try
+        {
+            _store.MoveNote(note, _targetRelativeDir);
+            _indexStore.Remove(note.AbsolutePath);
+            return CommandResult.ShowToast($"Moved to {(string.IsNullOrWhiteSpace(_targetRelativeDir) ? "vault root" : _targetRelativeDir)}.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"MoveObsidianNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not move note.");
+        }
+    }
+}
+
 internal sealed partial class DeleteObsidianNoteCommand : InvokableCommand
 {
     private readonly ObsidianVaultStore _store;
