@@ -34,7 +34,7 @@ internal sealed partial class NpuNotesCommandsProvider : CommandProvider
                 Subtitle = "Pinned and recent Markdown notes",
                 Icon = NotesVisuals.Notes,
             },
-            new CommandItem(new CreateNotePage(_store, _settingsStore))
+            new CommandItem(new CreateNotePage(_store, _settingsStore, _aiService))
             {
                 Title = "Create Note",
                 Subtitle = "Capture Markdown text into a note",

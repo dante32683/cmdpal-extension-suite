@@ -64,7 +64,7 @@ internal sealed partial class BrowseNotesPage : DynamicListPage
         {
             return
             [
-                new ListItem(new CreateNotePage(_store, _settings))
+                new ListItem(new CreateNotePage(_store, _settings, _ai))
                 {
                     Title = "No notes found",
                     Subtitle = _category is null ? "Create a note to start" : $"No notes in {_category}",

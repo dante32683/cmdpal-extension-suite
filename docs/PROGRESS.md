@@ -15,7 +15,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuImageEditorExtension | Shipped | ~98% |
 | NpuTextToolsExtension | Shipped (partial) | ~80% |
 | NpuClipboardExtension | Shipped | ~92% |
-| NpuNotesExtension | AI features shipped | ~75% |
+| NpuNotesExtension | AI cleanup shipped | ~85% |
 | NpuObsidianExtension | M3 shipped | ~80% |
 | NpuDevToolboxExtension | MVP shipped | ~80% |
 
@@ -161,7 +161,7 @@ M3 shipped. Vault index, AI summarization, Find Related Notes, and Smart Capture
 
 ---
 
-## NPU Notes — ~75%
+## NPU Notes — ~85%
 
 File-backed Markdown MVP + AI features implemented.
 
@@ -179,7 +179,7 @@ Implementation guide: `docs/NPU_NOTES_EXTENSION_GUIDE.md`.
 | Settings (root, category, recent count) | ✅ |
 | Find Related Notes (deterministic scoring + Phi rerank) | ✅ |
 | Semantic fallback search (Phi when keyword results < 3) | ✅ |
-| AI cleanup on create | future |
+| AI cleanup on create (Phi grammar/title fix, background) | ✅ |
 
 V1 should avoid building a full editor inside Command Palette. Store notes as normal Markdown files with YAML frontmatter, open them in the user's configured editor for rich editing, and keep Command Palette optimized for create/search/browse/action workflows.
 
@@ -212,9 +212,7 @@ MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspace
 
 Roughly in priority order:
 
-1. **Clipboard: time-window grouping display** — currently listed as "not verified"; verify or implement
-2. **Notes: AI cleanup on create** — run Phi grammar/title fix after quick-capture
-3. **Obsidian M4: delete note, bulk vault operations** — see feature table above
-4. **Dev Toolbox: Commit Message with Phi** — generate commit message from `git diff` for current workspace
-5. **CI: restore/build pipeline** — build validation per push
-6. **Publish: release artifacts** — per-extension MSIX publish flow
+1. **Obsidian M4: delete note, bulk vault operations** — see feature table above
+2. **Dev Toolbox: Commit Message with Phi** — generate commit message from `git diff` for current workspace
+3. **CI: restore/build pipeline** — build validation per push
+4. **Publish: release artifacts** — per-extension MSIX publish flow
