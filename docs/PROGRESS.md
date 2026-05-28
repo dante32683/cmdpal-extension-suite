@@ -13,7 +13,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuAwakeExtension | Shipped | 100% |
 | NpuOrganizeExtension | Shipped | 100% |
 | NpuImageEditorExtension | Clipboard input shipped | ~99% |
-| NpuTextToolsExtension | Quick mode setting shipped | ~88% |
+| NpuTextToolsExtension | All planned features shipped | 100% |
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | Rename/Move shipped | ~93% |
 | NpuObsidianExtension | M4 complete | ~95% |
@@ -92,9 +92,9 @@ All planned features shipped. ImageForegroundExtractor for automatic background 
 
 ---
 
-## NPU Text Tools — ~88%
+## NPU Text Tools — 100%
 
-Six rewrite modes + Quick Rewrite with selection capture shipped.
+All planned features shipped. Pending review, selection diagnostics, and quick mode default setting complete the set.
 
 | Feature | Status |
 |---|---|
