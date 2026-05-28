@@ -45,6 +45,12 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
     {
         _settings.Reload();
         ShowDetails = _settings.Current.PreviewMode == ClipboardPreviewMode.Always;
+
+        // Merge in any entries that arrived via sync folder from other devices.
+        string? syncFolder = _settings.Current.SyncFolder;
+        if (!string.IsNullOrWhiteSpace(syncFolder))
+            _store.SyncFrom(syncFolder);
+
         _items = BuildItems(SearchText?.Trim() ?? string.Empty);
         return _items;
     }
@@ -199,6 +205,8 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
 
         metadata.Add(new DetailsElement { Key = "Copied", Data = new DetailsLink(entry.CreatedAt.ToString("g", CultureInfo.CurrentCulture)) });
         metadata.Add(new DetailsElement { Key = "Source", Data = new DetailsLink(entry.SourceApplication ?? "unknown") });
+        if (!string.IsNullOrWhiteSpace(entry.SourceDevice))
+            metadata.Add(new DetailsElement { Key = "Device", Data = new DetailsLink(entry.SourceDevice) });
 
         return [.. metadata];
     }
@@ -241,6 +249,9 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             tags.Add(ClipboardVisuals.StatusTag("pinned"));
         if (!string.IsNullOrWhiteSpace(entry.CustomName))
             tags.Add(ClipboardVisuals.MutedTag("renamed"));
+        if (!string.IsNullOrWhiteSpace(entry.SourceDevice) &&
+            !string.Equals(entry.SourceDevice, Environment.MachineName, StringComparison.OrdinalIgnoreCase))
+            tags.Add(ClipboardVisuals.SyncTag(entry.SourceDevice!));
         return [.. tags];
     }
 

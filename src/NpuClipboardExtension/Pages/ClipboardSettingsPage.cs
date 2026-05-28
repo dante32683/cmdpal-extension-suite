@@ -59,6 +59,13 @@ internal sealed partial class ClipboardSettingsPage : ListPage
             RetentionItem(500, settings),
             RetentionItem(1000, settings),
             RetentionItem(-1, settings),
+            new ListItem(new SetSyncFolderPage(_settings))
+            {
+                Title    = "Cross-Device Sync Folder",
+                Subtitle = string.IsNullOrWhiteSpace(settings.SyncFolder) ? "Not configured — tap to set a shared folder path" : $"Sync folder: {settings.SyncFolder}",
+                Icon     = ClipboardVisuals.Sync,
+                Tags     = string.IsNullOrWhiteSpace(settings.SyncFolder) ? [] : [ClipboardVisuals.StatusTag("active")],
+            },
             new ListItem(new DisabledApplicationsPage(_settings))
             {
                 Title = "Disabled Applications",

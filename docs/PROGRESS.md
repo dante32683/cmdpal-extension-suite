@@ -14,7 +14,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuOrganizeExtension | Shipped | 100% |
 | NpuImageEditorExtension | Clipboard input shipped | ~99% |
 | NpuTextToolsExtension | All planned features shipped | 100% |
-| NpuClipboardExtension | Shipped | ~92% |
+| NpuClipboardExtension | Cross-device sync shipped | ~98% |
 | NpuNotesExtension | All planned features shipped | ~95% |
 | NpuObsidianExtension | All planned features shipped | 100% |
 | NpuDevToolboxExtension | All planned features shipped | ~98% |
@@ -115,7 +115,7 @@ The pending review feature stores each selection rewrite in a `PendingRewriteSto
 
 ## NPU Clipboard — ~92%
 
-MVP scope is fully implemented. Cross-device sync is intentionally deferred.
+All planned features implemented including cross-device sync via shared folder.
 
 | Feature | Status |
 |---|---|
@@ -133,7 +133,7 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 | Open File Location (Ctrl+Shift+E) for image + file entries | ✅ bonus |
 | Recorder toggle shortcut Ctrl+R on Clipboard History context menu | ✅ |
 | Added to Refresh-ExtensionRegistrations.ps1 deploy script | ✅ (was missing) |
-| Cross-device sync via sync folder | deferred |
+| Cross-device sync via sync folder | ✅ |
 | Time-window grouping display in list | ✅ (code-verified 2026-05-27) |
 
 ---
