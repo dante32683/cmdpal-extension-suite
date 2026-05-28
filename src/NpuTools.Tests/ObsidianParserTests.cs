@@ -163,6 +163,51 @@ public sealed class ObsidianParserTests
         Assert.Empty(links);
     }
 
+    // ── Markdown-link extraction ─────────────────────────────────────────────
+
+    [Fact]
+    public void MarkdownLinks_SimpleNote()
+    {
+        var links = ObsidianMarkdownParser.ExtractMarkdownLinks("See [My Note](my-note.md) for details.");
+        Assert.Contains("my-note", links);
+    }
+
+    [Fact]
+    public void MarkdownLinks_FolderPath()
+    {
+        var links = ObsidianMarkdownParser.ExtractMarkdownLinks("[text](Folder/Note.md)");
+        Assert.Contains("Folder/Note", links);
+    }
+
+    [Fact]
+    public void MarkdownLinks_StripAnchor()
+    {
+        var links = ObsidianMarkdownParser.ExtractMarkdownLinks("[text](note.md#section)");
+        Assert.Contains("note", links);
+        Assert.DoesNotContain("note.md#section", links);
+    }
+
+    [Fact]
+    public void MarkdownLinks_IgnoreHttpUrls()
+    {
+        var links = ObsidianMarkdownParser.ExtractMarkdownLinks("[link](https://example.com)");
+        Assert.Empty(links);
+    }
+
+    [Fact]
+    public void MarkdownLinks_Deduplicated()
+    {
+        var links = ObsidianMarkdownParser.ExtractMarkdownLinks("[a](note.md) and [b](note.md)");
+        Assert.Single(links, l => l == "note");
+    }
+
+    [Fact]
+    public void MarkdownLinks_Empty_WhenNone()
+    {
+        var links = ObsidianMarkdownParser.ExtractMarkdownLinks("No markdown links here.");
+        Assert.Empty(links);
+    }
+
     // ── Slug / filename creation ──────────────────────────────────────────────
 
     [Theory]
