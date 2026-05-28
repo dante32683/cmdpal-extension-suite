@@ -6,6 +6,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
 using Windows.Media.Ocr;
 using Windows.Storage;
@@ -121,6 +122,35 @@ internal sealed class ImageEditorService
             BitmapAlphaMode.Premultiplied);
         output.CopyFromBuffer(dstPixels.AsBuffer());
         return output;
+    }
+
+    public static async Task<string?> SaveClipboardImageAsync()
+    {
+        var content = Clipboard.GetContent();
+        if (!content.Contains(StandardDataFormats.Bitmap))
+            return null;
+
+        string tempDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "NpuImageEditor", "temp");
+        Directory.CreateDirectory(tempDir);
+
+        string fileName = $"clipboard_{DateTimeOffset.Now:yyyyMMdd_HHmmss_fff}.png";
+        string outPath  = Path.Combine(tempDir, fileName);
+
+        RandomAccessStreamReference reference = await content.GetBitmapAsync();
+        using IRandomAccessStream source = await reference.OpenReadAsync();
+        var decoder = await BitmapDecoder.CreateAsync(source);
+        var bitmap  = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+
+        var folder   = await StorageFolder.GetFolderFromPathAsync(tempDir);
+        var file     = await folder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+        using var outStream = await file.OpenAsync(FileAccessMode.ReadWrite);
+        var encoder  = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outStream);
+        encoder.SetSoftwareBitmap(bitmap);
+        await encoder.FlushAsync();
+
+        return outPath;
     }
 
     private static string GetOutputPath(string input, string suffix, string extension)
