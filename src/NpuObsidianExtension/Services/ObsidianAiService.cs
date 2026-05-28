@@ -16,7 +16,7 @@ namespace NpuTools.Obsidian.Services;
 
 internal sealed partial class ObsidianAiService
 {
-    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform instance call sites.")]
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method - uniform instance call sites.")]
     public async Task<string> SummarizeAsync(string title, string body)
     {
         _ = TryUnlockNpuFeature();
@@ -43,7 +43,7 @@ internal sealed partial class ObsidianAiService
         return (response.Text ?? string.Empty).Trim();
     }
 
-    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform instance call sites.")]
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method - uniform instance call sites.")]
     public async Task<SmartCaptureProposal> SmartCaptureAsync(string roughText, IReadOnlyList<string> existingFolders)
     {
         _ = TryUnlockNpuFeature();
@@ -103,7 +103,7 @@ internal sealed partial class ObsidianAiService
         return FallbackProposal(roughText);
     }
 
-    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform instance call sites.")]
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method - uniform instance call sites.")]
     public async Task<List<string>> RerankRelatedAsync(
         string targetTitle,
         string targetSummary,
@@ -121,7 +121,7 @@ internal sealed partial class ObsidianAiService
         {
             var candidateLines = new StringBuilder();
             for (int i = 0; i < candidates.Count; i++)
-                candidateLines.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{i + 1}. \"{candidates[i].Title}\" — {candidates[i].Snippet}");
+                candidateLines.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{i + 1}. \"{candidates[i].Title}\" - {candidates[i].Snippet}");
 
             string prompt = $"""
                 I have a note titled "{targetTitle}".
@@ -138,7 +138,7 @@ internal sealed partial class ObsidianAiService
             var response = await model.GenerateResponseAsync(prompt);
             string raw = (response.Text ?? "").Trim();
 
-            // Parse "3,1,2" → reordered list
+            // Parse "3,1,2" -> reordered list
             var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var result = new List<string>(candidates.Count);
             var seen = new HashSet<int>();

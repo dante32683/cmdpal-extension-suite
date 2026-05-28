@@ -56,7 +56,7 @@ internal sealed partial class SummarizeNotePage : ListPage
             [
                 new ListItem(new NoOpCommand())
                 {
-                    Title = "Summarizing with Phi…",
+                    Title = "Summarizing with Phi...",
                     Subtitle = _note.Title,
                     Icon = ObsidianVisuals.Ai,
                 },

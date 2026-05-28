@@ -212,8 +212,9 @@ MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspace
 
 Roughly in priority order:
 
-1. **Text Tools: selected-text quick rewrite** — biggest P1 gap; needs `TextSelectionHelper` binary added as packaged companion (same keeper pattern as Awake/Organize)
-2. **Notes extension** — full Phase 5 from `RAYCAST_MIGRATION_PLAN.md`
-5. **Dev Toolbox extension** — full Phase 6
-6. **CI: restore/build pipeline** — build validation per push
-7. **Publish: release artifacts** — per-extension MSIX publish flow
+1. **Clipboard: time-window grouping display** — currently listed as "not verified"; verify or implement
+2. **Notes: AI cleanup on create** — run Phi grammar/title fix after quick-capture
+3. **Obsidian M4: delete note, bulk vault operations** — see feature table above
+4. **Dev Toolbox: Commit Message with Phi** — generate commit message from `git diff` for current workspace
+5. **CI: restore/build pipeline** — build validation per push
+6. **Publish: release artifacts** — per-extension MSIX publish flow

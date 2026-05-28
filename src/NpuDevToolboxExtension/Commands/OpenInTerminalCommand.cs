@@ -70,7 +70,7 @@ internal sealed partial class OpenInTerminalCommand : InvokableCommand
         {
             FileName = "wt.exe",
             Arguments = $"-d \"{_path}\"",
-            UseShellExecute = false,
+            UseShellExecute = true,
         });
     }
 
