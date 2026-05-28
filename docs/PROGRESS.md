@@ -134,7 +134,7 @@ MVP scope is fully implemented. Cross-device sync is intentionally deferred.
 | Recorder toggle shortcut Ctrl+R on Clipboard History context menu | ✅ |
 | Added to Refresh-ExtensionRegistrations.ps1 deploy script | ✅ (was missing) |
 | Cross-device sync via sync folder | deferred |
-| Time-window grouping display in list | not verified |
+| Time-window grouping display in list | ✅ (code-verified 2026-05-27) |
 
 ---
 
