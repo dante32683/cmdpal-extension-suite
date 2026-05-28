@@ -10,5 +10,6 @@ internal static class KeyChords
     internal static KeyChord Terminal    { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.T);
     internal static KeyChord Ide         { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.I);
     internal static KeyChord CopyPath    { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.C);
-    internal static KeyChord RemoveRecent { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.Delete);
+    internal static KeyChord RemoveRecent   { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.Delete);
+    internal static KeyChord CommitMessage  { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.G);
 }
