@@ -16,7 +16,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuTextToolsExtension | Shipped (partial) | ~80% |
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | AI cleanup shipped | ~85% |
-| NpuObsidianExtension | M3 shipped | ~80% |
+| NpuObsidianExtension | M4 delete shipped | ~85% |
 | NpuDevToolboxExtension | Commit message shipped | ~90% |
 
 ---
@@ -212,6 +212,6 @@ MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspace
 
 Roughly in priority order:
 
-1. **Obsidian M4: delete note, bulk vault operations** — see feature table above
+1. **Obsidian M4: bulk vault operations** — see feature table above
 2. **CI: restore/build pipeline** — build validation per push
 3. **Publish: release artifacts** — per-extension MSIX publish flow
