@@ -324,6 +324,41 @@ internal sealed partial class CreateNoteAndOpenCommand : InvokableCommand
     }
 }
 
+internal sealed partial class DeleteObsidianNoteCommand : InvokableCommand
+{
+    private readonly ObsidianVaultStore _store;
+    private readonly ObsidianIndexStore _indexStore;
+    private readonly string _path;
+
+    public DeleteObsidianNoteCommand(ObsidianVaultStore store, ObsidianIndexStore indexStore, string path)
+    {
+        _store = store;
+        _indexStore = indexStore;
+        _path = path;
+        Name = "Delete Note";
+        Icon = ObsidianVisuals.Delete;
+    }
+
+    public override CommandResult Invoke()
+    {
+        var note = _store.GetByPath(_path);
+        if (note is null)
+            return CommandResult.ShowToast("Note no longer exists.");
+
+        try
+        {
+            _store.DeleteToRecycleBin(note);
+            _indexStore.Remove(note.AbsolutePath);
+            return CommandResult.GoHome();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"DeleteObsidianNoteCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not delete note.");
+        }
+    }
+}
+
 internal sealed partial class AppendToNoteCommand : InvokableCommand
 {
     private readonly ObsidianNote _note;

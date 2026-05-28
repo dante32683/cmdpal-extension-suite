@@ -66,6 +66,20 @@ internal sealed partial class ObsidianIndexStore
         }
     }
 
+    public void Remove(string absolutePath)
+    {
+        EnsureLoaded();
+        List<ObsidianIndexEntry> snapshot;
+        lock (_lock)
+        {
+            int removed = _entries.RemoveAll(e => SamePath(e.AbsolutePath, absolutePath));
+            if (removed == 0)
+                return;
+            snapshot = [.. _entries];
+        }
+        SaveToDisk(snapshot);
+    }
+
     // Rebuilds the full index asynchronously. progress: (filesProcessed, totalFiles, currentFileName).
     public async Task<(int indexed, int skipped, int failed)> RebuildAsync(
         string vaultPath,

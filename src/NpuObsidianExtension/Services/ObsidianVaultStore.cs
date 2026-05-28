@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.VisualBasic.FileIO;
 using NpuTools.Obsidian.Models;
 
 namespace NpuTools.Obsidian.Services;
@@ -78,6 +79,24 @@ internal sealed partial class ObsidianVaultStore
     public void RecordOpened(ObsidianNote note) => _metadata.RecordOpened(note);
 
     public void SetPinned(ObsidianNote note, bool pinned) => _metadata.SetPinned(note, pinned);
+
+    public void DeleteToRecycleBin(ObsidianNote note)
+    {
+        string vaultPath = Path.GetFullPath(_settings.Current.VaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        string targetPath = Path.GetFullPath(note.AbsolutePath);
+
+        if (!targetPath.StartsWith(vaultPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Delete target is outside the configured vault: {targetPath}");
+
+        if (!string.Equals(Path.GetExtension(targetPath), ".md", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Delete target is not a Markdown file: {targetPath}");
+
+        if (!File.Exists(targetPath))
+            return;
+
+        _metadata.Remove(note);
+        FileSystem.DeleteFile(targetPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+    }
 
     public ObsidianNote Create(string title, string body, string? subfolder = null)
     {

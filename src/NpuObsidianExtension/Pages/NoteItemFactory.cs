@@ -77,6 +77,8 @@ internal static class NoteItemFactory
             new CommandContextItem(new FindRelatedNotesPage(note, store, indexStore, settings, ai)) { Icon = ObsidianVisuals.Related },
             new Separator(),
             new CommandContextItem(new TogglePinCommand(store, note)) { Icon = ObsidianVisuals.Pin, RequestedShortcut = Pin },
+            new Separator(),
+            new CommandContextItem(new DeleteObsidianNotePage(store, indexStore, settings, ai, note.AbsolutePath)) { Icon = ObsidianVisuals.Delete, RequestedShortcut = Delete, IsCritical = true  },
         ];
     }
 
