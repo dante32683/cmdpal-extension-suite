@@ -17,7 +17,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | AI cleanup shipped | ~85% |
 | NpuObsidianExtension | M4 complete | ~95% |
-| NpuDevToolboxExtension | Commit message shipped | ~90% |
+| NpuDevToolboxExtension | WT profiles shipped | ~95% |
 
 ---
 
@@ -205,7 +205,7 @@ MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspace
 | Manual path entry via search box | ✅ |
 | Open Explorer window detection | future |
 | Commit Message with Phi generation (git diff -> Phi -> message) | ✅ |
-| Windows Terminal profile selection | future |
+| Windows Terminal profile selection | ✅ |
 
 ---
 

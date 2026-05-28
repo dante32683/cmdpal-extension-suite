@@ -22,4 +22,5 @@ internal sealed class DevToolboxSettings
     public IdeChoice PreferredIde { get; set; } = IdeChoice.VSCode;
     public string CustomTerminalExe { get; set; } = string.Empty;
     public string CustomIdeExe { get; set; } = string.Empty;
+    public string WindowsTerminalProfile { get; set; } = string.Empty;
 }

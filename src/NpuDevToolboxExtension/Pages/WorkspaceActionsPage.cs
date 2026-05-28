@@ -39,7 +39,7 @@ internal sealed partial class WorkspaceActionsPage : ListPage
             new ListItem(new OpenInTerminalCommand(_path, _settings, _recents))
             {
                 Title = "Open in Terminal",
-                Subtitle = TerminalLabel(_settings.Current.PreferredTerminal),
+                Subtitle = TerminalSubtitle(_settings.Current),
                 Icon = DevToolboxVisuals.Terminal,
             },
             new ListItem(new OpenInIdeCommand(_path, _settings, _recents))
@@ -73,6 +73,14 @@ internal sealed partial class WorkspaceActionsPage : ListPage
         }
 
         return [.. items];
+    }
+
+    private static string TerminalSubtitle(Models.DevToolboxSettings s)
+    {
+        string label = TerminalLabel(s.PreferredTerminal);
+        return s.PreferredTerminal == Models.TerminalChoice.WindowsTerminal && !string.IsNullOrWhiteSpace(s.WindowsTerminalProfile)
+            ? $"{label} — {s.WindowsTerminalProfile}"
+            : label;
     }
 
     private static string TerminalLabel(Models.TerminalChoice choice) => choice switch
