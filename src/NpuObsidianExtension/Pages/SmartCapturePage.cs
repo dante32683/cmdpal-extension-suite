@@ -69,7 +69,7 @@ internal sealed partial class SmartCapturePage : DynamicListPage
         [
             new ListItem(new SmartCaptureProposalPage(_store, _settings, _ai, text))
             {
-                Title = "Process with AI →",
+                Title = "Process with AI",
                 Subtitle = preview,
                 Icon = ObsidianVisuals.Ai,
                 Tags = [ObsidianVisuals.VaultTag("Phi-powered")],
@@ -77,7 +77,7 @@ internal sealed partial class SmartCapturePage : DynamicListPage
             new ListItem(new CreateNoteAndOpenCommand(_store, _settings, DeriveTitle(text), text))
             {
                 Title = $"Save as: {DeriveTitle(text)}",
-                Subtitle = "Skip AI — create note as-is",
+                Subtitle = "Skip AI - create note as-is",
                 Icon = ObsidianVisuals.Add,
             },
         ];

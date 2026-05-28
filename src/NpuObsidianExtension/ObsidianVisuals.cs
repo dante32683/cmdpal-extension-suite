@@ -1,29 +1,29 @@
-using Microsoft.CommandPalette.Extensions;
+﻿using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
 namespace NpuTools.Obsidian;
 
 internal static class ObsidianVisuals
 {
-    internal static readonly IconInfo Hub      = new("");
-    internal static readonly IconInfo Search   = new("");
-    internal static readonly IconInfo Note     = new("");
-    internal static readonly IconInfo Add      = new("");
-    internal static readonly IconInfo Open     = new("");
-    internal static readonly IconInfo Edit     = new("");
-    internal static readonly IconInfo Append   = new("");
-    internal static readonly IconInfo Folder   = new("");
-    internal static readonly IconInfo Copy     = new("");
-    internal static readonly IconInfo Pin      = new("");
-    internal static readonly IconInfo Delete   = new("");
-    internal static readonly IconInfo Settings = new("");
-    internal static readonly IconInfo Link     = new("");
-    internal static readonly IconInfo Daily    = new("");
-    internal static readonly IconInfo Warning  = new("");
-    internal static readonly IconInfo Index    = new("");
-    internal static readonly IconInfo Check    = new("");
-    internal static readonly IconInfo Ai      = new("");
-    internal static readonly IconInfo Related  = new("");
+    internal static readonly IconInfo Hub      = new("\uE70B");
+    internal static readonly IconInfo Search   = new("\uE721");
+    internal static readonly IconInfo Note     = new("\uE8D2");
+    internal static readonly IconInfo Add      = new("\uE710");
+    internal static readonly IconInfo Open     = new("\uE8A7");
+    internal static readonly IconInfo Edit     = new("\uE70F");
+    internal static readonly IconInfo Append   = new("\uE710");
+    internal static readonly IconInfo Folder   = new("\uE8DA");
+    internal static readonly IconInfo Copy     = new("\uE8C8");
+    internal static readonly IconInfo Pin      = new("\uE718");
+    internal static readonly IconInfo Delete   = new("\uE74D");
+    internal static readonly IconInfo Settings = new("\uE713");
+    internal static readonly IconInfo Link     = new("\uE71B");
+    internal static readonly IconInfo Daily    = new("\uE787");
+    internal static readonly IconInfo Warning  = new("\uE814");
+    internal static readonly IconInfo Index    = new("\uE8A1");
+    internal static readonly IconInfo Check    = new("\uE73E");
+    internal static readonly IconInfo Ai       = new("\uED0B");
+    internal static readonly IconInfo Related  = new("\uE8A0");
 
     private static readonly Color PurpleColor = new() { R = 124, G = 58, B = 237, A = 255 };
     private static readonly Color GreenColor  = new() { R = 108, G = 203, B = 95,  A = 255 };

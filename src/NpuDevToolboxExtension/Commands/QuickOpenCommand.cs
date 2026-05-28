@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
+using NpuTools.DevToolbox.Models;
 using NpuTools.DevToolbox.Services;
 
 namespace NpuTools.DevToolbox.Commands;
@@ -14,6 +17,7 @@ internal sealed partial class QuickOpenCommand : DynamicListPage
     private readonly string _action; // "explorer" | "terminal" | "ide"
     private readonly DevToolboxSettingsStore _settings;
     private readonly RecentWorkspacesStore _recents;
+    private volatile List<WorkspaceEntry> _scannedWorkspaces = [];
     private IListItem[] _items;
 
     public QuickOpenCommand(string action, DevToolboxSettingsStore settings, RecentWorkspacesStore recents)
@@ -40,6 +44,19 @@ internal sealed partial class QuickOpenCommand : DynamicListPage
         };
         PlaceholderText = placeholder;
         _items = BuildItems(string.Empty);
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                _scannedWorkspaces = WorkspaceScanner.Scan([]);
+                _items = BuildItems(SearchText?.Trim() ?? string.Empty);
+                RaiseItemsChanged(_items.Length);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"QuickOpenCommand scan failed: {ex.GetType().Name}: {ex.Message}");
+            }
+        });
     }
 
     public override void UpdateSearchText(string oldSearch, string newSearch)
@@ -53,7 +70,7 @@ internal sealed partial class QuickOpenCommand : DynamicListPage
     private IListItem[] BuildItems(string query)
     {
         var recent = _recents.GetAll().Where(Directory.Exists).ToList();
-        var scanned = WorkspaceScanner.Scan([]);
+        var scanned = _scannedWorkspaces;
         var recentSet = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
 
         var all = recent
