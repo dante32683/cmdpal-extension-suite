@@ -197,10 +197,8 @@ internal sealed partial class NotesStore
 
         if (pathChanged)
         {
-            string tmp = $"{newPath}.{Environment.ProcessId}.tmp";
-            File.WriteAllText(tmp, markdown, Encoding.UTF8);
-            File.Move(tmp, newPath, false);
-            File.Delete(srcPath);
+            File.Move(srcPath, newPath); // atomic rename; no duplicate risk
+            WriteAtomic(newPath, markdown, overwrite: true);
         }
         else
         {
@@ -229,10 +227,8 @@ internal sealed partial class NotesStore
             return entry;
 
         string markdown = BuildMarkdown(entry.Id, entry.Title, normalized, entry.CreatedUtc, entry.UpdatedUtc, entry.Body);
-        string tmp = $"{newPath}.{Environment.ProcessId}.tmp";
-        File.WriteAllText(tmp, markdown, Encoding.UTF8);
-        File.Move(tmp, newPath, false);
-        File.Delete(srcPath);
+        File.Move(srcPath, newPath); // atomic rename; no duplicate risk
+        WriteAtomic(newPath, markdown, overwrite: true);
 
         var newEntry = TryLoad(newPath, root) ?? throw new IOException($"Moved note could not be read back from '{newPath}'.");
         _index.Remap(entry, newEntry);
@@ -245,8 +241,16 @@ internal sealed partial class NotesStore
         if (!File.Exists(entry.FilePath))
             return;
 
+        try
+        {
+            FileSystem.DeleteFile(entry.FilePath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"NotesStore.DeleteToRecycleBin failed: {ex.GetType().Name}: {ex.Message}");
+            return;
+        }
         _index.Remove(entry);
-        FileSystem.DeleteFile(entry.FilePath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
     }
 
     public static string NormalizeCategory(string? value)

@@ -62,12 +62,13 @@ internal sealed partial class ImageInputPage : DynamicListPage
 
     private async Task LoadBrowseItemsAsync()
     {
-        _browseItems   = ScanPictures();
+        _browseItems   = await ScanPicturesAsync();
         _clipboardItem = await TryBuildClipboardItemAsync();
         _items         = BuildItems(string.Empty);
         IsLoading      = false;
         RaiseItemsChanged(_items.Length);
     }
+
 
     private async Task<IListItem?> TryBuildClipboardItemAsync()
     {
@@ -77,11 +78,8 @@ internal sealed partial class ImageInputPage : DynamicListPage
             if (!content.Contains(StandardDataFormats.Bitmap))
                 return null;
 
-            string? path = await ImageEditorService.SaveClipboardImageAsync();
-            if (path is null)
-                return null;
-
-            return new ListItem(new ImageResultPage(_operation, _scaleFactor, path, _settings))
+            // Only check if bitmap exists, actual saving happens on command invocation
+            return new ListItem(new ClipboardImageCommand(_operation, _scaleFactor, _settings))
             {
                 Title    = "From Clipboard",
                 Subtitle = "Use the image currently in your clipboard",
@@ -92,6 +90,31 @@ internal sealed partial class ImageInputPage : DynamicListPage
         catch
         {
             return null;
+        }
+    }
+
+    private sealed class ClipboardImageCommand : InvokableCommand
+    {
+        private readonly ImageOperation _operation;
+        private readonly int _scaleFactor;
+        private readonly ImageEditorSettingsManager _settings;
+
+        public ClipboardImageCommand(ImageOperation operation, int scaleFactor, ImageEditorSettingsManager settings)
+        {
+            _operation = operation;
+            _scaleFactor = scaleFactor;
+            _settings = settings;
+        }
+
+        public override async Task<CommandResult> InvokeAsync()
+        {
+            string? path = await ImageEditorService.SaveClipboardImageAsync();
+            if (path is null)
+            {
+                // Optionally show a toast notification for failure
+                return CommandResult.Dismiss(); // or other appropriate result
+            }
+            return CommandResult.Navigate(new ImageResultPage(_operation, _scaleFactor, path, _settings));
         }
     }
 
@@ -142,26 +165,29 @@ internal sealed partial class ImageInputPage : DynamicListPage
         ];
     }
 
-    private IListItem[] ScanPictures()
+    private async Task<IListItem[]> ScanPicturesAsync()
     {
-        if (!Directory.Exists(PicturesPath))
-            return [];
+        return await Task.Run(() =>
+        {
+            if (!Directory.Exists(PicturesPath))
+                return [];
 
-        try
-        {
-            return Directory
-                .EnumerateFiles(PicturesPath, "*", SearchOption.AllDirectories)
-                .Where(f => ImageExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
-                .Select(f => new FileInfo(f))
-                .OrderByDescending(fi => fi.LastWriteTime)
-                .Take(100)
-                .Select(fi => MakeBrowseItem(fi))
-                .ToArray();
-        }
-        catch
-        {
-            return [];
-        }
+            try
+            {
+                return Directory
+                    .EnumerateFiles(PicturesPath, "*", SearchOption.AllDirectories)
+                    .Where(f => ImageExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+                    .Select(f => new FileInfo(f))
+                    .OrderByDescending(fi => fi.LastWriteTime)
+                    .Take(100)
+                    .Select(fi => MakeBrowseItem(fi))
+                    .ToArray();
+            }
+            catch
+            {
+                return [];
+            }
+        });
     }
 
     private ListItem MakeBrowseItem(FileInfo info)

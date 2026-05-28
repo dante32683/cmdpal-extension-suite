@@ -102,12 +102,8 @@ internal sealed partial class ObsidianVaultStore
 
         if (pathChanged)
         {
-            // Write new content to a temp file in the same directory, then atomically
-            // move it into position. Only delete the original after the new file exists.
-            string tmp = $"{newPath}.{Environment.ProcessId}.tmp";
-            File.WriteAllText(tmp, updated, Encoding.UTF8);
-            File.Move(tmp, newPath, false);
-            File.Delete(sourcePath);
+            File.Move(sourcePath, newPath); // atomic rename; no duplicate risk
+            WriteAtomic(newPath, updated, overwrite: true);
         }
         else
         {
@@ -227,7 +223,15 @@ internal sealed partial class ObsidianVaultStore
         if (!File.Exists(targetPath))
             return;
 
-        FileSystem.DeleteFile(targetPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+        try
+        {
+            FileSystem.DeleteFile(targetPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ObsidianVaultStore.DeleteToRecycleBin failed: {ex.GetType().Name}: {ex.Message}");
+            return;
+        }
         _metadata.Remove(note);
     }
 

@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using NpuTools.Organize.Models;
 
 namespace NpuTools.Organize.Services;
@@ -17,6 +19,8 @@ internal sealed partial class ScreenshotIndexService
 
     private readonly object _lock = new();
     private readonly Dictionary<string, ScreenshotIndexEntry> _entries = new(StringComparer.OrdinalIgnoreCase);
+    private CancellationTokenSource _saveCancellationTokenSource = new();
+    private Task? _saveTask;
 
     public ScreenshotIndexService()
     {
@@ -40,7 +44,7 @@ internal sealed partial class ScreenshotIndexService
         lock (_lock)
         {
             _entries[filePath] = entry;
-            Save();
+            QueueSave();
         }
     }
 
@@ -52,7 +56,7 @@ internal sealed partial class ScreenshotIndexService
             {
                 entry.FilePath = newPath;
                 _entries[newPath] = entry;
-                Save();
+                QueueSave();
             }
         }
     }
@@ -152,14 +156,32 @@ internal sealed partial class ScreenshotIndexService
         }
     }
 
-    private void Save()
+    private void QueueSave()
+    {
+        _saveCancellationTokenSource.Cancel();
+        _saveCancellationTokenSource = new CancellationTokenSource();
+        var token = _saveCancellationTokenSource.Token;
+
+        _saveTask = Task.Delay(TimeSpan.FromMilliseconds(500), token)
+            .ContinueWith(async t =>
+            {
+                if (t.IsCanceled) return;
+                await SaveAsync();
+            }, TaskScheduler.Default);
+    }
+
+    private async Task SaveAsync()
     {
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(IndexPath)!);
-            var snapshot = new List<ScreenshotIndexEntry>(_entries.Values);
+            List<ScreenshotIndexEntry> snapshot;
+            lock (_lock)
+            {
+                snapshot = new List<ScreenshotIndexEntry>(_entries.Values);
+            }
             string json = JsonSerializer.Serialize(snapshot, IndexJsonContext.Default.ListScreenshotIndexEntry);
-            File.WriteAllText(IndexPath, json);
+            await File.WriteAllTextAsync(IndexPath, json);
         }
         catch (Exception ex)
         {
