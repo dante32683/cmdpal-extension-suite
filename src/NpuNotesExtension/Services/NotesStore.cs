@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -106,7 +107,7 @@ internal sealed partial class NotesStore
         Directory.CreateDirectory(categoryDir);
         string path = ResolveCollision(Path.Combine(categoryDir, fileName));
 
-        string markdown = BuildMarkdown(id, parsed.Title, normalizedCategory, now, parsed.Body);
+        string markdown = BuildMarkdown(id, parsed.Title, normalizedCategory, now, now, parsed.Body);
         WriteAtomic(path, markdown);
 
         var entry = TryLoad(path, root) ?? throw new IOException("Created note could not be read back.");
@@ -123,6 +124,16 @@ internal sealed partial class NotesStore
     public void SetPinned(NoteEntry entry, bool pinned)
     {
         _index.SetPinned(entry, pinned);
+    }
+
+    [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform instance call sites.")]
+    public void UpdateNote(NoteEntry entry, string newTitle, string newBody)
+    {
+        if (!File.Exists(entry.FilePath))
+            return;
+
+        string markdown = BuildMarkdown(entry.Id, newTitle, entry.Category, entry.CreatedUtc, DateTimeOffset.UtcNow, newBody);
+        WriteAtomic(entry.FilePath, markdown, overwrite: true);
     }
 
     public void DeleteToRecycleBin(NoteEntry entry)
@@ -296,7 +307,7 @@ internal sealed partial class NotesStore
         return Path.Combine(dir, $"{name}-{Guid.NewGuid():N}{ext}");
     }
 
-    private static string BuildMarkdown(string id, string title, string category, DateTimeOffset now, string body)
+    private static string BuildMarkdown(string id, string title, string category, DateTimeOffset createdUtc, DateTimeOffset updatedUtc, string body)
     {
         string escapedTitle = title.Replace("\"", "\\\"", StringComparison.Ordinal);
         var builder = new StringBuilder();
@@ -304,8 +315,8 @@ internal sealed partial class NotesStore
         builder.AppendLine(FormattableString.Invariant($"id: {id}"));
         builder.AppendLine(FormattableString.Invariant($"title: {escapedTitle}"));
         builder.AppendLine(FormattableString.Invariant($"category: {category}"));
-        builder.AppendLine(FormattableString.Invariant($"createdUtc: {now:O}"));
-        builder.AppendLine(FormattableString.Invariant($"updatedUtc: {now:O}"));
+        builder.AppendLine(FormattableString.Invariant($"createdUtc: {createdUtc:O}"));
+        builder.AppendLine(FormattableString.Invariant($"updatedUtc: {updatedUtc:O}"));
         builder.AppendLine("tags:");
         builder.AppendLine("---");
         builder.AppendLine();
@@ -319,11 +330,11 @@ internal sealed partial class NotesStore
         return builder.ToString();
     }
 
-    private static void WriteAtomic(string path, string content)
+    private static void WriteAtomic(string path, string content, bool overwrite = false)
     {
         string tmp = $"{path}.{Environment.ProcessId}.tmp";
         File.WriteAllText(tmp, content, Encoding.UTF8);
-        File.Move(tmp, path, false);
+        File.Move(tmp, path, overwrite);
     }
 
     private static int CompareByPinnedThenUpdated(NoteEntry a, NoteEntry b)

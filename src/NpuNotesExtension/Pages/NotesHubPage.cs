@@ -35,7 +35,7 @@ internal sealed partial class NotesHubPage : ListPage
 
         var items = new List<IListItem>
         {
-            new ListItem(new CreateNotePage(_store, _settings))
+            new ListItem(new CreateNotePage(_store, _settings, _ai))
             {
                 Title = "Create Note",
                 Subtitle = "Type or paste Markdown text",
