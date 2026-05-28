@@ -13,7 +13,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuAwakeExtension | Shipped | 100% |
 | NpuOrganizeExtension | Shipped | 100% |
 | NpuImageEditorExtension | Shipped | ~98% |
-| NpuTextToolsExtension | Shipped (partial) | ~80% |
+| NpuTextToolsExtension | Quick mode setting shipped | ~88% |
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | AI cleanup shipped | ~85% |
 | NpuObsidianExtension | M4 complete | ~95% |
@@ -107,7 +107,7 @@ Six rewrite modes + Quick Rewrite with selection capture shipped.
 | Quick Rewrite with typed text (skip capture) | ✅ |
 | Quick selected-text review before paste | deferred |
 | Selection diagnostics page | deferred |
-| Quick mode default setting | deferred |
+| Quick mode default setting | ✅ |
 
 The selected-text quick rewrite is the largest remaining gap. It requires a `TextSelectionHelper` binary that hides Command Palette, captures clipboard, sends Ctrl+C, reads selection, runs Phi rewrite, and optionally pastes result.
 

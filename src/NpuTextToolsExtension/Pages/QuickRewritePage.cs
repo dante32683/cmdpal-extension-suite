@@ -9,9 +9,11 @@ namespace NpuTools.TextTools.Pages;
 // DynamicListPage for quick text rewrite.
 // - Empty search: shows mode list; selecting a mode captures selected text from the active window.
 // - With search text: shows mode list; selecting a mode rewrites the typed text directly.
+// When a default Quick Mode is configured in settings, that mode is shown first with a "default" tag.
 internal sealed partial class QuickRewritePage : DynamicListPage
 {
     private readonly TextRewriteService _service;
+    private readonly TextToolsSettingsManager? _settings;
     private IListItem[] _items;
 
     private static readonly (TextRewriteMode Mode, string Subtitle)[] StandardModes =
@@ -24,9 +26,10 @@ internal sealed partial class QuickRewritePage : DynamicListPage
         (TextRewriteMode.Custom,       "Two steps: enter instruction, then paste text"),
     ];
 
-    public QuickRewritePage(TextRewriteService service)
+    public QuickRewritePage(TextRewriteService service, TextToolsSettingsManager? settings = null)
     {
-        _service = service;
+        _service  = service;
+        _settings = settings;
         Id              = "com.local.nputools.texttools.quick";
         Title           = "Quick Rewrite";
         Name            = "Quick Rewrite";
@@ -46,30 +49,64 @@ internal sealed partial class QuickRewritePage : DynamicListPage
     private IListItem[] BuildItems(string inputText)
     {
         bool hasText = inputText.Length > 0;
-        var items = new List<IListItem>(StandardModes.Length);
+
+        TextRewriteMode? defaultMode = _settings?.GetQuickMode();
+        string customInstruction = _settings?.GetQuickCustomInstruction() ?? string.Empty;
+
+        var items = new List<IListItem>(StandardModes.Length + 1);
+
+        // Show default mode at top with "default" tag when configured.
+        if (defaultMode.HasValue)
+        {
+            items.Add(BuildModeItem(defaultMode.Value, GetSubtitle(defaultMode.Value), inputText, hasText, customInstruction, isDefault: true));
+        }
 
         foreach (var (mode, subtitle) in StandardModes)
         {
-            ICommand command = hasText
-                ? new RewriteResultPage(inputText, mode, _service)
-                : (ICommand)new SelectionRewriteCommand(mode, _service);
+            if (defaultMode.HasValue && mode == defaultMode.Value)
+                continue;
 
-            string tagLabel = hasText ? "rewrite typed text" : "rewrite selected text";
-            string fullSubtitle = hasText
-                ? string.Concat(subtitle, " -- \"", Preview(inputText), "\"")
-                : string.Concat(subtitle, " (captures selection)");
-
-            items.Add(new ListItem(command)
-            {
-                Title    = TextRewriteService.ModeLabel(mode),
-                Subtitle = fullSubtitle,
-                Icon     = TextToolsVisuals.Phi,
-                Tags     = [TextToolsVisuals.MutedTag(tagLabel)],
-            });
+            items.Add(BuildModeItem(mode, subtitle, inputText, hasText, customInstruction, isDefault: false));
         }
 
         return [.. items];
     }
+
+    private ListItem BuildModeItem(TextRewriteMode mode, string subtitle, string inputText, bool hasText, string customInstruction, bool isDefault)
+    {
+        ICommand command = hasText
+            ? new RewriteResultPage(inputText, mode, _service, customInstruction: mode == TextRewriteMode.Custom ? customInstruction : null)
+            : (ICommand)new SelectionRewriteCommand(mode, _service, customInstruction: mode == TextRewriteMode.Custom ? customInstruction : null);
+
+        string tagLabel = hasText ? "rewrite typed text" : "rewrite selected text";
+        string fullSubtitle = hasText
+            ? string.Concat(subtitle, " -- \"", Preview(inputText), "\"")
+            : string.Concat(subtitle, " (captures selection)");
+
+        var tags = new List<Tag>();
+        if (isDefault)
+            tags.Add(TextToolsVisuals.StatusTag("default"));
+        tags.Add(TextToolsVisuals.MutedTag(tagLabel));
+
+        return new ListItem(command)
+        {
+            Title    = TextRewriteService.ModeLabel(mode),
+            Subtitle = fullSubtitle,
+            Icon     = TextToolsVisuals.Phi,
+            Tags     = [.. tags],
+        };
+    }
+
+    private static string GetSubtitle(TextRewriteMode mode) => mode switch
+    {
+        TextRewriteMode.FixGrammar   => "Correct grammar and spelling",
+        TextRewriteMode.MakeFormal   => "Rewrite in a professional tone",
+        TextRewriteMode.MakeConcise  => "Shorten while preserving meaning",
+        TextRewriteMode.BulletPoints => "Convert prose to bullet points",
+        TextRewriteMode.Simplify     => "Plain language for any audience",
+        TextRewriteMode.Custom       => "Two steps: enter instruction, then paste text",
+        _                            => mode.ToString(),
+    };
 
     private static string Preview(string text) =>
         text.Length > 60 ? text[..60] + "..." : text;
