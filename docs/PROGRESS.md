@@ -16,7 +16,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuTextToolsExtension | Shipped (partial) | ~80% |
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | AI cleanup shipped | ~85% |
-| NpuObsidianExtension | M4 delete shipped | ~85% |
+| NpuObsidianExtension | M4 complete | ~95% |
 | NpuDevToolboxExtension | Commit message shipped | ~90% |
 
 ---
@@ -157,7 +157,8 @@ M3 shipped. Vault index, AI summarization, Find Related Notes, and Smart Capture
 | Smart Capture creates note with AI-proposed folder/tags | ✅ M3 |
 | Summarize/Find Related in note preview and MoreCommands | ✅ M3 |
 | Delete note (recycle bin, path guard, index prune) | ✅ M4 |
-| Bulk vault operations | future M4 |
+| Rename note (new title → slug filename + H1 update) | ✅ M4 |
+| Move note to vault subfolder | ✅ M4 |
 
 ---
 
@@ -212,6 +213,7 @@ MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspace
 
 Roughly in priority order:
 
-1. **Obsidian M4: bulk vault operations** — see feature table above
-2. **CI: restore/build pipeline** — build validation per push
-3. **Publish: release artifacts** — per-extension MSIX publish flow
+1. **DevToolbox: Windows Terminal profile selection**
+2. **Text Tools: Quick mode default setting**
+3. **CI: restore/build pipeline** — build validation per push
+4. **Publish: release artifacts** — per-extension MSIX publish flow
