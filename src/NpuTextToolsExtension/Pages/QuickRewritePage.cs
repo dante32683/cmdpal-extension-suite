@@ -15,6 +15,7 @@ internal sealed partial class QuickRewritePage : DynamicListPage
     private readonly TextRewriteService _service;
     private readonly TextToolsSettingsManager? _settings;
     private readonly PendingRewriteStore? _pending;
+    private readonly CaptureDiagnosticsStore? _diag;
     private IListItem[] _items;
 
     private static readonly (TextRewriteMode Mode, string Subtitle)[] StandardModes =
@@ -27,11 +28,12 @@ internal sealed partial class QuickRewritePage : DynamicListPage
         (TextRewriteMode.Custom,       "Two steps: enter instruction, then paste text"),
     ];
 
-    public QuickRewritePage(TextRewriteService service, TextToolsSettingsManager? settings = null, PendingRewriteStore? pending = null)
+    public QuickRewritePage(TextRewriteService service, TextToolsSettingsManager? settings = null, PendingRewriteStore? pending = null, CaptureDiagnosticsStore? diag = null)
     {
         _service  = service;
         _settings = settings;
         _pending  = pending;
+        _diag     = diag;
         Id              = "com.local.nputools.texttools.quick";
         Title           = "Quick Rewrite";
         Name            = "Quick Rewrite";
@@ -97,7 +99,7 @@ internal sealed partial class QuickRewritePage : DynamicListPage
     {
         ICommand command = hasText
             ? new RewriteResultPage(inputText, mode, _service, customInstruction: mode == TextRewriteMode.Custom ? customInstruction : null)
-            : (ICommand)new SelectionRewriteCommand(mode, _service, _pending ?? new PendingRewriteStore(), customInstruction: mode == TextRewriteMode.Custom ? customInstruction : null);
+            : (ICommand)new SelectionRewriteCommand(mode, _service, _pending ?? new PendingRewriteStore(), _diag, customInstruction: mode == TextRewriteMode.Custom ? customInstruction : null);
 
         string tagLabel = hasText ? "rewrite typed text" : "rewrite selected text";
         string fullSubtitle = hasText
