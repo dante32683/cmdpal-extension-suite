@@ -71,9 +71,10 @@ internal sealed class DevToolboxSettingsStore
 
     private static DevToolboxSettings Clone(DevToolboxSettings s) => new()
     {
-        PreferredTerminal = s.PreferredTerminal,
-        PreferredIde = s.PreferredIde,
-        CustomTerminalExe = s.CustomTerminalExe,
-        CustomIdeExe = s.CustomIdeExe,
+        PreferredTerminal      = s.PreferredTerminal,
+        PreferredIde           = s.PreferredIde,
+        CustomTerminalExe      = s.CustomTerminalExe,
+        CustomIdeExe           = s.CustomIdeExe,
+        WindowsTerminalProfile = s.WindowsTerminalProfile,
     };
 }
