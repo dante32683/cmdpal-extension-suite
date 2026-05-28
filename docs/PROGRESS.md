@@ -105,11 +105,11 @@ Six rewrite modes + Quick Rewrite with selection capture shipped.
 | Selection capture via Ctrl+C + clipboard polling | ✅ |
 | Toast notification on completion | ✅ |
 | Quick Rewrite with typed text (skip capture) | ✅ |
-| Quick selected-text review before paste | deferred |
+| Quick selected-text review before paste | ✅ |
 | Selection diagnostics page | deferred |
 | Quick mode default setting | ✅ |
 
-The selected-text quick rewrite is the largest remaining gap. It requires a `TextSelectionHelper` binary that hides Command Palette, captures clipboard, sends Ctrl+C, reads selection, runs Phi rewrite, and optionally pastes result.
+The pending review feature stores each selection rewrite in a `PendingRewriteStore` singleton. The Quick Rewrite page and Text Tools hub both surface a "Review Last Rewrite" item at the top when a result is waiting. Opening the review page shows result + original side-by-side with a Copy action; copying clears the pending entry.
 
 ---
 
@@ -187,7 +187,7 @@ Implementation guide: `docs/NPU_NOTES_EXTENSION_GUIDE.md`.
 
 V1 should avoid building a full editor inside Command Palette. Store notes as normal Markdown files with YAML frontmatter, open them in the user's configured editor for rich editing, and keep Command Palette optimized for create/search/browse/action workflows.
 
-Future: AppContentIndexer semantic index, rebuild action, RAG Q&A over notes, inline editor helper if Command Palette alone is too limited.
+Future: AppContentIndexer semantic index, RAG Q&A over notes, inline editor helper if Command Palette alone is too limited.
 
 ---
 

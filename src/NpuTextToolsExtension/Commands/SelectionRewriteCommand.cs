@@ -10,17 +10,19 @@ using Windows.UI.Notifications;
 namespace NpuTools.TextTools.Commands;
 
 // Dismisses Command Palette, captures selected text via Ctrl+C, rewrites it with Phi,
-// and places the result in the clipboard. Shows a toast notification with the outcome.
+// then stores the result for review. The user can open Quick Rewrite to review and copy.
 internal sealed partial class SelectionRewriteCommand : InvokableCommand
 {
     private readonly TextRewriteMode _mode;
     private readonly TextRewriteService _service;
+    private readonly PendingRewriteStore _pending;
     private readonly string? _customInstruction;
 
-    public SelectionRewriteCommand(TextRewriteMode mode, TextRewriteService service, string? customInstruction = null)
+    public SelectionRewriteCommand(TextRewriteMode mode, TextRewriteService service, PendingRewriteStore pending, string? customInstruction = null)
     {
         _mode = mode;
         _service = service;
+        _pending = pending;
         _customInstruction = customInstruction;
         Name = $"Rewrite Selection — {TextRewriteService.ModeLabel(mode)}";
         Icon = TextToolsVisuals.Phi;
@@ -52,8 +54,9 @@ internal sealed partial class SelectionRewriteCommand : InvokableCommand
                 return;
             }
 
+            _pending.Set(selection, result, _mode);
+            ShowToast("Quick Rewrite — Done", $"Open Quick Rewrite to review, or press Ctrl+V to paste the {TextRewriteService.ModeLabel(_mode)} result.");
             Interop.ClipboardHelper.SetText(result);
-            ShowToast("Quick Rewrite — Done", "Rewritten text is in the clipboard. Press Ctrl+V to paste.");
         }
         catch (Exception ex)
         {

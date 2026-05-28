@@ -41,7 +41,7 @@ Status: in progress
 
 - Add CI for restore/build.
 - Publish release artifacts per extension.
-- NPU Notes: Find Related Notes, semantic fallback search, and AI cleanup on create are shipped. Remaining: rebuild index action, RAG Q&A.
+- NPU Notes: Find Related Notes, semantic fallback search, AI cleanup on create, rebuild index, rename, and move are shipped. Remaining: RAG Q&A (future).
 - NPU Obsidian: M1-M4 shipped (vault browser, persistent index, AI summarize/find-related/smart-capture, delete/rename/move). Remaining: bulk multi-select operations.
 - NPU Dev Toolbox: MVP fully shipped. Remaining: Open Explorer window detection (future).
 - Continue Raycast migration using `RAYCAST_MIGRATION_PLAN.md`.
