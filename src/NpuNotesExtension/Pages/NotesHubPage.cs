@@ -59,6 +59,12 @@ internal sealed partial class NotesHubPage : ListPage
                 Subtitle = settings.NotesRoot,
                 Icon = NotesVisuals.Folder,
             },
+            new ListItem(new RebuildNotesIndexCommand(_store))
+            {
+                Title = "Rebuild Index",
+                Subtitle = "Prune stale entries from the notes index",
+                Icon = NotesVisuals.Refresh,
+            },
         };
 
         AddSection(items, "Pinned Notes", pinned);
