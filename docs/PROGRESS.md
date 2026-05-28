@@ -17,7 +17,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuClipboardExtension | Shipped | ~92% |
 | NpuNotesExtension | AI cleanup shipped | ~85% |
 | NpuObsidianExtension | M3 shipped | ~80% |
-| NpuDevToolboxExtension | MVP shipped | ~80% |
+| NpuDevToolboxExtension | Commit message shipped | ~90% |
 
 ---
 
@@ -187,9 +187,9 @@ Future: AppContentIndexer semantic index, rebuild action, RAG Q&A over notes, in
 
 ---
 
-## NPU Dev Toolbox — ~80%
+## NPU Dev Toolbox — ~90%
 
-MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspaces, settings.
+MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspaces, settings, and AI commit message generation.
 
 | Feature | Status |
 |---|---|
@@ -203,7 +203,7 @@ MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspace
 | Settings (terminal choice, IDE choice, custom exe paths) | ✅ |
 | Manual path entry via search box | ✅ |
 | Open Explorer window detection | future |
-| Commit Message with Phi generation | future |
+| Commit Message with Phi generation (git diff -> Phi -> message) | ✅ |
 | Windows Terminal profile selection | future |
 
 ---
@@ -213,6 +213,5 @@ MVP shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspace
 Roughly in priority order:
 
 1. **Obsidian M4: delete note, bulk vault operations** — see feature table above
-2. **Dev Toolbox: Commit Message with Phi** — generate commit message from `git diff` for current workspace
-3. **CI: restore/build pipeline** — build validation per push
-4. **Publish: release artifacts** — per-extension MSIX publish flow
+2. **CI: restore/build pipeline** — build validation per push
+3. **Publish: release artifacts** — per-extension MSIX publish flow
