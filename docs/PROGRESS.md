@@ -156,7 +156,7 @@ M3 shipped. Vault index, AI summarization, Find Related Notes, and Smart Capture
 | Smart Capture (DynamicListPage → ProposalPage) | ✅ M3 |
 | Smart Capture creates note with AI-proposed folder/tags | ✅ M3 |
 | Summarize/Find Related in note preview and MoreCommands | ✅ M3 |
-| Delete note | future M4 |
+| Delete note (recycle bin, path guard, index prune) | ✅ M4 |
 | Bulk vault operations | future M4 |
 
 ---
