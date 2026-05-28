@@ -8,10 +8,12 @@ namespace NpuTools.TextTools.Pages;
 internal sealed partial class TextToolsHubPage : ListPage
 {
     private readonly TextRewriteService _service;
+    private readonly PendingRewriteStore _pending;
 
-    public TextToolsHubPage(TextRewriteService service)
+    public TextToolsHubPage(TextRewriteService service, PendingRewriteStore pending)
     {
         _service = service;
+        _pending = pending;
         Id    = "com.local.nputools.texttools.hub";
         Title = "Text Tools";
         Name  = "Open";
@@ -20,6 +22,23 @@ internal sealed partial class TextToolsHubPage : ListPage
 
     public override IListItem[] GetItems()
     {
+        var items = new List<IListItem>(8);
+
+        // Surface pending review at the top of the hub as well.
+        var snapshot = _pending.Peek();
+        if (snapshot.HasValue)
+        {
+            var (input, result, mode) = snapshot.Value;
+            string preview = result.Length > 80 ? result[..80] + "…" : result;
+            items.Add(new ListItem(new PendingReviewPage(_pending, input, result, mode, _service))
+            {
+                Title    = $"Review Last Rewrite — {TextRewriteService.ModeLabel(mode)}",
+                Subtitle = preview,
+                Icon     = TextToolsVisuals.Check,
+                Tags     = [TextToolsVisuals.StatusTag("pending review")],
+            });
+        }
+
         var standardModes = new List<(TextRewriteMode Mode, string Subtitle)>
         {
             (TextRewriteMode.FixGrammar,   "Correct grammar and spelling"),
@@ -29,7 +48,6 @@ internal sealed partial class TextToolsHubPage : ListPage
             (TextRewriteMode.Simplify,     "Plain language for any audience"),
         };
 
-        var items = new List<IListItem>(6);
         foreach (var (mode, subtitle) in standardModes)
         {
             items.Add(new ListItem(new RewriteInputPage(mode, _service))
@@ -50,7 +68,7 @@ internal sealed partial class TextToolsHubPage : ListPage
             Tags     = [TextToolsVisuals.MutedTag("type instruction")],
         });
 
-        items.Add(new ListItem(new QuickRewritePage(_service))
+        items.Add(new ListItem(new QuickRewritePage(_service, pending: _pending))
         {
             Title    = "Quick Rewrite",
             Subtitle = "Leave empty to rewrite selected text, or type text directly",
