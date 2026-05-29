@@ -125,7 +125,7 @@ internal sealed class ScreenshotWatcher : IDisposable
     private void TouchHeartbeat()
     {
         var st = _store.LoadState();
-        st.LastEventAt     = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        st.LastEventAt     = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         st.LastHeartbeatAt = st.LastEventAt;
         _store.SaveState(st);
     }
@@ -257,7 +257,7 @@ internal sealed class ScreenshotWatcher : IDisposable
 
             var st = _store.LoadState();
             st.Processed        += 1;
-            st.LastProcessedAt   = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            st.LastProcessedAt   = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
             st.LastProcessedPath = destPath;
             st.LastHeartbeatAt   = st.LastProcessedAt;
             st.LastError         = null;
@@ -318,7 +318,7 @@ internal sealed class ScreenshotWatcher : IDisposable
     {
         var st = _store.LoadState();
         st.Skipped        += 1;
-        st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         _store.SaveState(st);
         _store.AppendLog($"skip   {message}");
     }
@@ -328,7 +328,7 @@ internal sealed class ScreenshotWatcher : IDisposable
         var st = _store.LoadState();
         st.Errors         += 1;
         st.LastError       = message;
-        st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         _store.SaveState(st);
         _store.AppendLog("ERROR  " + message);
     }

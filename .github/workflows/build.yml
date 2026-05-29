@@ -1,0 +1,49 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ main, "fix/**", "feat/**" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore NpuCommandPaletteExtensions.sln
+
+      - name: Build — Awake extension
+        run: dotnet build src/NpuAwakeExtension/NpuAwakeExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Notes extension
+        run: dotnet build src/NpuNotesExtension/NpuNotesExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Obsidian extension
+        run: dotnet build src/NpuObsidianExtension/NpuObsidianExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Organize extension
+        run: dotnet build src/NpuOrganizeExtension/NpuOrganizeExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Text Tools extension
+        run: dotnet build src/NpuTextToolsExtension/NpuTextToolsExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Image Editor extension
+        run: dotnet build src/NpuImageEditorExtension/NpuImageEditorExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Clipboard extension
+        run: dotnet build src/NpuClipboardExtension/NpuClipboardExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Dev Toolbox extension
+        run: dotnet build src/NpuDevToolboxExtension/NpuDevToolboxExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Test
+        run: dotnet test src/NpuTools.Tests/NpuTools.Tests.csproj -r win-x64 --no-restore -v q

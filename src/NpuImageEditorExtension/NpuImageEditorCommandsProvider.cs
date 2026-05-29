@@ -1,6 +1,7 @@
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.ImageEditor.Pages;
+using NpuTools.ImageEditor.Services;
 
 namespace NpuTools.ImageEditor;
 
@@ -11,6 +12,9 @@ internal sealed partial class NpuImageEditorCommandsProvider : CommandProvider
 
     public NpuImageEditorCommandsProvider()
     {
+        // Clean up temp clipboard images from previous sessions (fire-and-forget; safe to fail).
+        _ = System.Threading.Tasks.Task.Run(ImageEditorService.CleanupTempImages);
+
         Id          = "com.local.nputools.imageeditor";
         DisplayName = "NPU Image Editor";
         Icon        = ImageEditorVisuals.Camera;
