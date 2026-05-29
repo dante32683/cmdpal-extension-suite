@@ -60,8 +60,8 @@ internal sealed partial class SelectionRewriteCommand : InvokableCommand
             }
 
             _pending.Set(selection, result, _mode);
-            ShowToast("Quick Rewrite — Done", $"Open Quick Rewrite to review, or press Ctrl+V to paste the {TextRewriteService.ModeLabel(_mode)} result.");
-            Interop.ClipboardHelper.SetText(result);
+            ShowToast("Quick Rewrite — Done", $"Open Quick Rewrite to review and copy the {TextRewriteService.ModeLabel(_mode)} result.");
+
         }
         catch (Exception ex)
         {

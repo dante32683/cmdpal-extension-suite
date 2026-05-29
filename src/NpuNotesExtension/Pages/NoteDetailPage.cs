@@ -48,7 +48,7 @@ internal sealed partial class NoteDetailPage : ListPage
         [
             new ListItem(new OpenNoteCommand(_store, entry.FilePath))
             {
-                Title = "Open In Editor",
+                Title = "Open in Editor",
                 Subtitle = entry.FilePath,
                 Icon = NotesVisuals.Open,
                 Details = NoteItemFactory.BuildDetails(entry),
@@ -99,7 +99,7 @@ internal sealed partial class NoteDetailPage : ListPage
             },
             new ListItem(new OpenNoteLocationCommand(entry.FilePath))
             {
-                Title = "Open File Location",
+                Title = "Reveal in Explorer",
                 Subtitle = entry.FilePath,
                 Icon = NotesVisuals.Folder,
                 MoreCommands = [new CommandContextItem(new OpenNoteLocationCommand(entry.FilePath)) { RequestedShortcut = Reveal }],

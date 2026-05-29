@@ -14,7 +14,7 @@ namespace NpuTools.Awake.Services;
 internal sealed partial class SmartAwakeService
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
-    public SmartAwakeResult Execute(string text, AwakeService awakeService)
+    public async Task<SmartAwakeResult> ExecuteAsync(string text, AwakeService awakeService)
     {
         string input = text.Trim();
         if (input.Length == 0)
@@ -33,7 +33,7 @@ internal sealed partial class SmartAwakeService
         // Phi-Silica for ambiguous natural language the local parser returned Failure for.
         try
         {
-            var intent = ExtractIntentWithPhiAsync(input).GetAwaiter().GetResult();
+            var intent = await ExtractIntentWithPhiAsync(input);
             var phiResult = ExecuteIntent(intent, awakeService);
             if (phiResult.IsSuccess)
             {

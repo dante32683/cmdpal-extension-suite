@@ -55,7 +55,7 @@ static async Task<int> RunWatchAsync(StateStore store)
     var cfg = GetOrCreateConfig(store);
 
     var startState = store.LoadState();
-    startState.StartedAt      = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+    startState.StartedAt      = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
     startState.LastHeartbeatAt = startState.StartedAt;
     startState.LastError       = null;
     startState.WatchFolder     = cfg.WatchFolder;
@@ -97,7 +97,7 @@ static async Task<int> RunWatchAsync(StateStore store)
             }
 
             var st = store.LoadState();
-            st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
             store.SaveState(st);
         }
     }
@@ -105,7 +105,7 @@ static async Task<int> RunWatchAsync(StateStore store)
     {
         watcher.Stop();
         var finalState = store.LoadState();
-        finalState.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        finalState.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         store.SaveState(finalState);
     }
 

@@ -193,6 +193,7 @@ public sealed class AwakeJsonTests : IDisposable
 
         Assert.NotNull(intent);
         Assert.Equal("schedule", intent.Action);
+        Assert.NotNull(intent.Days);
         Assert.Equal(["mon", "tue", "wed"], intent.Days);
         Assert.Equal("09:00", intent.Start);
         Assert.Equal("17:00", intent.End);

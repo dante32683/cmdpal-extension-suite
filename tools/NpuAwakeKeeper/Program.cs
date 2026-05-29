@@ -41,7 +41,8 @@ internal static class Program
         finally
         {
             // Clear execution state when the daemon exits for any reason.
-            SetThreadExecutionState(ES_CONTINUOUS);
+            if (SetThreadExecutionState(ES_CONTINUOUS) == 0)
+                Console.Error.WriteLine("Warning: failed to clear thread execution state on exit.");
         }
     }
 
@@ -59,7 +60,7 @@ internal static class Program
             File.Delete(stopPath);
         }
 
-        var daemon = new DaemonState(schedulesPath, statePath);
+        using var daemon = new DaemonState(schedulesPath, statePath);
         daemon.StartWatching();
 
         Console.WriteLine("MODE: daemon");
@@ -70,7 +71,8 @@ internal static class Program
             daemon.MaybeReload();
             var decision = daemon.Decide(DateTimeOffset.Now);
 
-            SetThreadExecutionState(decision.Flags);
+            if (SetThreadExecutionState(decision.Flags) == 0 && decision.IsActive)
+                Console.Error.WriteLine($"SetThreadExecutionState failed (flags=0x{decision.Flags:X8}); sleep prevention may not be active.");
             WriteHeartbeat(heartbeatPath, decision);
             Thread.Sleep(TimeSpan.FromSeconds(15));
         }
@@ -93,7 +95,7 @@ internal static class Program
         }
     }
 
-    private sealed class DaemonState
+    private sealed class DaemonState : IDisposable
     {
         private readonly string _schedulesPath;
         private readonly string _statePath;
@@ -122,6 +124,8 @@ internal static class Program
             _watcher.Created += (_, e) => OnWatchedFile(e.FullPath);
             _watcher.Renamed += (_, e) => OnWatchedFile(e.FullPath);
         }
+
+        public void Dispose() => _watcher?.Dispose();
 
         public void MaybeReload()
         {

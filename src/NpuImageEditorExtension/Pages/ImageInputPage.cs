@@ -62,12 +62,13 @@ internal sealed partial class ImageInputPage : DynamicListPage
 
     private async Task LoadBrowseItemsAsync()
     {
-        _browseItems   = ScanPictures();
+        _browseItems   = await ScanPicturesAsync();
         _clipboardItem = await TryBuildClipboardItemAsync();
         _items         = BuildItems(string.Empty);
         IsLoading      = false;
         RaiseItemsChanged(_items.Length);
     }
+
 
     private async Task<IListItem?> TryBuildClipboardItemAsync()
     {
@@ -77,11 +78,14 @@ internal sealed partial class ImageInputPage : DynamicListPage
             if (!content.Contains(StandardDataFormats.Bitmap))
                 return null;
 
-            string? path = await ImageEditorService.SaveClipboardImageAsync();
-            if (path is null)
+            // Save the clipboard image now — we are already on a background thread (Task.Run).
+            // Passing the saved path directly to ImageResultPage matches the same pattern used
+            // for every browse item; the SDK navigates to the page when the user presses Enter.
+            string? savedPath = await ImageEditorService.SaveClipboardImageAsync();
+            if (savedPath is null)
                 return null;
 
-            return new ListItem(new ImageResultPage(_operation, _scaleFactor, path, _settings))
+            return new ListItem(new ImageResultPage(_operation, _scaleFactor, savedPath, _settings))
             {
                 Title    = "From Clipboard",
                 Subtitle = "Use the image currently in your clipboard",
@@ -142,26 +146,29 @@ internal sealed partial class ImageInputPage : DynamicListPage
         ];
     }
 
-    private IListItem[] ScanPictures()
+    private async Task<IListItem[]> ScanPicturesAsync()
     {
-        if (!Directory.Exists(PicturesPath))
-            return [];
+        return await Task.Run(() =>
+        {
+            if (!Directory.Exists(PicturesPath))
+                return [];
 
-        try
-        {
-            return Directory
-                .EnumerateFiles(PicturesPath, "*", SearchOption.AllDirectories)
-                .Where(f => ImageExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
-                .Select(f => new FileInfo(f))
-                .OrderByDescending(fi => fi.LastWriteTime)
-                .Take(100)
-                .Select(fi => MakeBrowseItem(fi))
-                .ToArray();
-        }
-        catch
-        {
-            return [];
-        }
+            try
+            {
+                return Directory
+                    .EnumerateFiles(PicturesPath, "*", SearchOption.AllDirectories)
+                    .Where(f => ImageExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+                    .Select(f => new FileInfo(f))
+                    .OrderByDescending(fi => fi.LastWriteTime)
+                    .Take(100)
+                    .Select(fi => MakeBrowseItem(fi))
+                    .ToArray();
+            }
+            catch
+            {
+                return [];
+            }
+        });
     }
 
     private ListItem MakeBrowseItem(FileInfo info)
