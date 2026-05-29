@@ -10,7 +10,7 @@ using NpuTools.Organize.Models;
 
 namespace NpuTools.Organize.Services;
 
-internal sealed partial class ScreenshotIndexService
+internal sealed partial class ScreenshotIndexService : IDisposable
 {
     private static readonly string IndexPath = Path.Combine(
         Environment.GetEnvironmentVariable("LOCALAPPDATA")
@@ -25,6 +25,12 @@ internal sealed partial class ScreenshotIndexService
     public ScreenshotIndexService()
     {
         Load();
+    }
+
+    public void Dispose()
+    {
+        _saveCancellationTokenSource.Cancel();
+        _saveCancellationTokenSource.Dispose();
     }
 
     public int Count

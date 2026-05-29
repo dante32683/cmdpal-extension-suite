@@ -8,6 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- CA1707: Identifiers should not contain underscores — suppressed for xUnit test method naming convention. -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
     <!-- Tests do not ship as MSIX — disable MSIX tooling. -->
     <EnableMsixTooling>false</EnableMsixTooling>
     <DisableMsixProjectCapabilityAddedByProject>true</DisableMsixProjectCapabilityAddedByProject>

@@ -78,8 +78,14 @@ internal sealed partial class ImageInputPage : DynamicListPage
             if (!content.Contains(StandardDataFormats.Bitmap))
                 return null;
 
-            // Only check if bitmap exists, actual saving happens on command invocation
-            return new ListItem(new ClipboardImageCommand(_operation, _scaleFactor, _settings))
+            // Save the clipboard image now — we are already on a background thread (Task.Run).
+            // Passing the saved path directly to ImageResultPage matches the same pattern used
+            // for every browse item; the SDK navigates to the page when the user presses Enter.
+            string? savedPath = await ImageEditorService.SaveClipboardImageAsync();
+            if (savedPath is null)
+                return null;
+
+            return new ListItem(new ImageResultPage(_operation, _scaleFactor, savedPath, _settings))
             {
                 Title    = "From Clipboard",
                 Subtitle = "Use the image currently in your clipboard",
@@ -90,31 +96,6 @@ internal sealed partial class ImageInputPage : DynamicListPage
         catch
         {
             return null;
-        }
-    }
-
-    private sealed class ClipboardImageCommand : InvokableCommand
-    {
-        private readonly ImageOperation _operation;
-        private readonly int _scaleFactor;
-        private readonly ImageEditorSettingsManager _settings;
-
-        public ClipboardImageCommand(ImageOperation operation, int scaleFactor, ImageEditorSettingsManager settings)
-        {
-            _operation = operation;
-            _scaleFactor = scaleFactor;
-            _settings = settings;
-        }
-
-        public override async Task<CommandResult> InvokeAsync()
-        {
-            string? path = await ImageEditorService.SaveClipboardImageAsync();
-            if (path is null)
-            {
-                // Optionally show a toast notification for failure
-                return CommandResult.Dismiss(); // or other appropriate result
-            }
-            return CommandResult.Navigate(new ImageResultPage(_operation, _scaleFactor, path, _settings));
         }
     }
 
