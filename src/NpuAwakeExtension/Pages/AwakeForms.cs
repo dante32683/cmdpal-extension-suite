@@ -1,9 +1,12 @@
+using System.Diagnostics;
 using System.Text.Json.Nodes;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Awake.Commands;
 using NpuTools.Awake.Models;
 using NpuTools.Awake.Services;
+using Windows.Data.Xml.Dom;
+using Windows.UI.Notifications;
 
 namespace NpuTools.Awake.Pages;
 
@@ -425,9 +428,39 @@ internal sealed partial class SmartAwakeForm : FormContent
     public override CommandResult SubmitForm(string payload)
     {
         string text = ReadString(payload, "text", "");
-        var result = _smartAwakeService.Execute(text, _awakeService);
-        return CommandResult.ShowToast(result.Message);
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var result = await _smartAwakeService.ExecuteAsync(text, _awakeService);
+                ShowToast("Smart Awake", result.Message);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"SmartAwakeForm.SubmitForm failed: {ex.GetType().Name}: {ex.Message}");
+                ShowToast("Smart Awake Failed", ex.Message.Length > 100 ? ex.Message[..100] : ex.Message);
+            }
+        });
+        return CommandResult.Dismiss();
     }
+
+    private static void ShowToast(string title, string message)
+    {
+        try
+        {
+            string xml = $"<toast><visual><binding template=\"ToastGeneric\"><text>{EscapeXml(title)}</text><text>{EscapeXml(message)}</text></binding></visual></toast>";
+            var doc = new XmlDocument();
+            doc.LoadXml(xml);
+            ToastNotificationManager.CreateToastNotifier().Show(new ToastNotification(doc));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ShowToast failed: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    private static string EscapeXml(string text) =>
+        text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
 
     private static string ReadString(string payload, string name, string fallback)
     {

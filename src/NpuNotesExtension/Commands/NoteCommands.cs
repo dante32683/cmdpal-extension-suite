@@ -48,7 +48,7 @@ internal sealed partial class OpenNoteLocationCommand : InvokableCommand
     public OpenNoteLocationCommand(string path)
     {
         _path = path;
-        Name = "Open File Location";
+        Name = "Reveal in Explorer";
         Icon = NotesVisuals.Folder;
     }
 

@@ -96,7 +96,10 @@ public static class ClipboardSyncService
                     if (File.GetLastWriteTimeUtc(file) < cutoff.UtcDateTime)
                         File.Delete(file);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"ClipboardSyncService.PruneOldEntries: skipping {file}: {ex.GetType().Name}: {ex.Message}");
+                }
             }
         }
         catch (Exception ex)

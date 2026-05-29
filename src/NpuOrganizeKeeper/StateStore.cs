@@ -131,7 +131,7 @@ internal sealed class StateStore
     {
         try
         {
-            string ts = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            string ts = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
             File.AppendAllText(LogPath, $"{ts}  {line}{Environment.NewLine}");
         }
         catch { /* logging must not crash the watcher */ }

@@ -1,4 +1,4 @@
-#pragma warning disable CS8305 // Type is for evaluation purposes only (ImageForegroundExtractor)
+
 
 using System;
 using System.IO;
@@ -151,6 +151,34 @@ internal sealed class ImageEditorService
         await encoder.FlushAsync();
 
         return outPath;
+    }
+
+    public static void CleanupTempImages()
+    {
+        string tempDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "NpuImageEditor", "temp");
+
+        if (!Directory.Exists(tempDir)) return;
+
+        var cutoff = DateTime.Now.AddDays(-1); // Files older than 24 hours
+
+        foreach (var file in Directory.EnumerateFiles(tempDir, "*.png"))
+        {
+            try
+            {
+                var fileInfo = new FileInfo(file);
+                if (fileInfo.CreationTime < cutoff)
+                {
+                    fileInfo.Delete();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log or report error, but continue cleanup for other files
+                System.Diagnostics.Debug.WriteLine($"Failed to delete old temp image {file}: {ex.Message}");
+            }
+        }
     }
 
     private static string GetOutputPath(string input, string suffix, string extension)
