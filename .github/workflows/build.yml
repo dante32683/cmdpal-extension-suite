@@ -45,5 +45,23 @@ jobs:
       - name: Build — Dev Toolbox extension
         run: dotnet build src/NpuDevToolboxExtension/NpuDevToolboxExtension.csproj -r win-x64 --no-restore -v q
 
+      - name: Build — Action Center extension
+        run: dotnet build src/ActionCenterExtension/ActionCenterExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Simple Analytics extension
+        run: dotnet build src/SimpleAnalyticsExtension/SimpleAnalyticsExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Time Date Dock extension
+        run: dotnet build src/TimeDateDockExtension/TimeDateDockExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Media Controls extension
+        run: dotnet build src/MediaControlsExtension/MediaControlsExtension.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Organize Keeper
+        run: dotnet build src/NpuOrganizeKeeper/NpuOrganizeKeeper.csproj -r win-x64 --no-restore -v q
+
+      - name: Build — Clipboard Keeper
+        run: dotnet build src/NpuClipboardKeeper/NpuClipboardKeeper.csproj -r win-x64 --no-restore -v q
+
       - name: Test
         run: dotnet test src/NpuTools.Tests/NpuTools.Tests.csproj -r win-x64 --no-restore -v q
