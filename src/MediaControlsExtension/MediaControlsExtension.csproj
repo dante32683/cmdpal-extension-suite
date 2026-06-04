@@ -80,7 +80,7 @@
 		<WarningsNotAsErrors>IL2081</WarningsNotAsErrors>
 
 		<PublishTrimmed>false</PublishTrimmed>
-		<PublishSingleFile>true</PublishSingleFile>
+		<PublishSingleFile>false</PublishSingleFile>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
