@@ -117,7 +117,7 @@ internal sealed partial class WorkspaceActionsPage : ListPage
         public override CommandResult Invoke()
         {
             _recents.Remove(_path);
-            return CommandResult.GoHome();
+            return CommandResult.GoBack();
         }
     }
 }
