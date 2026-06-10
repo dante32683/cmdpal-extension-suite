@@ -41,7 +41,7 @@ internal sealed partial class DeleteNotePage : ListPage
 
         return
         [
-            new ListItem(new NoteDetailPage(_store, _ai, entry.FilePath))
+            new ListItem(new GoBackCommand())
             {
                 Title = "Cancel",
                 Subtitle = "Return to the note",
@@ -56,5 +56,15 @@ internal sealed partial class DeleteNotePage : ListPage
                 MoreCommands = [new CommandContextItem(new DeleteNoteCommand(_store, entry.FilePath)) { RequestedShortcut = Delete, IsCritical = true }],
             },
         ];
+    }
+
+    private sealed partial class GoBackCommand : InvokableCommand
+    {
+        public GoBackCommand()
+        {
+            Name = "Cancel";
+        }
+
+        public override CommandResult Invoke() => CommandResult.GoBack();
     }
 }
