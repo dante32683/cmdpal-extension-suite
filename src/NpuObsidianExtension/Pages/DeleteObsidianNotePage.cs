@@ -50,7 +50,7 @@ internal sealed partial class DeleteObsidianNotePage : ListPage
 
         return
         [
-            new ListItem(new NotePreviewPage(_store, _indexStore, _settings, _ai, note.AbsolutePath))
+            new ListItem(new GoBackCommand())
             {
                 Title = "Cancel",
                 Subtitle = "Return to the note",
@@ -65,5 +65,15 @@ internal sealed partial class DeleteObsidianNotePage : ListPage
                 MoreCommands = [new CommandContextItem(new DeleteObsidianNoteCommand(_store, _indexStore, note.AbsolutePath)) { RequestedShortcut = Delete, IsCritical = true }],
             },
         ];
+    }
+
+    private sealed partial class GoBackCommand : InvokableCommand
+    {
+        public GoBackCommand()
+        {
+            Name = "Cancel";
+        }
+
+        public override CommandResult Invoke() => CommandResult.GoBack();
     }
 }
