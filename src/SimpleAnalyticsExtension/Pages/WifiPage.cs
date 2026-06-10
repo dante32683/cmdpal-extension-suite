@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
@@ -8,14 +8,13 @@ internal sealed partial class WifiPage : ListPage
 {
     private readonly NetworkService _service;
 
-    // Segoe Fluent Icons -- always explicit \uXXXX escapes, never paste glyphs
-    private const string IconWifiFull = "\uE701"; // WiFi full
-    private const string IconWifi1    = "\uE872"; // Wifi1 weak
-    private const string IconWifi2    = "\uE873"; // Wifi2 fair
-    private const string IconWifi3    = "\uE874"; // Wifi3 good
-    private const string IconNoWifi   = "\uE871"; // SignalNotConnected
-    private const string IconEthernet = "\uE839"; // Ethernet
-    private const string IconDownload = "\uE896"; // Download
+    private static readonly IconInfo WifiFullIcon = new("\uE701");
+    private static readonly IconInfo Wifi1Icon    = new("\uE872");
+    private static readonly IconInfo Wifi2Icon    = new("\uE873");
+    private static readonly IconInfo Wifi3Icon    = new("\uE874");
+    private static readonly IconInfo NoWifiIcon   = new("\uE871");
+    private static readonly IconInfo EthernetIcon = new("\uE839");
+    private static readonly IconInfo DownloadIcon = new("\uE896");
 
     private static readonly Color GreenColor  = new Color { R = 108, G = 203, B = 95,  A = 255 };
     private static readonly Color YellowColor = new Color { R = 255, G = 192, B = 0,   A = 255 };
@@ -27,7 +26,7 @@ internal sealed partial class WifiPage : ListPage
     {
         _service = service;
         Id = "com.dziad.simpleanalyticsextension.wifi.details";
-        Icon  = new IconInfo("\uE701");
+        Icon  = WifiFullIcon;
         Title = "Network";
         Name  = "Network Details";
     }
@@ -39,13 +38,13 @@ internal sealed partial class WifiPage : ListPage
         if (!info.Connected && !info.IsLimited)
         {
             AccentColor = Colored(RedColor);
-            return [Row("Network", "Not connected", IconNoWifi, default, null)];
+            return [Row("Network", "Not connected", NoWifiIcon, default, null)];
         }
 
         var rows = new List<IListItem>();
 
         // Network row carries the status tag (mirrors battery "Charge" pattern)
-        var networkIcon  = info.IsWifi ? WifiIcon(info.SignalBars) : IconEthernet;
+        var networkIcon  = info.IsWifi ? WifiIcon(info.SignalBars) : EthernetIcon;
         var networkTitle = !string.IsNullOrEmpty(info.Ssid) ? info.Ssid : (info.IsWifi ? "Wi-Fi" : "Wired");
         var statusText   = info.IsLimited ? "Limited" : "Connected";
         var statusColor  = info.IsLimited ? Colored(YellowColor) : default;
@@ -67,7 +66,7 @@ internal sealed partial class WifiPage : ListPage
             AccentColor = info.IsLimited ? Colored(YellowColor) : Colored(GreenColor);
         }
 
-        // Combined speed row \u2014 max adapter throughput in one line
+        // Combined speed row — max adapter throughput in one line
         if (info.ReceiveMbps > 0 || info.TransmitMbps > 0)
         {
             var speedSubtitle = (info.ReceiveMbps > 0 && info.TransmitMbps > 0)
@@ -75,19 +74,19 @@ internal sealed partial class WifiPage : ListPage
                 : info.ReceiveMbps > 0
                     ? $"\u2193 {info.ReceiveMbps:F0} Mbps"
                     : $"\u2191 {info.TransmitMbps:F0} Mbps";
-            rows.Add(Row("Speed", speedSubtitle, IconDownload, default, null));
+            rows.Add(Row("Speed", speedSubtitle, DownloadIcon, default, null));
         }
 
         return [.. rows];
     }
 
-    private static string WifiIcon(int bars) => bars switch
+    private static IconInfo WifiIcon(int bars) => bars switch
     {
-        0 => IconNoWifi,
-        1 => IconWifi1,
-        2 => IconWifi2,
-        3 => IconWifi3,
-        _ => IconWifiFull,
+        0 => NoWifiIcon,
+        1 => Wifi1Icon,
+        2 => Wifi2Icon,
+        3 => Wifi3Icon,
+        _ => WifiFullIcon,
     };
 
     private static string SignalText(int bars) => bars switch
@@ -110,14 +109,14 @@ internal sealed partial class WifiPage : ListPage
         _ => ("Excellent", Colored(GreenColor)),
     };
 
-    private static ListItem Row(string title, string subtitle, string iconCode,
+    private static ListItem Row(string title, string subtitle, IconInfo icon,
                                 OptionalColor tagColor, string? tagText)
     {
         var item = new ListItem(new NoOpCommand())
         {
             Title    = title,
             Subtitle = subtitle,
-            Icon     = new IconInfo(iconCode),
+            Icon     = icon,
         };
         if (tagText is not null)
             item.Tags = [new Tag { Text = tagText, Foreground = tagColor }];
