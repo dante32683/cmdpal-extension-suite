@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
@@ -9,9 +9,12 @@ internal sealed partial class BatteryPage : ListPage
 {
     private readonly BatteryService _service;
 
-    // Segoe Fluent Icons -- MobBattery0-10: EBA0-EBAA | MobBatteryCharging0-10: EBAB-EBB5 | MobBatterySaver0-10: EBB6-EBC0
-    private const string IconLightning = "\uE945";   // LightningBolt
-    private const string IconClock     = "\uE917";   // Clock
+    private static readonly IconInfo[] BatteryLevelIcons;
+    private static readonly IconInfo[] ChargingLevelIcons;
+    private static readonly IconInfo[] SaverLevelIcons;
+    private static readonly IconInfo LightningIcon = new("\uE945");
+    private static readonly IconInfo ClockIcon     = new("\uE917");
+    private static readonly IconInfo DefaultBatteryIcon = new("\uEBA0");
 
     // Semantic colors matching MenuBar app (SystemFillColor* approximate values)
     private static readonly Color GreenColor  = new Color { R = 108, G = 203, B = 95,  A = 255 }; // SystemFillColorSuccess
@@ -21,11 +24,24 @@ internal sealed partial class BatteryPage : ListPage
     private static OptionalColor Colored(Color c) =>
         new OptionalColor { HasValue = true, Color = c };
 
+    static BatteryPage()
+    {
+        BatteryLevelIcons = new IconInfo[11];
+        ChargingLevelIcons = new IconInfo[11];
+        SaverLevelIcons = new IconInfo[11];
+        for (int i = 0; i <= 10; i++)
+        {
+            BatteryLevelIcons[i] = new IconInfo(((char)(0xEBA0 + i)).ToString());
+            ChargingLevelIcons[i] = new IconInfo(((char)(0xEBAB + i)).ToString());
+            SaverLevelIcons[i] = new IconInfo(((char)(0xEBB6 + i)).ToString());
+        }
+    }
+
     public BatteryPage(BatteryService service)
     {
         _service = service;
         Id = "com.dziad.simpleanalyticsextension.battery.details";
-        Icon  = new IconInfo("\uEBA0");
+        Icon  = DefaultBatteryIcon;
         Title = "Battery";
         Name  = "Battery Details";
     }
@@ -35,15 +51,15 @@ internal sealed partial class BatteryPage : ListPage
         var info = _service.GetBatteryInfo();
 
         if (!info.HasBattery)
-            return [Row("Battery", "No battery detected", "\uEBA0", default, null)];
+            return [Row("Battery", "No battery detected", DefaultBatteryIcon, default, null)];
 
         var level        = Math.Clamp(info.Percent / 10, 0, 10);
-        var batteryIcon  = ((char)(0xEBA0 + level)).ToString();
-        var chargingIcon = ((char)(0xEBAB + level)).ToString();
-        var saverIcon    = ((char)(0xEBB6 + level)).ToString();
+        var batteryIcon  = BatteryLevelIcons[level];
+        var chargingIcon = ChargingLevelIcons[level];
+        var saverIcon    = SaverLevelIcons[level];
 
         OptionalColor chargeColor;
-        string statusIcon;
+        IconInfo statusIcon;
 
         if (info.IsCharging)
         {
@@ -81,7 +97,7 @@ internal sealed partial class BatteryPage : ListPage
 
         if (info.IsCalculating)
         {
-            rows.Add(Row("Power", "Calculating...", IconLightning, default, null));
+            rows.Add(Row("Power", "Calculating...", LightningIcon, default, null));
         }
         else if (info.ChargeRateWatts != 0)
         {
@@ -105,7 +121,7 @@ internal sealed partial class BatteryPage : ListPage
                 wattColor = Colored(RedColor); wattLabel = "High";
             }
             var sign = info.ChargeRateWatts > 0 ? "+" : string.Empty;
-            rows.Add(Row("Power", $"{sign}{info.ChargeRateWatts:F1} W", IconLightning, wattColor, wattLabel));
+            rows.Add(Row("Power", $"{sign}{info.ChargeRateWatts:F1} W", LightningIcon, wattColor, wattLabel));
         }
 
         if (info.TimeRemaining.HasValue)
@@ -114,15 +130,15 @@ internal sealed partial class BatteryPage : ListPage
             var timeStr = t.TotalHours >= 1
                 ? $"{(int)t.TotalHours}h {t.Minutes}m remaining"
                 : $"{t.Minutes}m remaining";
-            rows.Add(Row("Time Remaining", timeStr, IconClock, default, null));
+            rows.Add(Row("Time Remaining", timeStr, ClockIcon, default, null));
         }
         else if (!info.IsPluggedIn)
         {
-            rows.Add(Row("Time Remaining", "Calculating...", IconClock, default, null));
+            rows.Add(Row("Time Remaining", "Calculating...", ClockIcon, default, null));
         }
 
         if (info.FullChargeWh > 0)
-            rows.Add(Row("Capacity", $"{info.RemainingWh:F1} / {info.FullChargeWh:F1} Wh", IconLightning, default, null));
+            rows.Add(Row("Capacity", $"{info.RemainingWh:F1} / {info.FullChargeWh:F1} Wh", LightningIcon, default, null));
 
         if (info.EnergySaverOn)
             rows.Add(Row("Battery Saver", "On", saverIcon, Colored(YellowColor), "Saver"));
@@ -138,14 +154,14 @@ internal sealed partial class BatteryPage : ListPage
         return "On battery";
     }
 
-    private static ListItem Row(string title, string subtitle, string iconCode,
+    private static ListItem Row(string title, string subtitle, IconInfo icon,
                                 OptionalColor tagColor, string? tagText)
     {
         var item = new ListItem(new NoOpCommand())
         {
             Title    = title,
             Subtitle = subtitle,
-            Icon     = new IconInfo(iconCode),
+            Icon     = icon,
         };
 
         if (tagText is not null)
