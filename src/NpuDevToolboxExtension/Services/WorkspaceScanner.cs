@@ -10,7 +10,6 @@ internal static class WorkspaceScanner
 {
     private static readonly string[] ProjectMarkers =
     [
-        ".git",
         ".sln",
         ".csproj",
         "package.json",
@@ -20,6 +19,7 @@ internal static class WorkspaceScanner
         "pom.xml",
         "build.gradle",
         ".xcode",
+        ".git",
     ];
 
     private static readonly string[] DefaultScanRoots =
