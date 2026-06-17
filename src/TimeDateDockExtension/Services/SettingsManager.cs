@@ -6,6 +6,16 @@ namespace TimeDateDockExtension.Services;
 
 internal sealed class SettingsManager : JsonSettingsManager
 {
+    private bool _timeUses24Hour;
+    private bool _timeLeadingZero;
+    private bool _timeShowSeconds;
+    private string _customTimeFormat = string.Empty;
+    private string _dateOrder = "mdy";
+    private bool _dateMonthLeadingZero;
+    private bool _dateDayLeadingZero;
+    private bool _dateFourDigitYear;
+    private string _customDateFormat = string.Empty;
+
     public SettingsManager()
     {
         FilePath = SettingsJsonPath();
@@ -58,18 +68,36 @@ internal sealed class SettingsManager : JsonSettingsManager
         });
 
         LoadSettings();
-        Settings.SettingsChanged += (_, _) => SaveSettings();
+        UpdateCachedSettings();
+        Settings.SettingsChanged += (_, _) =>
+        {
+            SaveSettings();
+            UpdateCachedSettings();
+        };
     }
 
-    public bool TimeUses24Hour => GetString("timeClock", "24") == "24";
-    public bool TimeLeadingZero => Settings.GetSetting<bool>("timeLeadingZero");
-    public bool TimeShowSeconds => Settings.GetSetting<bool>("timeShowSeconds");
-    public string CustomTimeFormat => GetString("customTimeFormat", string.Empty).Trim();
-    public string DateOrder => GetString("dateOrder", "mdy");
-    public bool DateMonthLeadingZero => Settings.GetSetting<bool>("dateMonthLeadingZero");
-    public bool DateDayLeadingZero => Settings.GetSetting<bool>("dateDayLeadingZero");
-    public bool DateFourDigitYear => Settings.GetSetting<bool>("dateFourDigitYear");
-    public string CustomDateFormat => GetString("customDateFormat", string.Empty).Trim();
+    private void UpdateCachedSettings()
+    {
+        _timeUses24Hour = GetString("timeClock", "24") == "24";
+        _timeLeadingZero = Settings.GetSetting<bool>("timeLeadingZero");
+        _timeShowSeconds = Settings.GetSetting<bool>("timeShowSeconds");
+        _customTimeFormat = GetString("customTimeFormat", string.Empty).Trim();
+        _dateOrder = GetString("dateOrder", "mdy");
+        _dateMonthLeadingZero = Settings.GetSetting<bool>("dateMonthLeadingZero");
+        _dateDayLeadingZero = Settings.GetSetting<bool>("dateDayLeadingZero");
+        _dateFourDigitYear = Settings.GetSetting<bool>("dateFourDigitYear");
+        _customDateFormat = GetString("customDateFormat", string.Empty).Trim();
+    }
+
+    public bool TimeUses24Hour => _timeUses24Hour;
+    public bool TimeLeadingZero => _timeLeadingZero;
+    public bool TimeShowSeconds => _timeShowSeconds;
+    public string CustomTimeFormat => _customTimeFormat;
+    public string DateOrder => _dateOrder;
+    public bool DateMonthLeadingZero => _dateMonthLeadingZero;
+    public bool DateDayLeadingZero => _dateDayLeadingZero;
+    public bool DateFourDigitYear => _dateFourDigitYear;
+    public string CustomDateFormat => _customDateFormat;
 
     private string GetString(string key, string fallback)
     {
