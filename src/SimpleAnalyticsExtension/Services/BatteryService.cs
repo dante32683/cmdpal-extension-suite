@@ -31,10 +31,22 @@ internal sealed class BatteryService
     private readonly object _lock = new();
     private readonly Timer _sampleTimer;
 
+    public event Action? BatteryChanged;
+
     public BatteryService()
     {
         // Sample immediately, then every 5 s
         _sampleTimer = new Timer(SampleWattage, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+
+        try
+        {
+            Battery.AggregateBattery.ReportUpdated += (sender, args) =>
+            {
+                SampleWattage(null);
+                BatteryChanged?.Invoke();
+            };
+        }
+        catch { /* WinRT events unavailable */ }
     }
 
     private void SampleWattage(object? _)
