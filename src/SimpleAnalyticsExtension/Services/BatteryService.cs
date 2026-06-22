@@ -30,6 +30,7 @@ internal sealed class BatteryService
     private bool _wattAvailable;   // remains false until first WinRT reading succeeds
     private readonly object _lock = new();
     private readonly Timer _sampleTimer;
+    private readonly Battery? _battery;
 
     public event Action? BatteryChanged;
 
@@ -40,13 +41,19 @@ internal sealed class BatteryService
 
         try
         {
-            Battery.AggregateBattery.ReportUpdated += (sender, args) =>
+            _battery = Battery.AggregateBattery;
+            if (_battery is not null)
             {
-                SampleWattage(null);
-                BatteryChanged?.Invoke();
-            };
+                _battery.ReportUpdated += OnReportUpdated;
+            }
         }
         catch { /* WinRT events unavailable */ }
+    }
+
+    private void OnReportUpdated(Battery sender, object args)
+    {
+        SampleWattage(null);
+        BatteryChanged?.Invoke();
     }
 
     private void SampleWattage(object? _)
