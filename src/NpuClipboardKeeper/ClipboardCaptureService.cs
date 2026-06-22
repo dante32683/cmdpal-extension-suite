@@ -27,7 +27,22 @@ internal sealed class ClipboardCaptureService
         {
             try
             {
-                tcs.SetResult(CaptureCurrentAsync().GetAwaiter().GetResult());
+                var task = CaptureCurrentAsync();
+                if (!task.IsCompleted)
+                {
+                    uint threadId = NativeMethods.GetCurrentThreadId();
+                    task.ContinueWith(t =>
+                    {
+                        _ = NativeMethods.PostThreadMessage(threadId, NativeMethods.WM_QUIT, 0, 0);
+                    }, TaskScheduler.Default);
+
+                    while (NativeMethods.GetMessage(out var msg, 0, 0, 0))
+                    {
+                        _ = NativeMethods.TranslateMessage(ref msg);
+                        _ = NativeMethods.DispatchMessage(ref msg);
+                    }
+                }
+                tcs.SetResult(task.GetAwaiter().GetResult());
             }
             catch (Exception ex)
             {

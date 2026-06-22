@@ -13,6 +13,7 @@ public sealed class ClipboardStore
 {
     private readonly object _lock = new();
     private readonly List<ClipboardEntry> _entries = [];
+    private DateTime _lastWriteTime = DateTime.MinValue;
 
     public ClipboardStore()
     {
@@ -21,25 +22,39 @@ public sealed class ClipboardStore
 
     public int Count
     {
-        get { lock (_lock) return _entries.Count; }
+        get
+        {
+            lock (_lock)
+            {
+                EnsureFresh();
+                return _entries.Count;
+            }
+        }
     }
 
     public IReadOnlyList<ClipboardEntry> Snapshot()
     {
         lock (_lock)
+        {
+            EnsureFresh();
             return _entries.Select(Clone).ToArray();
+        }
     }
 
     public ClipboardEntry? Get(string id)
     {
         lock (_lock)
+        {
+            EnsureFresh();
             return _entries.FirstOrDefault(e => e.Id == id) is { } entry ? Clone(entry) : null;
+        }
     }
 
     public void AddOrPromote(ClipboardEntry entry, ClipboardAppSettings settings)
     {
         lock (_lock)
         {
+            EnsureFresh();
             var existing = _entries.FirstOrDefault(e => e.ContentHash == entry.ContentHash);
             if (existing is not null)
             {
@@ -73,6 +88,7 @@ public sealed class ClipboardStore
     {
         lock (_lock)
         {
+            EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
             if (entry is null) return;
             entry.LastUsedAt = DateTimeOffset.Now;
@@ -87,6 +103,7 @@ public sealed class ClipboardStore
     {
         lock (_lock)
         {
+            EnsureFresh();
             ApplyRetention(settings.NormalizedRetentionLimit);
             Save();
         }
@@ -96,6 +113,7 @@ public sealed class ClipboardStore
     {
         lock (_lock)
         {
+            EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
             if (entry is null) return;
             entry.CustomName = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
@@ -107,6 +125,7 @@ public sealed class ClipboardStore
     {
         lock (_lock)
         {
+            EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
             if (entry is null) return;
             entry.IsPinned = pinned;
@@ -118,6 +137,7 @@ public sealed class ClipboardStore
     {
         lock (_lock)
         {
+            EnsureFresh();
             _entries.RemoveAll(e => e.Id == id);
             Save();
         }
@@ -127,6 +147,7 @@ public sealed class ClipboardStore
     {
         lock (_lock)
         {
+            EnsureFresh();
             int count = _entries.Count;
             _entries.Clear();
             Save();
@@ -139,6 +160,7 @@ public sealed class ClipboardStore
         DateTimeOffset cutoff = DateTimeOffset.Now - window;
         lock (_lock)
         {
+            EnsureFresh();
             int before = _entries.Count;
             _entries.RemoveAll(e => !e.IsPinned && e.CreatedAt >= cutoff);
             Save();
@@ -163,6 +185,7 @@ public sealed class ClipboardStore
     {
         lock (_lock)
         {
+            EnsureFresh();
             IEnumerable<ClipboardEntry> q = _entries;
             if (kind is not null)
                 q = q.Where(e => e.Kind == kind.Value);
@@ -188,6 +211,7 @@ public sealed class ClipboardStore
     {
         lock (_lock)
         {
+            EnsureFresh();
             var latest = _entries
                 .Where(e => e.Kind == kind)
                 .OrderByDescending(e => e.CreatedAt)
@@ -207,6 +231,7 @@ public sealed class ClipboardStore
 
         lock (_lock)
         {
+            EnsureFresh();
             foreach (var entry in newEntries)
             {
                 if (_entries.Any(e => e.Id == entry.Id || e.ContentHash == entry.ContentHash))
@@ -246,19 +271,30 @@ public sealed class ClipboardStore
 
     private void Load()
     {
-        try
+        lock (_lock)
         {
-            string path = ClipboardPaths.HistoryPath();
-            if (!File.Exists(path)) return;
-            string json = File.ReadAllText(path);
-            var list = JsonSerializer.Deserialize(json, ClipboardJsonContext.Default.ListClipboardEntry);
-            if (list is null) return;
-            lock (_lock)
-                _entries.AddRange(list.Where(e => !string.IsNullOrWhiteSpace(e.Id)));
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"ClipboardStore Load failed: {ex.GetType().Name}: {ex.Message}");
+            try
+            {
+                string path = ClipboardPaths.HistoryPath();
+                if (File.Exists(path))
+                {
+                    _lastWriteTime = File.GetLastWriteTimeUtc(path);
+                    string json = File.ReadAllText(path);
+                    var list = JsonSerializer.Deserialize(json, ClipboardJsonContext.Default.ListClipboardEntry);
+                    if (list is not null)
+                    {
+                        _entries.Clear();
+                        _entries.AddRange(list.Where(e => !string.IsNullOrWhiteSpace(e.Id)));
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"ClipboardStore Load failed: {ex.GetType().Name}: {ex.Message}");
+            }
+            _entries.Clear();
+            _lastWriteTime = DateTime.MinValue;
         }
     }
 
@@ -271,10 +307,38 @@ public sealed class ClipboardStore
             string tmp = $"{path}.{Environment.ProcessId}.{DateTime.UtcNow.Ticks}.tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(_entries, ClipboardJsonContext.Default.ListClipboardEntry));
             File.Move(tmp, path, overwrite: true);
+            _lastWriteTime = File.GetLastWriteTimeUtc(path);
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"ClipboardStore Save failed: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    private void EnsureFresh()
+    {
+        try
+        {
+            string path = ClipboardPaths.HistoryPath();
+            if (!File.Exists(path))
+            {
+                if (_entries.Count > 0)
+                {
+                    _entries.Clear();
+                    _lastWriteTime = DateTime.MinValue;
+                }
+                return;
+            }
+
+            DateTime writeTime = File.GetLastWriteTimeUtc(path);
+            if (writeTime != _lastWriteTime)
+            {
+                Load();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ClipboardStore EnsureFresh failed: {ex.GetType().Name}: {ex.Message}");
         }
     }
 

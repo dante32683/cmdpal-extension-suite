@@ -14,12 +14,14 @@ namespace NpuTools.Organize.Pages;
 internal sealed partial class ScreenshotSearchPage : DynamicListPage
 {
     private readonly ScreenshotIndexService _indexService;
+    private readonly ScreenshotScannerService _scanner;
     private readonly Dictionary<string, IconInfo> _imageIcons = new(StringComparer.OrdinalIgnoreCase);
     private IListItem[] _items;
 
-    public ScreenshotSearchPage(ScreenshotIndexService indexService)
+    public ScreenshotSearchPage(ScreenshotIndexService indexService, ScreenshotScannerService scanner)
     {
         _indexService   = indexService;
+        _scanner        = scanner;
         Id              = "com.local.nputools.organize.search";
         Title           = "Search Screenshots";
         Name            = "Search";
@@ -46,10 +48,10 @@ internal sealed partial class ScreenshotSearchPage : DynamicListPage
             {
                 return
                 [
-                    new ListItem(new NoOpCommand())
+                    new ListItem(new IndexAllPage(_scanner, _indexService))
                     {
                         Title    = "No screenshots indexed yet",
-                        Subtitle = "Use 'Index All Screenshots' to build the search index",
+                        Subtitle = "Click here or run 'Index Screenshots' to build the search index",
                         Icon     = OrganizeVisuals.Search,
                     },
                 ];

@@ -18,6 +18,8 @@ internal sealed partial class ObsidianVaultStore
 
     private readonly ObsidianSettingsStore _settings;
     private readonly ObsidianMetadataStore _metadata;
+    private readonly object _cacheLock = new();
+    private readonly Dictionary<string, (ObsidianNote Note, DateTime LastWriteTimeUtc)> _cache = new(StringComparer.OrdinalIgnoreCase);
 
     public ObsidianVaultStore(ObsidianSettingsStore settings, ObsidianMetadataStore metadata)
     {
@@ -38,16 +40,54 @@ internal sealed partial class ObsidianVaultStore
             return [];
 
         var notes = new List<ObsidianNote>();
-        foreach (string path in EnumerateMarkdownFiles(settings.VaultPath))
+        lock (_cacheLock)
         {
-            var note = TryLoad(path, settings.VaultPath);
-            if (note is not null)
+            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
             {
-                _metadata.Apply(note);
-                notes.Add(note);
+                foreach (string path in EnumerateMarkdownFiles(settings.VaultPath))
+                {
+                    files.Add(path);
+                    try
+                    {
+                        var writeTime = File.GetLastWriteTimeUtc(path);
+                        if (_cache.TryGetValue(path, out var cached) && cached.LastWriteTimeUtc == writeTime)
+                        {
+                            notes.Add(cached.Note);
+                        }
+                        else
+                        {
+                            var note = TryLoad(path, settings.VaultPath);
+                            if (note is not null)
+                            {
+                                _cache[path] = (note, writeTime);
+                                notes.Add(note);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"ObsidianVaultStore load/cache failed for '{path}': {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"ObsidianVaultStore directory enumeration failed: {ex.Message}");
+            }
+
+            // Remove deleted files from cache
+            var toRemove = _cache.Keys.Where(k => !files.Contains(k)).ToList();
+            foreach (var key in toRemove)
+            {
+                _cache.Remove(key);
             }
         }
 
+        foreach (var note in notes)
+        {
+            _metadata.Apply(note);
+        }
         _metadata.Prune(notes);
         notes.Sort((a, b) => b.LastModifiedUtc.CompareTo(a.LastModifiedUtc));
         return notes;

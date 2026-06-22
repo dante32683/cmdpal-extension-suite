@@ -71,14 +71,9 @@ internal sealed partial class StartStopRecorderCommand : InvokableCommand
                 Directory.CreateDirectory(Path.GetDirectoryName(ClipboardPaths.StopFlagPath())!);
                 File.WriteAllText(ClipboardPaths.StopFlagPath(), string.Empty);
             }
-            else if (File.Exists(KeeperPath))
+            else
             {
-                Process.Start(new ProcessStartInfo(KeeperPath)
-                {
-                    UseShellExecute = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    CreateNoWindow = true,
-                });
+                EnsureKeeperRunning(force: true);
             }
         }
         catch (Exception ex)
@@ -89,7 +84,42 @@ internal sealed partial class StartStopRecorderCommand : InvokableCommand
         return CommandResult.Dismiss();
     }
 
-    private static bool IsKeeperRunning()
+    public static void EnsureKeeperRunning(bool force = false)
+    {
+        try
+        {
+            var settings = new ClipboardSettingsStore();
+            if (!settings.Current.RecorderEnabled && !force)
+                return;
+
+            if (IsKeeperRunning())
+                return;
+
+            if (File.Exists(KeeperPath))
+            {
+                try
+                {
+                    string stopFlag = ClipboardPaths.StopFlagPath();
+                    if (File.Exists(stopFlag))
+                        File.Delete(stopFlag);
+                }
+                catch { }
+
+                Process.Start(new ProcessStartInfo(KeeperPath)
+                {
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true,
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Clipboard keeper auto-start failed: {ex}");
+        }
+    }
+
+    public static bool IsKeeperRunning()
     {
         try { return Process.GetProcessesByName("NpuClipboardKeeper").Length > 0; }
         catch { return false; }

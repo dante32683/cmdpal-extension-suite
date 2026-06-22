@@ -21,6 +21,7 @@ internal sealed partial class ScreenshotIndexService : IDisposable
     private readonly Dictionary<string, ScreenshotIndexEntry> _entries = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource _saveCancellationTokenSource = new();
     private Task? _saveTask;
+    private DateTime _lastWriteTime = DateTime.MinValue;
 
     public ScreenshotIndexService()
     {
@@ -35,7 +36,14 @@ internal sealed partial class ScreenshotIndexService : IDisposable
 
     public int Count
     {
-        get { lock (_lock) return _entries.Count; }
+        get
+        {
+            lock (_lock)
+            {
+                EnsureFresh();
+                return _entries.Count;
+            }
+        }
     }
 
     public void Upsert(string filePath, string description, string ocrText)
@@ -49,6 +57,7 @@ internal sealed partial class ScreenshotIndexService : IDisposable
         };
         lock (_lock)
         {
+            EnsureFresh();
             _entries[filePath] = entry;
             QueueSave();
         }
@@ -58,6 +67,7 @@ internal sealed partial class ScreenshotIndexService : IDisposable
     {
         lock (_lock)
         {
+            EnsureFresh();
             if (_entries.Remove(oldPath, out var entry))
             {
                 entry.FilePath = newPath;
@@ -70,13 +80,17 @@ internal sealed partial class ScreenshotIndexService : IDisposable
     public bool IsIndexed(string filePath)
     {
         lock (_lock)
+        {
+            EnsureFresh();
             return _entries.ContainsKey(filePath);
+        }
     }
 
     public IReadOnlyList<ScreenshotIndexEntry> Recent(int maxCount = 20)
     {
         lock (_lock)
         {
+            EnsureFresh();
             var all = new List<ScreenshotIndexEntry>(_entries.Values);
             all.Sort(static (a, b) => b.IndexedAt.CompareTo(a.IndexedAt));
             return all.Count <= maxCount ? all : all.GetRange(0, maxCount);
@@ -87,6 +101,7 @@ internal sealed partial class ScreenshotIndexService : IDisposable
     {
         lock (_lock)
         {
+            EnsureFresh();
             if (string.IsNullOrWhiteSpace(query))
                 return [.. _entries.Values];
 
@@ -144,21 +159,30 @@ internal sealed partial class ScreenshotIndexService : IDisposable
 
     private void Load()
     {
-        try
+        lock (_lock)
         {
-            if (!File.Exists(IndexPath)) return;
-            string json = File.ReadAllText(IndexPath);
-            var list = JsonSerializer.Deserialize(json, IndexJsonContext.Default.ListScreenshotIndexEntry);
-            if (list is null) return;
-            lock (_lock)
+            try
             {
-                foreach (var entry in list)
-                    _entries[entry.FilePath] = entry;
+                if (File.Exists(IndexPath))
+                {
+                    _lastWriteTime = File.GetLastWriteTimeUtc(IndexPath);
+                    string json = File.ReadAllText(IndexPath);
+                    var list = JsonSerializer.Deserialize(json, IndexJsonContext.Default.ListScreenshotIndexEntry);
+                    if (list is not null)
+                    {
+                        _entries.Clear();
+                        foreach (var entry in list)
+                            _entries[entry.FilePath] = entry;
+                        return;
+                    }
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"ScreenshotIndexService Load failed: {ex.GetType().Name}: {ex.Message}");
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"ScreenshotIndexService Load failed: {ex.GetType().Name}: {ex.Message}");
+            }
+            _entries.Clear();
+            _lastWriteTime = DateTime.MinValue;
         }
     }
 
@@ -188,10 +212,40 @@ internal sealed partial class ScreenshotIndexService : IDisposable
             }
             string json = JsonSerializer.Serialize(snapshot, IndexJsonContext.Default.ListScreenshotIndexEntry);
             await File.WriteAllTextAsync(IndexPath, json);
+            lock (_lock)
+            {
+                _lastWriteTime = File.GetLastWriteTimeUtc(IndexPath);
+            }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"ScreenshotIndexService Save failed: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    private void EnsureFresh()
+    {
+        try
+        {
+            if (!File.Exists(IndexPath))
+            {
+                if (_entries.Count > 0)
+                {
+                    _entries.Clear();
+                    _lastWriteTime = DateTime.MinValue;
+                }
+                return;
+            }
+
+            DateTime writeTime = File.GetLastWriteTimeUtc(IndexPath);
+            if (writeTime != _lastWriteTime)
+            {
+                Load();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ScreenshotIndexService EnsureFresh failed: {ex.GetType().Name}: {ex.Message}");
         }
     }
 

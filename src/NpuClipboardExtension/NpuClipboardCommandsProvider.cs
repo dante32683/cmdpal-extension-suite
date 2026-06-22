@@ -33,8 +33,6 @@ internal sealed partial class NpuClipboardCommandsProvider : CommandProvider
                 Icon = ClipboardVisuals.Clipboard,
                 MoreCommands =
                 [
-                    new CommandContextItem(new Commands.StartStopRecorderCommand()) { RequestedShortcut = KeyChords.ToggleRecorder },
-                    new Separator(),
                     new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(5), "Last 5 Minutes")) { IsCritical = true },
                     new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(15), "Last 15 Minutes")) { IsCritical = true },
                     new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(30), "Last 30 Minutes")) { IsCritical = true },
@@ -50,13 +48,21 @@ internal sealed partial class NpuClipboardCommandsProvider : CommandProvider
                 Subtitle = "Natural-language search over text and image OCR history",
                 Icon = ClipboardVisuals.Search,
             },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Text))  { Title = "Clipboard Text",   Subtitle = "Browse and paste saved text entries",         Icon = ClipboardVisuals.Text  },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Image)) { Title = "Clipboard Images", Subtitle = "Browse and paste saved image entries",        Icon = ClipboardVisuals.Image },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Files)) { Title = "Clipboard Files",  Subtitle = "Browse saved file path entries",              Icon = ClipboardVisuals.File  },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Link))  { Title = "Clipboard Links",  Subtitle = "Browse saved URL entries",                    Icon = ClipboardVisuals.Link  },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Email)) { Title = "Clipboard Emails", Subtitle = "Browse saved email address entries",          Icon = ClipboardVisuals.Mail  },
-            new CommandItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Color)) { Title = "Clipboard Colors", Subtitle = "Browse saved color code entries",             Icon = ClipboardVisuals.Color },
+            new CommandItem(new ClipboardCategoriesPage(_store, _settings, _content))
+            {
+                Title = "Search by Category",
+                Subtitle = "Filter clipboard entries by text, image, link, file, email, or color",
+                Icon = ClipboardVisuals.Settings,
+            },
+            new CommandItem(new Commands.StartStopRecorderCommand())
+            {
+                Title = "Start or Stop Recorder",
+                Subtitle = "Toggle background clipboard history recording",
+                Icon = ClipboardVisuals.Clipboard,
+            },
         ];
+
+        Commands.StartStopRecorderCommand.EnsureKeeperRunning();
     }
 
     public override ICommandItem[] TopLevelCommands() => _commands;
