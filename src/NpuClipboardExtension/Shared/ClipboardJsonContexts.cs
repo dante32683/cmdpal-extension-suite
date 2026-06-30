@@ -8,6 +8,8 @@ namespace NpuTools.Clipboard.Data;
 [JsonSerializable(typeof(ClipboardEntry))]
 [JsonSerializable(typeof(ClipboardAppSettings))]
 [JsonSerializable(typeof(ClipboardKeeperState))]
+[JsonSerializable(typeof(List<SecretPattern>))]
+[JsonSerializable(typeof(SecretPattern))]
 public sealed partial class ClipboardJsonContext : JsonSerializerContext
 {
 }

@@ -28,5 +28,14 @@ public sealed class ClipboardAppSettings
     [JsonPropertyName("syncFolder")]
     public string? SyncFolder { get; set; }
 
+    // When true, captured text (and entries arriving via cross-device sync) are
+    // checked against the SecretPatterns list. A match silently drops the entry
+    // from local history and from the sync folder so the secret never lands on disk.
+    [JsonPropertyName("secretDetectionEnabled")]
+    public bool SecretDetectionEnabled { get; set; } = true;
+
+    [JsonPropertyName("secretPatterns")]
+    public List<SecretPattern> SecretPatterns { get; set; } = DefaultSecretPatterns.Copy();
+
     public int NormalizedRetentionLimit => RetentionLimit < 0 ? -1 : RetentionLimit;
 }

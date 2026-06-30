@@ -72,6 +72,17 @@ internal sealed partial class ClipboardSettingsPage : ListPage
                 Subtitle = settings.DisabledApplicationNames.Count == 0 ? "None" : string.Join(", ", settings.DisabledApplicationNames.Take(6)),
                 Icon = ClipboardVisuals.Settings,
             },
+            new ListItem(new SecretPatternsPage(_settings))
+            {
+                Title = "Secret Patterns",
+                Subtitle = !settings.SecretDetectionEnabled
+                    ? "Disabled — toggle in extension settings to enable"
+                    : settings.SecretPatterns.Count == 0
+                        ? "Empty — capture will not be filtered"
+                        : $"Active — {settings.SecretPatterns.Count} pattern{(settings.SecretPatterns.Count == 1 ? "" : "s")} loaded",
+                Icon = ClipboardVisuals.Settings,
+                Tags = settings.SecretDetectionEnabled ? [ClipboardVisuals.StatusTag("filtered")] : [ClipboardVisuals.MutedTag("off")],
+            },
             new ListItem(new DeleteByWindowCommand(_store, TimeSpan.FromMinutes(5), "Last 5 Minutes")) { Title = "Delete Last 5 Minutes", Icon = ClipboardVisuals.Delete },
             new ListItem(new DeleteByWindowCommand(_store, TimeSpan.FromMinutes(15), "Last 15 Minutes")) { Title = "Delete Last 15 Minutes", Icon = ClipboardVisuals.Delete },
             new ListItem(new DeleteByWindowCommand(_store, TimeSpan.FromMinutes(30), "Last 30 Minutes")) { Title = "Delete Last 30 Minutes", Icon = ClipboardVisuals.Delete },
