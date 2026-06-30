@@ -106,6 +106,41 @@ internal sealed partial class WatcherDashboardPage : ListPage
         return null;
     }
 
+    public static void EnsureKeeperRunning()
+    {
+        try
+        {
+            if (FindKeeperPid().HasValue)
+                return;
+
+            if (File.Exists(KeeperPath))
+            {
+                try
+                {
+                    string supportDir = Path.Combine(
+                        Environment.GetEnvironmentVariable("LOCALAPPDATA")
+                            ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "NpuOrganize");
+                    string stopFlag = Path.Combine(supportDir, "stop.flag");
+                    if (File.Exists(stopFlag))
+                        File.Delete(stopFlag);
+                }
+                catch { }
+
+                Process.Start(new ProcessStartInfo(KeeperPath)
+                {
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true,
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Organize keeper auto-start failed: {ex}");
+        }
+    }
+
     private static WatcherState? TryLoadState()
     {
         try

@@ -44,6 +44,8 @@ internal sealed partial class BatteryPage : ListPage
         Icon  = DefaultBatteryIcon;
         Title = "Battery";
         Name  = "Battery Details";
+
+        _service.BatteryChanged += () => RaiseItemsChanged();
     }
 
     public override IListItem[] GetItems()

@@ -239,7 +239,8 @@ private void OnSettingsChanged(object sender, Settings args) => RaiseItemsChange
 - Dock buttons that open a detail view wrap a `ListPage` as their command — clicking navigates automatically. Do not use `GoToPage` / `GoToPageArgs`.
 - Display-only items use `NoOpCommand`.
 - `GetItems()` is **dynamic** — filter by settings and current state at call time so toggling a setting or changing state hides/shows buttons immediately without a restart.
-- Mutating a `ListItem`'s `Title`, `Subtitle`, or `Icon` from a timer is reflected in the dock live.
+- Mutating a `ListItem`'s `Title`, `Subtitle`, or `Icon` is reflected in the dock live.
+- **Prefer event-driven updates over polling timers for system state transitions.** For example, subscribe to WinRT `Battery.AggregateBattery.ReportUpdated` to update battery/charging state immediately, and use the 30 s polling timer purely as a fallback.
 
 ### Refresh cadence
 
@@ -250,7 +251,7 @@ Only add timers when a dock item shows live state. Timers are process-lifetime a
 | Awake state files | On `GetItems()` | Read current state directly; no timer needed for ordinary palette pages |
 | Daemon heartbeat | 5-15 s | Use only for live dock/status indicators |
 | Fast local metrics | 5 s | Prefer a short initial delay when the first sample needs a baseline |
-| Slow-changing local state | 30 s | Battery, power mode, or other low-frequency state |
+| Slow-changing local state | 30 s | Battery, power mode, or other low-frequency state (use events like `ReportUpdated` for instant transitions, with a 30s timer as fallback) |
 
 Use `#pragma warning disable CA1001` on process-lifetime command/page classes when the SDK owns lifetime and `IDisposable` is not called reliably. Services that own external subscriptions, file watchers, or timers should implement `IDisposable` when they can be disposed deterministically.
 

@@ -45,6 +45,7 @@ internal sealed partial class BatteryDockPage : ListPage
         };
 
         _timer = new Timer(Refresh, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+        _battery.BatteryChanged += () => Refresh(null);
     }
 
     public override IListItem[] GetItems() => [_batteryItem];

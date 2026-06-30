@@ -30,6 +30,8 @@ internal sealed partial class NotesStore
 
     private readonly NotesSettingsStore _settings;
     private readonly NotesIndexStore _index;
+    private readonly object _cacheLock = new();
+    private readonly Dictionary<string, (NoteEntry Entry, DateTime LastWriteTimeUtc)> _cache = new(StringComparer.OrdinalIgnoreCase);
 
     public NotesStore(NotesSettingsStore settings, NotesIndexStore index)
     {
@@ -45,19 +47,58 @@ internal sealed partial class NotesStore
         EnsureRoot(settings.NotesRoot);
 
         var entries = new List<NoteEntry>();
-        foreach (string path in Directory.EnumerateFiles(settings.NotesRoot, "*.md", System.IO.SearchOption.AllDirectories))
+        lock (_cacheLock)
         {
-            if (Path.GetFileName(path).StartsWith('.'))
-                continue;
-
-            var entry = TryLoad(path, settings.NotesRoot);
-            if (entry is not null)
+            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
             {
-                _index.Apply(entry);
-                entries.Add(entry);
+                foreach (string path in Directory.EnumerateFiles(settings.NotesRoot, "*.md", System.IO.SearchOption.AllDirectories))
+                {
+                    if (Path.GetFileName(path).StartsWith('.'))
+                        continue;
+
+                    files.Add(path);
+
+                    try
+                    {
+                        var writeTime = File.GetLastWriteTimeUtc(path);
+                        if (_cache.TryGetValue(path, out var cached) && cached.LastWriteTimeUtc == writeTime)
+                        {
+                            entries.Add(cached.Entry);
+                        }
+                        else
+                        {
+                            var entry = TryLoad(path, settings.NotesRoot);
+                            if (entry is not null)
+                            {
+                                _cache[path] = (entry, writeTime);
+                                entries.Add(entry);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"NotesStore load/cache failed for '{path}': {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"NotesStore directory enumeration failed: {ex.Message}");
+            }
+
+            // Remove deleted files from the cache
+            var toRemove = _cache.Keys.Where(k => !files.Contains(k)).ToList();
+            foreach (var key in toRemove)
+            {
+                _cache.Remove(key);
             }
         }
 
+        foreach (var entry in entries)
+        {
+            _index.Apply(entry);
+        }
         _index.Prune(entries);
         entries.Sort(CompareByPinnedThenUpdated);
         return entries;

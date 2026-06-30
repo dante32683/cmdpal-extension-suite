@@ -23,12 +23,19 @@ internal sealed partial class OrganizeHubPage : ListPage
     {
         return
         [
-            new ListItem(new ScreenshotSearchPage(_indexService))
+            new ListItem(new ScreenshotSearchPage(_indexService, _scanner))
             {
                 Title    = "Search Screenshots",
                 Subtitle = "Find screenshots by OCR text or AI description",
                 Icon     = OrganizeVisuals.Search,
                 Tags     = [OrganizeVisuals.MutedTag("search")],
+            },
+            new ListItem(new IndexAllPage(_scanner, _indexService))
+            {
+                Title    = "Index Screenshots",
+                Subtitle = "Scan and add missing screenshots to the search index",
+                Icon     = OrganizeVisuals.Search,
+                Tags     = [OrganizeVisuals.MutedTag("index")],
             },
             new ListItem(new ScreenshotRenameListPage(_scanner, _indexService))
             {
