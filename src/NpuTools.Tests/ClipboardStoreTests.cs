@@ -93,11 +93,183 @@ public sealed class ClipboardStoreTests : IDisposable
         Assert.Contains(searchResults, e => e.Id == "clip_test_2");
     }
 
+    [Fact]
+    public void ClipboardStore_ChangedEvent_FiresOnMarkUsed()
+    {
+        var store = new ClipboardStore();
+        var entry = NewEntry("clip_changed_1", "changed item");
+        store.AddOrPromote(entry, SettingsWith(limit: 200));
+
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        store.MarkUsed("clip_changed_1", SettingsWith(limit: 200));
+
+        Assert.Equal(1, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_ChangedEvent_DoesNotFireWhenMarkUsedTargetMissing()
+    {
+        var store = new ClipboardStore();
+        store.AddOrPromote(NewEntry("clip_present", "present"), SettingsWith(limit: 200));
+
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        store.MarkUsed("clip_does_not_exist", SettingsWith(limit: 200));
+
+        Assert.Equal(0, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_ChangedEvent_FiresOnAddOrPromote()
+    {
+        var store = new ClipboardStore();
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        store.AddOrPromote(NewEntry("clip_aop_1", "first"), SettingsWith(limit: 200));
+        store.AddOrPromote(NewEntry("clip_aop_1", "first duplicate"), SettingsWith(limit: 200));
+
+        Assert.Equal(2, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_ChangedEvent_FiresOnSetPinnedAndDelete()
+    {
+        var store = new ClipboardStore();
+        store.AddOrPromote(NewEntry("clip_pin", "pin me"), SettingsWith(limit: 200));
+
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        store.SetPinned("clip_pin", true);
+        store.Delete("clip_pin");
+
+        Assert.Equal(2, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_ChangedEvent_DoesNotFireWhenSetPinnedTargetMissing()
+    {
+        var store = new ClipboardStore();
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        store.SetPinned("clip_ghost", true);
+
+        Assert.Equal(0, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_ChangedEvent_FiresOnRename()
+    {
+        var store = new ClipboardStore();
+        store.AddOrPromote(NewEntry("clip_rename", "renamable"), SettingsWith(limit: 200));
+
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        store.Rename("clip_rename", "  new name  ");
+        store.Rename("clip_rename", "");
+
+        Assert.Equal(2, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_ChangedEvent_FiresOnDeleteAll()
+    {
+        var store = new ClipboardStore();
+        store.AddOrPromote(NewEntry("clip_a", "a"), SettingsWith(limit: 200));
+        store.AddOrPromote(NewEntry("clip_b", "b"), SettingsWith(limit: 200));
+
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        int removed = store.DeleteAll();
+
+        Assert.Equal(2, removed);
+        Assert.Equal(1, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_ChangedEvent_FiresOnEnforceRetentionWhenSomethingRemoved()
+    {
+        var store = new ClipboardStore();
+        store.AddOrPromote(NewEntry("clip_r1", "1"), SettingsWith(limit: 1));
+        store.AddOrPromote(NewEntry("clip_r2", "2"), SettingsWith(limit: 1));
+
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        store.EnforceRetention(SettingsWith(limit: 0));
+
+        Assert.Equal(1, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_ChangedEvent_DoesNotFireOnEnforceRetentionWhenNothingRemoved()
+    {
+        var store = new ClipboardStore();
+        store.AddOrPromote(NewEntry("clip_keep", "keep"), SettingsWith(limit: 10));
+
+        int fired = 0;
+        store.Changed += () => fired++;
+
+        store.EnforceRetention(SettingsWith(limit: 10));
+
+        Assert.Equal(0, fired);
+    }
+
+    [Fact]
+    public void ClipboardStore_Save_AdvancesLastWriteTimeForRapidSuccessiveWrites()
+    {
+        // Simulate two writes within the same millisecond. The keeper writing then the
+        // extension writing MarkUsed can land on the same NTFS mtime, hiding the change
+        // from EnsureFresh's writeTime != _lastWriteTime check. Save() now forces a fresh
+        // mtime so the second write is reliably detected on the next read.
+        var store = new ClipboardStore();
+        var entry = NewEntry("clip_mtime_1", "mtime");
+        store.AddOrPromote(entry, SettingsWith(limit: 200));
+
+        // Force a second mutation whose Save() is called immediately after the first.
+        store.MarkUsed("clip_mtime_1", SettingsWith(limit: 200));
+
+        // Simulate an external process overwriting the file with the same content but
+        // forcing an identical mtime to the last Save() — without the SetLastWriteTimeUtc
+        // bump in Save(), EnsureFresh would miss this. We use the same second offset trick
+        // the test author added to WriteHistoryFile, but the goal is different: we are
+        // verifying that the second internal MarkUsed produced a later mtime.
+        DateTime after = File.GetLastWriteTimeUtc(_historyPath);
+
+        store.MarkUsed("clip_mtime_1", SettingsWith(limit: 200));
+
+        DateTime later = File.GetLastWriteTimeUtc(_historyPath);
+        Assert.True(later > after, $"Expected later mtime but got {later:o} vs {after:o}");
+    }
+
+    private static ClipboardEntry NewEntry(string id, string text) => new()
+    {
+        Id = id,
+        GroupId = "grp_" + id,
+        Kind = ClipboardEntryKind.Text,
+        CreatedAt = DateTimeOffset.UtcNow,
+        Title = text,
+        Text = text,
+        ContentHash = ClipboardStore.BuildHash("text", text),
+    };
+
+    private static ClipboardAppSettings SettingsWith(int limit) => new()
+    {
+        RetentionLimit = limit,
+    };
+
     private void WriteHistoryFile(List<ClipboardEntry> entries)
     {
         string json = JsonSerializer.Serialize(entries, ClipboardJsonContext.Default.ListClipboardEntry);
         File.WriteAllText(_historyPath, json);
-        
+
         // Ensure NTFS modification time is distinct so the check registers.
         // File.SetLastWriteTimeUtc is used to manually increment the write time.
         File.SetLastWriteTimeUtc(_historyPath, DateTime.UtcNow.AddSeconds(1));
