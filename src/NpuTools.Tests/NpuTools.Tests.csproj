@@ -44,6 +44,10 @@
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardStore.cs" Link="Clipboard\ClipboardStore.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardPaths.cs" Link="Clipboard\ClipboardPaths.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardSettingsStore.cs" Link="Clipboard\ClipboardSettingsStore.cs" />
+    <Compile Include="..\NpuClipboardExtension\Shared\SecretPattern.cs" Link="Clipboard\SecretPattern.cs" />
+    <Compile Include="..\NpuClipboardExtension\Shared\DefaultSecretPatterns.cs" Link="Clipboard\DefaultSecretPatterns.cs" />
+    <Compile Include="..\NpuClipboardExtension\Shared\SecretPatternsParser.cs" Link="Clipboard\SecretPatternsParser.cs" />
+    <Compile Include="..\NpuClipboardExtension\Shared\SecretPatternMatcher.cs" Link="Clipboard\SecretPatternMatcher.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NoteEntry.cs" Link="Notes\NoteEntry.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NotesAppSettings.cs" Link="Notes\NotesAppSettings.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NotesIndex.cs" Link="Notes\NotesIndex.cs" />

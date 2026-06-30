@@ -14,7 +14,7 @@ Feature-level completion status across all planned extensions. Source of truth f
 | NpuOrganizeExtension | Shipped | 100% |
 | NpuImageEditorExtension | Clipboard input shipped | ~99% |
 | NpuTextToolsExtension | All planned features shipped | 100% |
-| NpuClipboardExtension | Cross-device sync shipped | ~98% |
+| NpuClipboardExtension | Secret-pattern filtering shipped | ~99% |
 | NpuNotesExtension | All planned features shipped | ~95% |
 | NpuObsidianExtension | All planned features shipped | 100% |
 | NpuDevToolboxExtension | All planned features shipped | ~98% |
@@ -135,6 +135,8 @@ All planned features implemented including cross-device sync via shared folder.
 | Added to Refresh-ExtensionRegistrations.ps1 deploy script | ✅ (was missing) |
 | Cross-device sync via sync folder | ✅ |
 | Time-window grouping display in list | ✅ (code-verified 2026-05-27) |
+| Secret-pattern filtering (local capture + cross-device sync) | ✅ |
+| Secret Patterns settings page (Name | Regex per line) | ✅ |
 
 ---
 

@@ -22,6 +22,7 @@ internal sealed class ClipboardSettingsManager : JsonSettingsManager
     private readonly ChoiceSetSetting _retentionLimit;
     private readonly ChoiceSetSetting _pasteDelay;
     private readonly TextSetting _disabledApplications;
+    private readonly ToggleSetting _secretDetectionEnabled;
 
     public ClipboardSettingsManager(ClipboardSettingsStore runtimeSettings, ClipboardStore store)
     {
@@ -98,12 +99,19 @@ internal sealed class ClipboardSettingsManager : JsonSettingsManager
             Placeholder = "1Password, Bitwarden, KeePass",
         };
 
+        _secretDetectionEnabled = new ToggleSetting(
+            Namespaced(nameof(ClipboardAppSettings.SecretDetectionEnabled)),
+            "Filter secret patterns from capture",
+            "When enabled, text that matches a pattern in the Secret Patterns list is silently dropped before it lands in history or in the sync folder.",
+            current.SecretDetectionEnabled);
+
         Settings.Add(_recorderEnabled);
         Settings.Add(_primaryAction);
         Settings.Add(_previewMode);
         Settings.Add(_retentionLimit);
         Settings.Add(_pasteDelay);
         Settings.Add(_disabledApplications);
+        Settings.Add(_secretDetectionEnabled);
 
         LoadSettings();
         ApplyToRuntimeSettings();
@@ -133,6 +141,7 @@ internal sealed class ClipboardSettingsManager : JsonSettingsManager
             settings.RetentionLimit = ParseInt(_retentionLimit.Value, ClipboardAppSettings.DefaultRetentionLimit);
             settings.PasteDelayMs = ParseInt(_pasteDelay.Value, 250);
             settings.DisabledApplicationNames = ParseDisabledApplications(_disabledApplications.Value);
+            settings.SecretDetectionEnabled = _secretDetectionEnabled.Value;
         });
 
         _store.EnforceRetention(_runtimeSettings.Current);

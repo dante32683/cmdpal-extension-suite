@@ -8,6 +8,46 @@ No open bugs currently tracked.
 
 ## Resolved
 
+### ~~BUG-016: Clipboard Copy/Paste doesn't refresh the history list~~ — RESOLVED 2026-06-30
+
+Extension: NpuClipboardExtension  
+Severity: Medium — visible list stays stale after invoking Copy or Paste on an entry; user had to "Reload Command Palette extensions" to see the new LastUsedAt order  
+Discovered: 2026-06-30 / Fixed: 2026-06-30
+
+Root cause:
+
+`CopyEntryCommand.Invoke()` and `PasteEntryCommand.Invoke()` mutate the store via
+`MarkUsed` (updates `LastUsedAt`, moves the entry to position 0, calls `Save()`) but
+never call `RaiseItemsChanged()` on the page. The SDK caches the result of
+`GetItems()` and only re-fetches it when the page explicitly raises a change. The page
+instance is reused across palette sessions, so the user saw the same list until the
+COM process was restarted.
+
+The same blind spot affected `PinEntryCommand`, `DeleteEntryCommand`, and external
+keeper writes.
+
+Fix:
+
+- `ClipboardStore` gained `public event Action? Changed;` raised after every
+  successful mutation (`AddOrPromote`, `MarkUsed`, `SetPinned`, `Delete`, `DeleteAll`,
+  `DeleteOlderThan`, `Rename`, `EnforceRetention`, `SyncFrom`). The event is invoked
+  outside `_lock` to avoid holding the lock across subscriber callbacks.
+- Early-return paths in `MarkUsed`, `Rename`, `SetPinned`, and `DeleteOlderThan`
+  suppress the event when the target id is missing or nothing changed, so empty
+  no-op calls do not trigger a re-render.
+- `ClipboardHistoryPage` and `AskClipboardPage` subscribe in their constructors and
+  call `RaiseItemsChanged()` from the handler. The redundant manual
+  `RaiseItemsChanged(0)` in the `SyncFrom` background block was removed; the store's
+  event covers the merge case.
+- `ClipboardStore.Save()` now calls `File.SetLastWriteTimeUtc(path, DateTime.UtcNow)`
+  after the temp+move write to guarantee a distinct mtime. The test author had
+  previously added an `AddSeconds(1)` workaround because `File.WriteAllText` +
+  `File.Move` could land on the same NTFS mtime as the previous file, hiding the
+  change from `EnsureFresh`'s `writeTime != _lastWriteTime` check.
+
+Eleven new tests in `ClipboardStoreTests` cover the event firing / no-fire paths
+and the mtime advancement.
+
 ### ~~BUG-015: DevToolbox WorkspaceScanner.Scan() called on COM thread~~ — RESOLVED 2026-05-27
 
 Extension: NpuDevToolboxExtension  

@@ -15,6 +15,11 @@ public sealed class ClipboardStore
     private readonly List<ClipboardEntry> _entries = [];
     private DateTime _lastWriteTime = DateTime.MinValue;
 
+    // Raised after every successful mutation. Subscribers (typically pages) should call
+    // RaiseItemsChanged() in the handler so the host re-calls GetItems().
+    // The event fires outside _lock to avoid holding the lock across subscriber callbacks.
+    public event Action? Changed;
+
     public ClipboardStore()
     {
         Load();
@@ -82,55 +87,69 @@ public sealed class ClipboardStore
             ApplyRetention(settings.NormalizedRetentionLimit);
             Save();
         }
+        Changed?.Invoke();
     }
 
     public void MarkUsed(string id, ClipboardAppSettings settings)
     {
+        bool mutated;
         lock (_lock)
         {
             EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
-            if (entry is null) return;
+            if (entry is null) { mutated = false; return; }
             entry.LastUsedAt = DateTimeOffset.Now;
             _entries.Remove(entry);
             _entries.Insert(0, entry);
             ApplyRetention(settings.NormalizedRetentionLimit);
             Save();
+            mutated = true;
         }
+        if (mutated) Changed?.Invoke();
     }
 
     public void EnforceRetention(ClipboardAppSettings settings)
     {
+        bool removed;
         lock (_lock)
         {
             EnsureFresh();
+            int before = _entries.Count;
             ApplyRetention(settings.NormalizedRetentionLimit);
-            Save();
+            removed = _entries.Count != before;
+            if (removed) Save();
         }
+        if (removed) Changed?.Invoke();
     }
 
     public void Rename(string id, string name)
     {
+        bool mutated;
         lock (_lock)
         {
             EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
-            if (entry is null) return;
+            if (entry is null) { mutated = false; return; }
             entry.CustomName = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
             Save();
+            mutated = true;
         }
+        if (mutated) Changed?.Invoke();
     }
 
     public void SetPinned(string id, bool pinned)
     {
+        bool mutated;
         lock (_lock)
         {
             EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
-            if (entry is null) return;
+            if (entry is null) { mutated = false; return; }
             entry.IsPinned = pinned;
             Save();
+            mutated = true;
         }
+        if (mutated) Changed?.Invoke();
     }
 
     public void Delete(string id)
@@ -141,31 +160,37 @@ public sealed class ClipboardStore
             _entries.RemoveAll(e => e.Id == id);
             Save();
         }
+        Changed?.Invoke();
     }
 
     public int DeleteAll()
     {
+        int count;
         lock (_lock)
         {
             EnsureFresh();
-            int count = _entries.Count;
+            count = _entries.Count;
             _entries.Clear();
             Save();
-            return count;
         }
+        Changed?.Invoke();
+        return count;
     }
 
     public int DeleteOlderThan(TimeSpan window)
     {
         DateTimeOffset cutoff = DateTimeOffset.Now - window;
+        int removed;
         lock (_lock)
         {
             EnsureFresh();
             int before = _entries.Count;
             _entries.RemoveAll(e => !e.IsPinned && e.CreatedAt >= cutoff);
+            removed = before - _entries.Count;
             Save();
-            return before - _entries.Count;
         }
+        if (removed > 0) Changed?.Invoke();
+        return removed;
     }
 
     public IReadOnlyList<IReadOnlyList<ClipboardEntry>> Groups(ClipboardEntryKind? kind, string query)
@@ -224,27 +249,41 @@ public sealed class ClipboardStore
 
     // Merges text entries from the sync folder that aren't already in local history.
     // Called by the extension when the user opens Clipboard History (not by the keeper).
-    public void SyncFrom(string syncFolder)
+    // Settings are required so cross-device sync respects the user's secret-pattern filter
+    // — a secret on device A must not be allowed to land in local history on device B just
+    // because the capture path was the sync folder rather than the local clipboard.
+    public void SyncFrom(string syncFolder, ClipboardAppSettings settings)
     {
         var newEntries = ClipboardSyncService.ReadNewEntries(syncFolder, GetKnownIds());
         if (newEntries.Count == 0) return;
 
+        var matcher = new SecretPatternMatcher(settings);
+
+        bool merged;
         lock (_lock)
         {
             EnsureFresh();
+            merged = false;
             foreach (var entry in newEntries)
             {
                 if (_entries.Any(e => e.Id == entry.Id || e.ContentHash == entry.ContentHash))
                     continue;
+                if (matcher.Match(entry.Text) is { } matched)
+                {
+                    Debug.WriteLine($"ClipboardStore.SyncFrom dropped '{entry.Id}': matched secret pattern: {matched}");
+                    continue;
+                }
                 // Insert in chronological position (most recent first).
                 int pos = _entries.FindIndex(e => e.CreatedAt <= entry.CreatedAt);
                 if (pos < 0)
                     _entries.Add(entry);
                 else
                     _entries.Insert(pos, entry);
+                merged = true;
             }
-            Save();
+            if (merged) Save();
         }
+        if (merged) Changed?.Invoke();
     }
 
     private HashSet<string> GetKnownIds()
@@ -307,6 +346,11 @@ public sealed class ClipboardStore
             string tmp = $"{path}.{Environment.ProcessId}.{DateTime.UtcNow.Ticks}.tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(_entries, ClipboardJsonContext.Default.ListClipboardEntry));
             File.Move(tmp, path, overwrite: true);
+            // Force a fresh mtime so EnsureFresh reliably detects this write.
+            // File.WriteAllText + File.Move can land on the same NTFS mtime as the previous
+            // file (same millisecond) which would make the change invisible to the
+            // writeTime != _lastWriteTime check in EnsureFresh.
+            File.SetLastWriteTimeUtc(path, DateTime.UtcNow);
             _lastWriteTime = File.GetLastWriteTimeUtc(path);
         }
         catch (Exception ex)
