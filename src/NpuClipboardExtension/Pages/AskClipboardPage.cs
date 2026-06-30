@@ -29,7 +29,12 @@ internal sealed partial class AskClipboardPage : DynamicListPage
         Icon = ClipboardVisuals.Search;
         PlaceholderText = "Ask for text, OCR, links, files...";
         _items = BuildItems(string.Empty);
+        // Refresh when the store changes so live results reflect new copies, pins, deletes, and
+        // keeper captures without forcing the user to retype the query.
+        _store.Changed += OnStoreChanged;
     }
+
+    private void OnStoreChanged() => RaiseItemsChanged();
 
     public override void UpdateSearchText(string oldSearch, string newSearch)
     {

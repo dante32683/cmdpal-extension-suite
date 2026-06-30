@@ -64,6 +64,7 @@ internal sealed class ClipboardCaptureService
         if (settings.DisabledApplicationNames.Any(name => sourceApp.Contains(name, StringComparison.OrdinalIgnoreCase)))
             return new(false, $"disabled application: {sourceApp}");
 
+        var secretMatcher = new SecretPatternMatcher(settings);
         DataPackageView content = Clipboard.GetContent();
         DateTimeOffset now = DateTimeOffset.Now;
 
@@ -100,6 +101,10 @@ internal sealed class ClipboardCaptureService
             string text = await content.GetTextAsync();
             if (string.IsNullOrWhiteSpace(text))
                 return new(false, "empty text");
+
+            string? matchedSecret = secretMatcher.Match(text);
+            if (matchedSecret is not null)
+                return new(false, $"skipped: matched secret pattern: {matchedSecret}");
 
             ClipboardEntryKind kind = ClipboardClassifier.ClassifyText(text);
             var entry = BuildBase(kind, now, sourceApp, ClipboardStore.BuildHash("text", text));

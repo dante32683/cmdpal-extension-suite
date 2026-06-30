@@ -38,7 +38,12 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         PlaceholderText = "Search clipboard history...";
         ShowDetails = _settings.Current.PreviewMode == ClipboardPreviewMode.Always;
         _items = BuildItems(string.Empty);
+        // Store changes (Copy/Paste MarkUsed, Pin, Delete, keeper AddOrPromote, sync merge) must
+        // re-render the list — the SDK only re-calls GetItems() when RaiseItemsChanged is fired.
+        _store.Changed += OnStoreChanged;
     }
+
+    private void OnStoreChanged() => RaiseItemsChanged();
 
     public override void UpdateSearchText(string oldSearch, string newSearch)
     {
@@ -53,6 +58,8 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
 
         // Kick off sync on a background thread so filesystem IO never blocks the COM/UI thread.
         // Rate-limited to SyncInterval so rapid refreshes don't hammer the sync folder.
+        // The store's Changed event will call RaiseItemsChanged() when the merge actually
+        // adds new entries; the no-op path is silent.
         string? syncFolder = _settings.Current.SyncFolder;
         if (!string.IsNullOrWhiteSpace(syncFolder)
             && (DateTimeOffset.UtcNow - _lastSync) > SyncInterval
@@ -61,12 +68,8 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             _lastSync = DateTimeOffset.UtcNow;
             _ = Task.Run(() =>
             {
-                try { _store.SyncFrom(syncFolder); }
-                finally
-                {
-                    Interlocked.Exchange(ref _syncRunning, 0);
-                    RaiseItemsChanged(0);
-                }
+                try { _store.SyncFrom(syncFolder, _settings.Current); }
+                finally { Interlocked.Exchange(ref _syncRunning, 0); }
             });
         }
 
