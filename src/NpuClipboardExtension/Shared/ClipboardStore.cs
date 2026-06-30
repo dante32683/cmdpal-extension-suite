@@ -249,10 +249,15 @@ public sealed class ClipboardStore
 
     // Merges text entries from the sync folder that aren't already in local history.
     // Called by the extension when the user opens Clipboard History (not by the keeper).
-    public void SyncFrom(string syncFolder)
+    // Settings are required so cross-device sync respects the user's secret-pattern filter
+    // — a secret on device A must not be allowed to land in local history on device B just
+    // because the capture path was the sync folder rather than the local clipboard.
+    public void SyncFrom(string syncFolder, ClipboardAppSettings settings)
     {
         var newEntries = ClipboardSyncService.ReadNewEntries(syncFolder, GetKnownIds());
         if (newEntries.Count == 0) return;
+
+        var matcher = new SecretPatternMatcher(settings);
 
         bool merged;
         lock (_lock)
@@ -263,6 +268,11 @@ public sealed class ClipboardStore
             {
                 if (_entries.Any(e => e.Id == entry.Id || e.ContentHash == entry.ContentHash))
                     continue;
+                if (matcher.Match(entry.Text) is { } matched)
+                {
+                    Debug.WriteLine($"ClipboardStore.SyncFrom dropped '{entry.Id}': matched secret pattern: {matched}");
+                    continue;
+                }
                 // Insert in chronological position (most recent first).
                 int pos = _entries.FindIndex(e => e.CreatedAt <= entry.CreatedAt);
                 if (pos < 0)

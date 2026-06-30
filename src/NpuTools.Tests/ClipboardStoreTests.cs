@@ -223,6 +223,71 @@ public sealed class ClipboardStoreTests : IDisposable
     }
 
     [Fact]
+    public void ClipboardStore_SyncFrom_DropsEntriesMatchingSecretPattern()
+    {
+        // Simulate cross-device sync: another machine wrote a JSON entry to a
+        // shared sync folder. Even though the entry arrived via SyncFrom rather
+        // than via local capture, the secret-pattern filter must apply so a
+        // secret on device A cannot leak into local history on device B.
+        string syncRoot = Path.Combine(Path.GetTempPath(), "npu-clipboard-sync-" + Guid.NewGuid().ToString("N")[..8]);
+        string syncDir = Path.Combine(syncRoot, "clipboard-sync");
+        Directory.CreateDirectory(syncDir);
+
+        try
+        {
+            var secretEntry = new ClipboardEntry
+            {
+                Id = "clip_sync_secret",
+                GroupId = "grp_sync_secret",
+                Kind = ClipboardEntryKind.Text,
+                CreatedAt = DateTimeOffset.UtcNow,
+                Title = "secret",
+                Text = "export CF_API_KEY=abcd1234efgh5678ijkl9012mnop",
+                ContentHash = "hash_secret",
+                SourceDevice = "TestRemoteDevice",
+            };
+            File.WriteAllText(
+                Path.Combine(syncDir, "clip_sync_secret.json"),
+                JsonSerializer.Serialize(secretEntry, ClipboardJsonContext.Default.ClipboardEntry));
+            File.SetLastWriteTimeUtc(Path.Combine(syncDir, "clip_sync_secret.json"), DateTime.UtcNow.AddSeconds(1));
+
+            var store = new ClipboardStore();
+            var settings = new ClipboardAppSettings(); // defaults: SecretDetectionEnabled = true
+            store.SyncFrom(syncRoot, settings);
+
+            Assert.Equal(0, store.Count);
+            Assert.DoesNotContain(store.Snapshot(), e => e.Id == "clip_sync_secret");
+
+            // And the benign entry on the same device must still be merged in —
+            // the filter is targeted, not a blanket drop.
+            var benignEntry = new ClipboardEntry
+            {
+                Id = "clip_sync_benign",
+                GroupId = "grp_sync_benign",
+                Kind = ClipboardEntryKind.Text,
+                CreatedAt = DateTimeOffset.UtcNow,
+                Title = "hello",
+                Text = "Hello, world!",
+                ContentHash = "hash_benign",
+                SourceDevice = "TestRemoteDevice",
+            };
+            File.WriteAllText(
+                Path.Combine(syncDir, "clip_sync_benign.json"),
+                JsonSerializer.Serialize(benignEntry, ClipboardJsonContext.Default.ClipboardEntry));
+            File.SetLastWriteTimeUtc(Path.Combine(syncDir, "clip_sync_benign.json"), DateTime.UtcNow.AddSeconds(1));
+
+            store.SyncFrom(syncRoot, settings);
+
+            Assert.Equal(1, store.Count);
+            Assert.Contains(store.Snapshot(), e => e.Id == "clip_sync_benign");
+        }
+        finally
+        {
+            try { Directory.Delete(syncRoot, recursive: true); } catch { }
+        }
+    }
+
+    [Fact]
     public void ClipboardStore_Save_AdvancesLastWriteTimeForRapidSuccessiveWrites()
     {
         // Simulate two writes within the same millisecond. The keeper writing then the

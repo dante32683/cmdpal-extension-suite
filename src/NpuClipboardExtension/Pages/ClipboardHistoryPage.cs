@@ -68,7 +68,7 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             _lastSync = DateTimeOffset.UtcNow;
             _ = Task.Run(() =>
             {
-                try { _store.SyncFrom(syncFolder); }
+                try { _store.SyncFrom(syncFolder, _settings.Current); }
                 finally { Interlocked.Exchange(ref _syncRunning, 0); }
             });
         }

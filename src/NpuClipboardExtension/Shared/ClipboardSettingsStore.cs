@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace NpuTools.Clipboard.Data;
@@ -79,6 +80,9 @@ public sealed class ClipboardSettingsStore
         if (settings.PasteDelayMs < 50)
             settings.PasteDelayMs = 250;
         settings.DisabledApplicationNames.RemoveAll(string.IsNullOrWhiteSpace);
+        if (settings.SecretPatterns is null || settings.SecretPatterns.Count == 0)
+            settings.SecretPatterns = DefaultSecretPatterns.Copy();
+        settings.SecretPatterns.RemoveAll(p => string.IsNullOrWhiteSpace(p.Regex));
     }
 
     private static ClipboardAppSettings Clone(ClipboardAppSettings s) => new()
@@ -90,5 +94,7 @@ public sealed class ClipboardSettingsStore
         RecorderEnabled = s.RecorderEnabled,
         PreviewMode = s.PreviewMode,
         SyncFolder = s.SyncFolder,
+        SecretDetectionEnabled = s.SecretDetectionEnabled,
+        SecretPatterns = s.SecretPatterns.Select(p => new SecretPattern { Name = p.Name, Regex = p.Regex }).ToList(),
     };
 }
