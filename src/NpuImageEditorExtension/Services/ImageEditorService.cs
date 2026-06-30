@@ -1,11 +1,14 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
+using NpuTools.ImageEditor.Pages;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
 using Windows.Media.Ocr;
@@ -31,7 +34,7 @@ internal sealed class ImageEditorService
         return result.Text;
     }
 
-    public static async Task<string> RemoveBackgroundAsync(string imagePath)
+    public static async Task<string> RemoveBackgroundAsync(string imagePath, string? outputDir = null)
     {
         var readyState = ImageForegroundExtractor.GetReadyState();
         if (readyState == AIFeatureReadyState.NotReady)
@@ -50,8 +53,8 @@ internal sealed class ImageEditorService
         var mask = extractor.GetMaskFromSoftwareBitmap(source);
         var composited = ApplyGray8MaskAsAlpha(source, mask);
 
-        string outputPath = GetOutputPath(imagePath, "_nobg", ".png");
-        var folder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(imagePath)!);
+        string outputPath = GetOutputPath(imagePath, "_nobg", ".png", outputDir);
+        var folder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(outputPath)!);
         var outputFile = await folder.CreateFileAsync(Path.GetFileName(outputPath), CreationCollisionOption.ReplaceExisting);
 
         using var outStream = await outputFile.OpenAsync(FileAccessMode.ReadWrite);
@@ -62,7 +65,7 @@ internal sealed class ImageEditorService
         return outputPath;
     }
 
-    public static async Task<string> SuperResolutionAsync(string imagePath, int scaleFactor = 2)
+    public static async Task<string> SuperResolutionAsync(string imagePath, int scaleFactor = 2, string? outputDir = null)
     {
         var readyState = ImageScaler.GetReadyState();
         if (readyState == AIFeatureReadyState.NotReady)
@@ -82,8 +85,8 @@ internal sealed class ImageEditorService
         int newH = bitmap.PixelHeight * scaleFactor;
         var scaled = scaler.ScaleSoftwareBitmap(bitmap, newW, newH);
 
-        string outputPath = GetOutputPath(imagePath, $"_{scaleFactor}x", ".png");
-        var folder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(imagePath)!);
+        string outputPath = GetOutputPath(imagePath, $"_{scaleFactor}x", ".png", outputDir);
+        var folder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(outputPath)!);
         var outputFile = await folder.CreateFileAsync(Path.GetFileName(outputPath), CreationCollisionOption.ReplaceExisting);
 
         using var outStream = await outputFile.OpenAsync(FileAccessMode.ReadWrite);
@@ -181,10 +184,80 @@ internal sealed class ImageEditorService
         }
     }
 
-    private static string GetOutputPath(string input, string suffix, string extension)
+    private static string GetOutputPath(string input, string suffix, string extension, string? outputDir = null)
     {
-        string dir  = Path.GetDirectoryName(input)!;
+        string dir  = outputDir ?? Path.GetDirectoryName(input)!;
         string stem = Path.GetFileNameWithoutExtension(input);
         return Path.Combine(dir, $"{stem}{suffix}{extension}");
     }
+
+    /// <summary>
+    /// Runs <paramref name="operation"/> over every path in <paramref name="paths"/>, reporting
+    /// progress after each file. Image outputs land in a dedicated timestamped subfolder so a
+    /// large run does not litter the source folder; OCR writes one .txt per image into that folder.
+    /// One failing file never aborts the run — its error is recorded and processing continues.
+    /// </summary>
+    public static async Task<BatchSummary> BatchProcessAsync(
+        IReadOnlyList<string> paths,
+        ImageOperation operation,
+        int scaleFactor,
+        IProgress<BatchProgress>? progress,
+        CancellationToken ct)
+    {
+        string opName    = operation.ToString();
+        string sourceDir = Path.GetDirectoryName(paths.Count > 0 ? paths[0] : ".")!;
+        string outputDir = Path.Combine(sourceDir, $"{opName}_batch_{DateTime.Now:yyyyMMdd_HHmmss}");
+        Directory.CreateDirectory(outputDir);
+
+        var results = new List<BatchItemResult>(paths.Count);
+        int ok = 0, failed = 0;
+
+        for (int i = 0; i < paths.Count; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+            string path = paths[i];
+
+            progress?.Report(new BatchProgress(i + 1, paths.Count, Path.GetFileName(path)));
+
+            try
+            {
+                switch (operation)
+                {
+                    case ImageOperation.RemoveBackground:
+                        await RemoveBackgroundAsync(path, outputDir);
+                        break;
+                    case ImageOperation.SuperResolution:
+                        await SuperResolutionAsync(path, scaleFactor, outputDir);
+                        break;
+                    case ImageOperation.Ocr:
+                        string text = await RunOcrAsync(path);
+                        string txtPath = GetOutputPath(path, string.Empty, ".txt", outputDir);
+                        await File.WriteAllTextAsync(txtPath, text, ct);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(operation));
+                }
+
+                ok++;
+                results.Add(new BatchItemResult(path, true, null));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                results.Add(new BatchItemResult(path, false, $"{ex.GetType().Name}: {ex.Message}"));
+            }
+        }
+
+        return new BatchSummary(outputDir, ok, failed, results);
+    }
 }
+
+internal readonly record struct BatchProgress(int Current, int Total, string FileName);
+
+internal sealed record BatchItemResult(string Path, bool Success, string? Error);
+
+internal sealed record BatchSummary(string OutputDir, int Succeeded, int Failed, IReadOnlyList<BatchItemResult> Results);

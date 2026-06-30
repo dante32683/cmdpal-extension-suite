@@ -41,6 +41,9 @@
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardPreviewMode.cs" Link="Clipboard\ClipboardPreviewMode.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardJsonContexts.cs" Link="Clipboard\ClipboardJsonContexts.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardSyncService.cs" Link="Clipboard\ClipboardSyncService.cs" />
+    <Compile Include="..\NpuClipboardExtension\Shared\ClipboardStore.cs" Link="Clipboard\ClipboardStore.cs" />
+    <Compile Include="..\NpuClipboardExtension\Shared\ClipboardPaths.cs" Link="Clipboard\ClipboardPaths.cs" />
+    <Compile Include="..\NpuClipboardExtension\Shared\ClipboardSettingsStore.cs" Link="Clipboard\ClipboardSettingsStore.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NoteEntry.cs" Link="Notes\NoteEntry.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NotesAppSettings.cs" Link="Notes\NotesAppSettings.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NotesIndex.cs" Link="Notes\NotesIndex.cs" />
