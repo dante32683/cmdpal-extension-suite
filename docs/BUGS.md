@@ -4,7 +4,152 @@ This is the active issue ledger for the monorepo.
 
 ## Open
 
-No open bugs currently tracked.
+> Source: bug audit of the NpuClipboardExtension + NpuClipboardKeeper subsystem
+> on 2026-07-09 (cross-device sync + secret-pattern filter code). All items below
+> are unit-testable in `NpuTools.Tests` without the COM/MSIX host unless noted.
+> Suggested fix order: BUG-017 → BUG-019 → BUG-021 → BUG-020 → (cleanups) →
+> BUG-018 / BUG-022 on their own branches.
+
+### BUG-017: `ClipboardSettingsStore.Load()` unconditionally `Save()`s — settings write storm and silent config/secret loss
+
+Extension: NpuClipboardExtension / NpuClipboardKeeper
+Severity: High — a just-saved secret pattern or sync folder can be silently and permanently lost; a dropped secret pattern means a secret that should have been filtered gets captured and synced
+Discovered: 2026-07-09 (audit)
+File: `src/NpuClipboardExtension/Shared/ClipboardSettingsStore.cs` (`Save()` call at the end of `Load()`)
+
+Root cause:
+
+`Load()` ends with `Normalize(...); Save();`, and `Reload()` is just `lock → Load()`,
+so **every reload writes `settings.json` back to disk**. Two hot paths hit this
+continuously:
+
+- `NpuClipboardKeeper/Program.cs` calls `settings.Reload()` every 700 ms in the
+  watch loop (~123K writes/day).
+- `ClipboardHistoryPage.GetItems()` calls `_settings.Reload()` on every palette
+  open / refresh, on the COM thread.
+- `SecretPatternsPage.GetContent()` / `SubmitForm()` each construct a fresh
+  `new ClipboardSettingsStore()` (another load+save per render).
+
+Writes are plain temp-file + `File.Move` with no cross-process locking and no
+merge, so any legitimate setting change that lands inside another process's
+read→normalize→save window is clobbered — permanently, because the clobbering
+process persists its stale in-memory copy. Example: user sets the sync folder
+(toast confirms), but the keeper's in-flight `Save()` reverts it to null before
+the next 700 ms reload picks it up.
+
+Proposed fix (simple, safe):
+
+- Remove `Save()` from `Load()`. Normalize in memory only.
+- If default backfill must persist, do it once in the constructor and only when
+  `Normalize` actually mutated something (track a `dirty` bool).
+- Make `Update()` the sole write path.
+- Makes BUG-018-on-settings and the unused-param half of the Low cleanups moot.
+
+### BUG-018: `history.json` cross-process writes are last-writer-wins (TOCTOU)
+
+Extension: NpuClipboardExtension / NpuClipboardKeeper
+Severity: Medium — a keeper capture and a user action (pin/rename/delete/paste) landing together can drop one of the two
+Discovered: 2026-07-09 (audit)
+File: `src/NpuClipboardExtension/Shared/ClipboardStore.cs` (`Save` / `EnsureFresh`)
+
+Root cause:
+
+Both processes hold their own `ClipboardStore` guarded by an in-process `_lock`
+only. `EnsureFresh()` reloads on mtime change, then the mutation `Save()`s. There
+is a read-modify-write gap: process A `EnsureFresh()` (state X) → process B writes
+X+edit → process A `Save()` writes X+otherEdit, dropping B's change. Rare
+(sub-millisecond overlap) but real; inherent to the lock-free file design.
+
+Proposed fix (moderate, own branch — deadlock risk if mis-scoped):
+
+- Guard the read-modify-write in `Save`/`EnsureFresh` with a named cross-process
+  `Mutex`, or retry-on-mtime-change. Not urgent; note as known risk if deferred.
+
+### BUG-019: `SecretPatternMatcher.Match` fails **open** on regex timeout
+
+Extension: NpuClipboardExtension
+Severity: Medium — security filter fails in the unsafe direction: a secret that triggers regex backtracking is treated as "not a secret" and gets captured and synced to disk
+Discovered: 2026-07-09 (audit)
+File: `src/NpuClipboardExtension/Shared/SecretPatternMatcher.cs` (`Match`)
+
+Root cause:
+
+`Match()` catches `RegexMatchTimeoutException`, continues the loop, and ultimately
+returns `null` (= "not a secret"). For a filter whose purpose is to keep secrets
+off disk, a timeout should fail **closed** (drop the entry), not open.
+
+Proposed fix (simple):
+
+- On timeout, return a sentinel name (e.g. `"<pattern timeout>"`) so the caller
+  drops the entry; log a warning. Trade-off: a slow benign pattern would drop
+  legitimate text — acceptable given the security intent and the generous 100 ms
+  timeout. Also audit `DefaultSecretPatterns` for ReDoS-prone rules.
+
+### BUG-020: `ClipboardStore.DeleteOlderThan(window)` name is inverted vs. behavior
+
+Extension: NpuClipboardExtension
+Severity: Medium — latent data-loss trap; current callers are correct, a future caller will not be
+Discovered: 2026-07-09 (audit)
+File: `src/NpuClipboardExtension/Shared/ClipboardStore.cs`
+
+Root cause:
+
+`cutoff = Now - window; RemoveAll(e => e.CreatedAt >= cutoff)` removes entries
+created *within* the last `window` (the recent ones). All current callers are
+"Delete Last N Minutes" so behavior is correct today, but the method name means
+the exact opposite. A future "delete entries older than 30 days" retention feature
+calling `DeleteOlderThan(TimeSpan.FromDays(30))` would wipe the last 30 days.
+
+Proposed fix (mechanical):
+
+- Rename to `DeleteWithinLast(TimeSpan)` and update the call sites
+  (`NpuClipboardCommandsProvider`, `ClipboardSettingsPage`). No behavior change.
+
+### BUG-021: `SyncFrom` merges entries but never enforces retention
+
+Extension: NpuClipboardExtension
+Severity: Medium — a receive-mostly device can grow history past the configured limit until the next capture
+Discovered: 2026-07-09 (audit)
+File: `src/NpuClipboardExtension/Shared/ClipboardStore.cs` (`SyncFrom`)
+
+Root cause:
+
+`SyncFrom` inserts new synced entries and `Save()`s but never calls
+`ApplyRetention`. Bounded and self-corrects at the next `AddOrPromote` /
+`EnforceRetention`, but violates the retention contract in the meantime.
+
+Proposed fix (one line):
+
+- Call `ApplyRetention(settings.NormalizedRetentionLimit)` inside the
+  `if (merged)` block before `Save()`.
+
+### BUG-022: OCR text is never scanned against secret patterns
+
+Extension: NpuClipboardKeeper
+Severity: Low — a screenshot of an API key/password is OCR'd into `OcrText`, stored, and made search-indexed; the secret filter only runs on the `Text` branch. Lower risk (images are not synced cross-device) but the secret still lands on disk
+Discovered: 2026-07-09 (audit)
+File: `src/NpuClipboardKeeper/ClipboardCaptureService.cs` (Bitmap branch)
+
+Proposed fix (own branch — touches the capture path, verify on a real screenshot
+per AGENTS.md rule #5):
+
+- Run `secretMatcher.Match(ocr)` on the image branch and drop or redact `OcrText`
+  on match.
+
+### Low-severity cleanups (batch alongside BUG-017..021)
+
+- **Dead code:** `ClipboardStore.Groups()` has no callers in `src/` (the history
+  page does its own grouping). Safe to delete.
+- **Unused parameter:** `SecretPatternsPage(ClipboardSettingsStore settings)`
+  ignores the injected store — `GetContent()` and `SubmitForm()` both construct a
+  fresh `new ClipboardSettingsStore()`. Drop the parameter or use the injected one.
+- **Cosmetic:** `ClipboardHistoryPage.BuildItems` assumes same-`GroupId` entries
+  are contiguous, but `Search` orders by `IsPinned` then `LastUsedAt`; promoting
+  one burst member (Copy/Paste bumps `LastUsedAt`) splits the group and emits its
+  date header twice.
+- **Edge case:** toggling the recorder off→on quickly can leave two
+  `NpuClipboardKeeper` processes double-capturing (old instance still polls
+  `stop.flag` every 700 ms). Consider a single-instance mutex in the keeper.
 
 ## Resolved
 
