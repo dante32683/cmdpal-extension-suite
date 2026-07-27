@@ -38,8 +38,7 @@ internal sealed partial class CpuDockPage : ListPage
     {
         try
         {
-            var pct = _cpu.GetCpuPercent();
-            _cpuItem.Title = $"{pct:F0}%";
+            _cpuItem.Title = _cpu.IsAvailable ? $"{_cpu.GetCpuPercent():F0}%" : "CPU unavailable";
         }
         catch (Exception ex)
         {

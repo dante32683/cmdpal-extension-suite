@@ -20,8 +20,8 @@ internal sealed class CpuService
     public CpuService()
     {
         // Prime the baseline
-        NativeMethods.GetSystemTimes(out _prevIdle, out var kernel, out var user);
-        _prevTotal = kernel + user;
+        _cpuAvailable = NativeMethods.GetSystemTimes(out _prevIdle, out var kernel, out var user);
+        _prevTotal = _cpuAvailable ? kernel + user : 0;
 
         // Sample immediately, then every 5 s
         _sampleTimer = new Timer(SampleCpu, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
@@ -31,7 +31,8 @@ internal sealed class CpuService
     {
         try
         {
-            NativeMethods.GetSystemTimes(out long idle, out long kernel, out long user);
+            if (!NativeMethods.GetSystemTimes(out long idle, out long kernel, out long user))
+                return;
             long total = kernel + user;
 
             long deltaIdle = idle - _prevIdle;
@@ -67,5 +68,10 @@ internal sealed class CpuService
                 sum += _cpuBuffer[i];
             return sum / _cpuFilled;
         }
+    }
+
+    public bool IsAvailable
+    {
+        get { lock (_lock) return _cpuAvailable; }
     }
 }
