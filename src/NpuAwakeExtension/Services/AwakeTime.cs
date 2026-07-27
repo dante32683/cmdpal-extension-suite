@@ -32,9 +32,9 @@ internal static class AwakeTime
     public static bool IsScheduleActiveNow(AwakeSchedule schedule, DateTimeOffset nowLocal)
     {
         if (!schedule.Enabled || schedule.Days is not { Length: > 0 })
-            {
-                return false;
-            }
+        {
+            return false;
+        }
 
         if (!TryParseHourMinute(schedule.Start, out var start) || !TryParseHourMinute(schedule.End, out var end))
         {
