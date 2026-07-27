@@ -1,0 +1,28 @@
+# Normalize line endings so a clone on any machine does not produce
+# whole-file diffs driven by the local core.autocrlf setting.
+* text=auto
+
+# Sources and docs are LF in the repository; git checks them out with the
+# platform's native endings.
+*.cs        text diff=csharp
+*.csproj    text
+*.sln       text
+*.md        text
+*.json      text
+*.xml       text
+*.yml       text
+*.appxmanifest text
+
+# Scripts Windows tooling reads directly.
+*.ps1       text eol=crlf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+
+# Never touch binaries.
+*.png       binary
+*.ico       binary
+*.jpg       binary
+*.pri       binary
+*.dll       binary
+*.exe       binary
+*.pfx       binary
