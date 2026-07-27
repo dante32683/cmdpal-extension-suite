@@ -2,19 +2,11 @@
 # Checks all implemented extensions for UX convention violations.
 # Errors = must fix. Warnings = should fix.
 
-$extensions = @(
-    @{ Name = "ActionCenterExtension";   Dir = "ActionCenterExtension" },
-    @{ Name = "TimeDateDockExtension";   Dir = "TimeDateDockExtension" },
-    @{ Name = "MediaControlsExtension";  Dir = "MediaControlsExtension" },
-    @{ Name = "SimpleAnalyticsExtension"; Dir = "SimpleAnalyticsExtension" },
-    @{ Name = "NpuAwakeExtension";       Dir = "NpuAwakeExtension" },
-    @{ Name = "NpuOrganizeExtension";    Dir = "NpuOrganizeExtension" },
-    @{ Name = "NpuImageEditorExtension"; Dir = "NpuImageEditorExtension" },
-    @{ Name = "NpuTextToolsExtension";   Dir = "NpuTextToolsExtension" },
-    @{ Name = "NpuClipboardExtension";   Dir = "NpuClipboardExtension" }
-)
-
 $srcRoot = Join-Path $PSScriptRoot "..\src"
+$extensions = Get-ChildItem $srcRoot -Directory |
+    Where-Object { Test-Path (Join-Path $_.FullName "Package.appxmanifest") } |
+    Sort-Object Name |
+    ForEach-Object { @{ Name = $_.Name; Dir = $_.Name } }
 $errors   = [System.Collections.Generic.List[string]]::new()
 $warnings = [System.Collections.Generic.List[string]]::new()
 
