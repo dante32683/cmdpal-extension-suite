@@ -46,9 +46,9 @@ internal sealed class AwakeIntent
             return null;
 
         var parts = hm.Trim().Split(':', System.StringSplitOptions.TrimEntries);
-        if (parts.Length < 2 ||
-            !int.TryParse(parts[0], out int h) ||
-            !int.TryParse(parts[1], out int m) ||
+        if (parts.Length != 2 ||
+            !int.TryParse(parts[0], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int h) ||
+            !int.TryParse(parts[1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int m) ||
             h is < 0 or > 23 ||
             m is < 0 or > 59)
         {

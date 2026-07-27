@@ -26,7 +26,7 @@ internal sealed class AwakeService
         var state = AwakeJson.Read(AwakePaths.StatePath, new AwakeStateFile(), AwakeJsonContext.Default.AwakeStateFile);
         var schedules = GetSchedules();
         int? pid = ReadDaemonPid();
-        if (pid is int value && !IsPidAlive(value))
+        if (pid is int value && !IsTrustedDaemon(value))
         {
             pid = null;
             TryDelete(AwakePaths.DaemonPidPath);
@@ -45,7 +45,7 @@ internal sealed class AwakeService
     public IReadOnlyList<AwakeSchedule> GetSchedules()
     {
         return AwakeJson.Read(AwakePaths.SchedulesPath, new List<AwakeSchedule>(), AwakeJsonContext.Default.ListAwakeSchedule)
-            .Where(IsValidSchedule)
+            .Where(s => s is not null && IsValidSchedule(s))
             .ToList();
     }
 
@@ -127,7 +127,7 @@ internal sealed class AwakeService
     public bool EnsureDaemonRunning()
     {
         int? currentPid = ReadDaemonPid();
-        if (currentPid is int pid && IsPidAlive(pid))
+        if (currentPid is int pid && IsTrustedDaemon(pid))
         {
             return true;
         }
@@ -170,8 +170,11 @@ internal sealed class AwakeService
         {
             try
             {
-                using var process = Process.GetProcessById(value);
-                process.Kill(entireProcessTree: true);
+                if (IsTrustedDaemon(value))
+                {
+                    using var process = Process.GetProcessById(value);
+                    process.Kill(entireProcessTree: true);
+                }
             }
             catch
             {
@@ -201,6 +204,7 @@ internal sealed class AwakeService
     private static bool IsValidSchedule(AwakeSchedule schedule)
     {
         return !string.IsNullOrWhiteSpace(schedule.Id) &&
+            schedule.Days is { Length: > 0 } &&
             schedule.Days.All(d => d is >= 0 and <= 6) &&
             AwakeTime.TryParseHourMinute(schedule.Start, out _) &&
             AwakeTime.TryParseHourMinute(schedule.End, out _);
@@ -224,12 +228,17 @@ internal sealed class AwakeService
         }
     }
 
-    private static bool IsPidAlive(int pid)
+    private static bool IsTrustedDaemon(int pid)
     {
         try
         {
             using var process = Process.GetProcessById(pid);
-            return !process.HasExited;
+            if (process.HasExited)
+                return false;
+
+            string actualPath = Path.GetFullPath(process.MainModule?.FileName ?? string.Empty);
+            string expectedPath = Path.GetFullPath(AwakePaths.KeeperExePath);
+            return string.Equals(actualPath, expectedPath, StringComparison.OrdinalIgnoreCase);
         }
         catch
         {
