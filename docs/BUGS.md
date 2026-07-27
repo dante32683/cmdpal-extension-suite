@@ -4,6 +4,15 @@ This is the active issue ledger for the monorepo.
 
 ## Open
 
+The 2026-07-12 suite audit pass resolved the settings write storm, clipboard
+cross-process history race, sync retention gap, recent-delete naming trap,
+sync-secret file retention, image-blob cleanup, OCR secret filtering, note
+frontmatter/stale-write handling, Obsidian create containment, Awake schedule
+and PID validation, Organize index/state races, project/worktree detection,
+Image Editor scan/output races, Media async/disposal handling, and analytics
+label/native-call issues. Remaining items in this ledger are the explicit
+follow-ups that still need host-level or broader regression coverage.
+
 > Source: bug audit of the NpuClipboardExtension + NpuClipboardKeeper subsystem
 > on 2026-07-09 (cross-device sync + secret-pattern filter code). All items below
 > are unit-testable in `NpuTools.Tests` without the COM/MSIX host unless noted.
