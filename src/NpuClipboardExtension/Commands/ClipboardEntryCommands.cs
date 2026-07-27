@@ -100,7 +100,15 @@ internal sealed partial class DeleteEntryCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
-        _store.Delete(_id);
+        try
+        {
+            _store.Delete(_id);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"DeleteEntryCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not delete the entry — the history file is unavailable.");
+        }
         return CommandResult.ShowToast("Clipboard entry deleted.");
     }
 }
@@ -122,7 +130,15 @@ internal sealed partial class PinEntryCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
-        _store.SetPinned(_id, _pin);
+        try
+        {
+            _store.SetPinned(_id, _pin);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"PinEntryCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not update the entry — the history file is unavailable.");
+        }
         return CommandResult.ShowToast(_pin ? "Clipboard entry pinned." : "Clipboard entry unpinned.");
     }
 }
