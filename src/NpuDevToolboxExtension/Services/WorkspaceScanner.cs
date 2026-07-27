@@ -10,8 +10,8 @@ internal static class WorkspaceScanner
 {
     private static readonly string[] ProjectMarkers =
     [
-        ".sln",
-        ".csproj",
+        "*.sln",
+        "*.csproj",
         "package.json",
         "Cargo.toml",
         "pyproject.toml",
@@ -95,6 +95,18 @@ internal static class WorkspaceScanner
     {
         foreach (string marker in ProjectMarkers)
         {
+            if (marker is "*.sln" or "*.csproj")
+            {
+                try
+                {
+                    if (Directory.EnumerateFiles(dir, marker, SearchOption.TopDirectoryOnly).Any())
+                        return "dotnet";
+                }
+                catch (UnauthorizedAccessException) { }
+                catch (IOException) { }
+                continue;
+            }
+
             string candidate = Path.Combine(dir, marker);
             if (File.Exists(candidate) || Directory.Exists(candidate))
                 return MarkerToType(marker);
@@ -106,7 +118,7 @@ internal static class WorkspaceScanner
     private static string MarkerToType(string marker) => marker switch
     {
         ".git"          => "git",
-        ".sln" or ".csproj" => "dotnet",
+        "*.sln" or "*.csproj" => "dotnet",
         "package.json"  => "node",
         "Cargo.toml"    => "rust",
         "pyproject.toml" => "python",
