@@ -148,7 +148,7 @@ internal sealed partial class NotesStore
         Directory.CreateDirectory(categoryDir);
         string path = ResolveCollision(Path.Combine(categoryDir, fileName));
 
-        string markdown = BuildMarkdown(id, parsed.Title, normalizedCategory, now, now, parsed.Body);
+        string markdown = BuildMarkdown(null, id, parsed.Title, normalizedCategory, now, now, parsed.Body);
         WriteAtomic(path, markdown);
 
         var entry = TryLoad(path, root) ?? throw new IOException("Created note could not be read back.");
@@ -180,7 +180,7 @@ internal sealed partial class NotesStore
             return;
         }
 
-        string markdown = BuildMarkdown(entry.Id, newTitle, entry.Category, entry.CreatedUtc, DateTimeOffset.UtcNow, newBody);
+        string markdown = BuildMarkdown(entry, entry.Id, newTitle, entry.Category, entry.CreatedUtc, DateTimeOffset.UtcNow, newBody);
         WriteAtomic(entry.FilePath, markdown, overwrite: true);
     }
 
@@ -223,8 +223,9 @@ internal sealed partial class NotesStore
     {
         string root = _settings.Current.NotesRoot;
         string srcPath = Path.GetFullPath(entry.FilePath);
+        NoteEntry current = LoadCurrentForMutation(entry, root);
         string trimmedTitle = TrimTitle(newTitle);
-        string markdown = BuildMarkdown(entry.Id, trimmedTitle, entry.Category, entry.CreatedUtc, DateTimeOffset.UtcNow, entry.Body);
+        string markdown = BuildMarkdown(current, current.Id, trimmedTitle, current.Category, current.CreatedUtc, DateTimeOffset.UtcNow, current.Body);
 
         string dir = Path.GetDirectoryName(srcPath)!;
         string slug = Slugify(trimmedTitle);
@@ -233,7 +234,10 @@ internal sealed partial class NotesStore
 
         string datePart = ExtractDatePrefix(Path.GetFileNameWithoutExtension(srcPath));
         string newFileName = $"{datePart}{slug}.md";
-        string newPath = ResolveCollision(Path.Combine(dir, newFileName));
+        string candidatePath = Path.Combine(dir, newFileName);
+        string newPath = string.Equals(srcPath, candidatePath, StringComparison.OrdinalIgnoreCase)
+            ? srcPath
+            : ResolveCollision(candidatePath);
         bool pathChanged = !string.Equals(srcPath, newPath, StringComparison.OrdinalIgnoreCase);
 
         if (pathChanged)
@@ -256,18 +260,22 @@ internal sealed partial class NotesStore
     {
         string root = _settings.Current.NotesRoot;
         string srcPath = Path.GetFullPath(entry.FilePath);
+        NoteEntry current = LoadCurrentForMutation(entry, root);
         string normalized = NormalizeCategory(targetCategory);
 
         string targetDir = Path.Combine(root, normalized);
         Directory.CreateDirectory(targetDir);
 
         string fileName = Path.GetFileName(srcPath);
-        string newPath = ResolveCollision(Path.Combine(targetDir, fileName));
+        string candidatePath = Path.Combine(targetDir, fileName);
+        string newPath = string.Equals(srcPath, candidatePath, StringComparison.OrdinalIgnoreCase)
+            ? srcPath
+            : ResolveCollision(candidatePath);
 
         if (string.Equals(srcPath, newPath, StringComparison.OrdinalIgnoreCase))
-            return entry;
+            return current;
 
-        string markdown = BuildMarkdown(entry.Id, entry.Title, normalized, entry.CreatedUtc, entry.UpdatedUtc, entry.Body);
+        string markdown = BuildMarkdown(current, current.Id, current.Title, normalized, current.CreatedUtc, DateTimeOffset.UtcNow, current.Body);
         File.Move(srcPath, newPath); // atomic rename; no duplicate risk
         WriteAtomic(newPath, markdown, overwrite: true);
 
@@ -374,8 +382,21 @@ internal sealed partial class NotesStore
             CreatedUtc = ParseDate(frontmatter, "createdUtc", createdUtc),
             UpdatedUtc = ParseDate(frontmatter, "updatedUtc", updatedUtc),
             Tags = ParseTags(frontmatter.TryGetValue("tags", out string? tags) ? tags : null),
+            Frontmatter = new Dictionary<string, string>(frontmatter, StringComparer.OrdinalIgnoreCase),
             Body = body.Trim(),
         };
+    }
+
+    private static NoteEntry LoadCurrentForMutation(NoteEntry entry, string root)
+    {
+        if (!File.Exists(entry.FilePath))
+            throw new FileNotFoundException("Note no longer exists.", entry.FilePath);
+
+        NoteEntry current = TryLoad(entry.FilePath, root)
+            ?? throw new IOException($"Could not read note '{entry.FilePath}'.");
+        if (current.UpdatedUtc != entry.UpdatedUtc)
+            throw new IOException("The note changed on disk. Reload it before renaming or moving it.");
+        return current;
     }
 
     internal static string Slugify(string value, int maxLength = 80)
@@ -469,17 +490,23 @@ internal sealed partial class NotesStore
         return Path.Combine(dir, $"{name}-{Guid.NewGuid():N}{ext}");
     }
 
-    private static string BuildMarkdown(string id, string title, string category, DateTimeOffset createdUtc, DateTimeOffset updatedUtc, string body)
+    private static string BuildMarkdown(NoteEntry? source, string id, string title, string category, DateTimeOffset createdUtc, DateTimeOffset updatedUtc, string body)
     {
         string escapedTitle = title.Replace("\"", "\\\"", StringComparison.Ordinal);
+        var frontmatter = source is null
+            ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            : new Dictionary<string, string>(source.Frontmatter, StringComparer.OrdinalIgnoreCase);
+        frontmatter["id"] = id;
+        frontmatter["title"] = escapedTitle;
+        frontmatter["category"] = category;
+        frontmatter["createdUtc"] = createdUtc.ToString("O", CultureInfo.InvariantCulture);
+        frontmatter["updatedUtc"] = updatedUtc.ToString("O", CultureInfo.InvariantCulture);
+        frontmatter["tags"] = string.Join(", ", source?.Tags ?? []);
+
         var builder = new StringBuilder();
         builder.AppendLine("---");
-        builder.AppendLine(FormattableString.Invariant($"id: {id}"));
-        builder.AppendLine(FormattableString.Invariant($"title: {escapedTitle}"));
-        builder.AppendLine(FormattableString.Invariant($"category: {category}"));
-        builder.AppendLine(FormattableString.Invariant($"createdUtc: {createdUtc:O}"));
-        builder.AppendLine(FormattableString.Invariant($"updatedUtc: {updatedUtc:O}"));
-        builder.AppendLine("tags:");
+        foreach (var pair in frontmatter)
+            builder.Append(pair.Key).Append(": ").AppendLine(pair.Value);
         builder.AppendLine("---");
         builder.AppendLine();
         builder.AppendLine(FormattableString.Invariant($"# {title}"));
