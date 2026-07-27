@@ -141,7 +141,7 @@ internal sealed partial class DeleteByWindowCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
-        int deleted = _store.DeleteOlderThan(_window);
+        int deleted = _store.DeleteWithinLast(_window);
         return CommandResult.ShowToast($"Deleted {deleted} clipboard entr{(deleted == 1 ? "y" : "ies")}.");
     }
 }
