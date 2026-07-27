@@ -27,7 +27,7 @@ internal sealed class DevToolboxAiService
     public async Task<string> GenerateCommitMessageAsync(string workspacePath)
     {
         // Verify this is a git repo before attempting anything.
-        if (!Directory.Exists(Path.Combine(workspacePath, ".git")))
+        if (!string.Equals(await RunGitAsync(workspacePath, "rev-parse --is-inside-work-tree"), "true", StringComparison.OrdinalIgnoreCase))
             return string.Empty;
 
         string diff = await GetGitDiffAsync(workspacePath);
@@ -92,6 +92,7 @@ internal sealed class DevToolboxAiService
     private static async Task<string> RunGitAsync(string workspacePath, string arguments)
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        Process? process = null;
         try
         {
             var psi = new ProcessStartInfo("git", arguments)
@@ -103,7 +104,7 @@ internal sealed class DevToolboxAiService
                 CreateNoWindow = true,
             };
 
-            using var process = Process.Start(psi);
+            process = Process.Start(psi);
             if (process is null)
                 return string.Empty;
 
@@ -114,17 +115,32 @@ internal sealed class DevToolboxAiService
             await Task.WhenAll(stdoutTask, stderrTask).WaitAsync(cts.Token);
             await process.WaitForExitAsync(cts.Token);
 
-            return stdoutTask.Result;
+            return process.ExitCode == 0 ? stdoutTask.Result : string.Empty;
         }
         catch (OperationCanceledException)
         {
             Debug.WriteLine($"DevToolboxAiService.RunGitAsync timed out for: {arguments}");
+            try
+            {
+                if (process is { HasExited: false })
+                    process.Kill(entireProcessTree: true);
+                if (process is not null)
+                    await process.WaitForExitAsync(CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"DevToolboxAiService.RunGitAsync cleanup failed: {ex.GetType().Name}: {ex.Message}");
+            }
             return string.Empty;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"DevToolboxAiService.RunGitAsync failed: {ex.GetType().Name}: {ex.Message}");
             return string.Empty;
+        }
+        finally
+        {
+            process?.Dispose();
         }
     }
 
