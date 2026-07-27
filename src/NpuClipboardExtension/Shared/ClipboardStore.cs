@@ -414,7 +414,8 @@ public sealed class ClipboardStore
         }
         finally
         {
-            mutex.ReleaseMutex();
+            // A release failure must never replace the exception that caused it.
+            try { mutex.ReleaseMutex(); } catch { }
         }
     }
 
