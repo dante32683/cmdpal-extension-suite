@@ -54,7 +54,9 @@ public sealed class SecretPatternMatcher
             }
             catch (RegexMatchTimeoutException)
             {
-                // Pattern took too long — treat as no match and continue.
+                // A privacy filter must fail closed: do not persist text when a
+                // user-authored rule cannot complete within its safety budget.
+                return "<pattern timeout>";
             }
         }
         return null;

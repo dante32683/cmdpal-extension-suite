@@ -90,7 +90,7 @@ internal sealed class ClipboardCaptureService
             string hash = await HashFileAsync(image.Path).ConfigureAwait(false);
             var entry = BuildBase(ClipboardEntryKind.Image, now, sourceApp, ClipboardStore.BuildHash("image", hash));
             entry.ImagePath = image.Path;
-            entry.OcrText = ocr;
+            entry.OcrText = secretMatcher.Match(ocr) is null ? ocr : string.Empty;
             entry.Title = $"Image ({image.Width}x{image.Height})";
             _store.AddOrPromote(entry, settings);
             return new(true, entry.Title);
@@ -111,7 +111,7 @@ internal sealed class ClipboardCaptureService
             entry.Text = text;
             entry.Title = ClipboardClassifier.BuildTitle(kind, text, 0);
             _store.AddOrPromote(entry, settings);
-            ClipboardSyncService.WriteEntry(entry, settings.SyncFolder);
+            ClipboardSyncService.WriteEntry(entry, settings.SyncFolder, settings);
             return new(true, entry.Title);
         }
 
