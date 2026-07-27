@@ -88,7 +88,11 @@ internal sealed class BatteryService
 
     public BatteryInfo GetBatteryInfo()
     {
-        NativeMethods.GetSystemPowerStatus(out var status);
+        bool available = NativeMethods.GetSystemPowerStatus(out var status);
+        if (!available)
+        {
+            return new BatteryInfo { HasBattery = false };
+        }
 
         var hasBattery    = (status.BatteryFlag & 0x80) == 0 && status.BatteryLifePercent != 255;
         var percent       = hasBattery ? (int)status.BatteryLifePercent : 0;
