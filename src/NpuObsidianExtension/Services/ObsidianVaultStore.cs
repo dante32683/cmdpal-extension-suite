@@ -137,7 +137,10 @@ internal sealed partial class ObsidianVaultStore
             slug = "untitled";
 
         string dir = Path.GetDirectoryName(sourcePath)!;
-        string newPath = ResolveCollision(Path.Combine(dir, slug + ".md"));
+        string candidatePath = Path.Combine(dir, slug + ".md");
+        string newPath = string.Equals(sourcePath, candidatePath, StringComparison.OrdinalIgnoreCase)
+            ? sourcePath
+            : ResolveCollision(candidatePath);
         bool pathChanged = !string.Equals(sourcePath, newPath, StringComparison.OrdinalIgnoreCase);
 
         if (pathChanged)
@@ -179,7 +182,10 @@ internal sealed partial class ObsidianVaultStore
         Directory.CreateDirectory(targetDir);
 
         string fileName = Path.GetFileName(sourcePath);
-        string newPath = ResolveCollision(Path.Combine(targetDir, fileName));
+        string candidatePath = Path.Combine(targetDir, fileName);
+        string newPath = string.Equals(sourcePath, candidatePath, StringComparison.OrdinalIgnoreCase)
+            ? sourcePath
+            : ResolveCollision(candidatePath);
 
         if (string.Equals(sourcePath, newPath, StringComparison.OrdinalIgnoreCase))
             return note;
@@ -281,9 +287,9 @@ internal sealed partial class ObsidianVaultStore
         if (!IsVaultConfigured())
             throw new InvalidOperationException("Vault path is not configured.");
 
-        string targetDir = string.IsNullOrWhiteSpace(subfolder)
-            ? (string.IsNullOrWhiteSpace(settings.DefaultNewNoteFolder) ? settings.VaultPath : Path.Combine(settings.VaultPath, settings.DefaultNewNoteFolder))
-            : Path.Combine(settings.VaultPath, subfolder);
+        string requestedFolder = string.IsNullOrWhiteSpace(subfolder) ? settings.DefaultNewNoteFolder : subfolder;
+        string vaultPath = Path.GetFullPath(settings.VaultPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        string targetDir = ResolveVaultSubfolder(vaultPath, requestedFolder);
         Directory.CreateDirectory(targetDir);
 
         string slug = ObsidianMarkdownParser.Slugify(title);
@@ -387,6 +393,21 @@ internal sealed partial class ObsidianVaultStore
         }
 
         return Path.Combine(dir, $"{name}-{Guid.NewGuid():N}{ext}");
+    }
+
+    private static string ResolveVaultSubfolder(string vaultPath, string? relativeFolder)
+    {
+        if (string.IsNullOrWhiteSpace(relativeFolder))
+            return vaultPath;
+        if (Path.IsPathRooted(relativeFolder))
+            throw new InvalidOperationException("Note folder must be relative to the configured vault.");
+
+        string target = Path.GetFullPath(Path.Combine(vaultPath, relativeFolder));
+        string vaultWithSep = vaultPath + Path.DirectorySeparatorChar;
+        if (!string.Equals(target, vaultPath, StringComparison.OrdinalIgnoreCase)
+            && !target.StartsWith(vaultWithSep, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Note folder is outside the configured vault.");
+        return target;
     }
 
     private static void WriteAtomic(string path, string content, bool overwrite = false)
