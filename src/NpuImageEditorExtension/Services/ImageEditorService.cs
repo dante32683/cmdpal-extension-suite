@@ -55,7 +55,7 @@ internal sealed class ImageEditorService
 
         string outputPath = GetOutputPath(imagePath, "_nobg", ".png", outputDir);
         var folder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(outputPath)!);
-        var outputFile = await folder.CreateFileAsync(Path.GetFileName(outputPath), CreationCollisionOption.ReplaceExisting);
+        var outputFile = await folder.CreateFileAsync(Path.GetFileName(outputPath), CreationCollisionOption.FailIfExists);
 
         using var outStream = await outputFile.OpenAsync(FileAccessMode.ReadWrite);
         var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outStream);
@@ -87,7 +87,7 @@ internal sealed class ImageEditorService
 
         string outputPath = GetOutputPath(imagePath, $"_{scaleFactor}x", ".png", outputDir);
         var folder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(outputPath)!);
-        var outputFile = await folder.CreateFileAsync(Path.GetFileName(outputPath), CreationCollisionOption.ReplaceExisting);
+        var outputFile = await folder.CreateFileAsync(Path.GetFileName(outputPath), CreationCollisionOption.FailIfExists);
 
         using var outStream = await outputFile.OpenAsync(FileAccessMode.ReadWrite);
         var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outStream);
@@ -138,7 +138,7 @@ internal sealed class ImageEditorService
             "NpuImageEditor", "temp");
         Directory.CreateDirectory(tempDir);
 
-        string fileName = $"clipboard_{DateTimeOffset.Now:yyyyMMdd_HHmmss_fff}.png";
+        string fileName = $"clipboard_{DateTimeOffset.Now:yyyyMMdd_HHmmss_fff}_{Guid.NewGuid():N}.png";
         string outPath  = Path.Combine(tempDir, fileName);
 
         RandomAccessStreamReference reference = await content.GetBitmapAsync();
@@ -147,7 +147,7 @@ internal sealed class ImageEditorService
         var bitmap  = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
         var folder   = await StorageFolder.GetFolderFromPathAsync(tempDir);
-        var file     = await folder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+        var file     = await folder.CreateFileAsync(fileName, CreationCollisionOption.FailIfExists);
         using var outStream = await file.OpenAsync(FileAccessMode.ReadWrite);
         var encoder  = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outStream);
         encoder.SetSoftwareBitmap(bitmap);
@@ -188,7 +188,18 @@ internal sealed class ImageEditorService
     {
         string dir  = outputDir ?? Path.GetDirectoryName(input)!;
         string stem = Path.GetFileNameWithoutExtension(input);
-        return Path.Combine(dir, $"{stem}{suffix}{extension}");
+        string candidate = Path.Combine(dir, $"{stem}{suffix}{extension}");
+        if (!File.Exists(candidate))
+            return candidate;
+
+        for (int i = 2; i < 1000; i++)
+        {
+            candidate = Path.Combine(dir, $"{stem}{suffix}-{i}{extension}");
+            if (!File.Exists(candidate))
+                return candidate;
+        }
+
+        return Path.Combine(dir, $"{stem}{suffix}-{Guid.NewGuid():N}{extension}");
     }
 
     /// <summary>
@@ -206,7 +217,7 @@ internal sealed class ImageEditorService
     {
         string opName    = operation.ToString();
         string sourceDir = Path.GetDirectoryName(paths.Count > 0 ? paths[0] : ".")!;
-        string outputDir = Path.Combine(sourceDir, $"{opName}_batch_{DateTime.Now:yyyyMMdd_HHmmss}");
+        string outputDir = Path.Combine(sourceDir, $"{opName}_batch_{DateTime.Now:yyyyMMdd_HHmmss_fff}_{Guid.NewGuid():N}");
         Directory.CreateDirectory(outputDir);
 
         var results = new List<BatchItemResult>(paths.Count);
