@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace NpuOrganizeKeeper;
 
@@ -80,6 +82,7 @@ internal sealed class StateStore
     public string StatePath { get; }
     public string LogPath { get; }
     public string StopFlagPath { get; }
+    private readonly object _stateLock = new();
 
     public StateStore(string supportDir)
     {
@@ -127,6 +130,25 @@ internal sealed class StateStore
 
     public void SaveState(StateFile state) => AtomicWriteJson(StatePath, state);
 
+    public void UpdateState(Action<StateFile> update)
+    {
+        using var mutex = new Mutex(false, StateMutexName());
+        try { mutex.WaitOne(); } catch (AbandonedMutexException) { }
+        try
+        {
+            lock (_stateLock)
+            {
+                StateFile state = LoadState();
+                update(state);
+                SaveState(state);
+            }
+        }
+        finally
+        {
+            try { mutex.ReleaseMutex(); } catch { }
+        }
+    }
+
     public void AppendLog(string line)
     {
         try
@@ -166,6 +188,12 @@ internal sealed class StateStore
             try { if (File.Exists(tmp)) File.Delete(tmp); } catch { /* ignore */ }
             throw;
         }
+    }
+
+    private string StateMutexName()
+    {
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(StatePath));
+        return $"Local\\NpuOrganizeState-{Convert.ToHexString(hash)[..24]}";
     }
 
     // Uses %LOCALAPPDATA% env var to get the real path — SpecialFolder.LocalApplicationData
