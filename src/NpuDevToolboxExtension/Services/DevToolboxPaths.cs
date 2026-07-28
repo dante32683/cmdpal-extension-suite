@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Microsoft.CommandPalette.Extensions.Toolkit;
 
 namespace NpuTools.DevToolbox.Services;
 
@@ -17,7 +18,8 @@ internal static class DevToolboxPaths
 
     internal static string CommandPaletteSettingsPath()
     {
-        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        return Path.Combine(localAppData, "Microsoft", "Windows", "CommandPalette", "settings.json");
+        var directory = Utilities.BaseSettingsPath("Microsoft.CmdPal");
+        Directory.CreateDirectory(directory);
+        return Path.Combine(directory, "devToolbox.settings.json");
     }
 }
