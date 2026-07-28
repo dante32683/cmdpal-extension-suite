@@ -29,20 +29,40 @@ foreach ($processName in $processNames) {
     Stop-Process -Name $processName -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host "Unregistering existing app packages..."
-foreach ($name in $packageNames) {
-    $packages = Get-AppxPackage -Name $name -ErrorAction SilentlyContinue
-    foreach ($package in $packages) {
-        Write-Host "Removing $($package.PackageFullName)"
-        Remove-AppxPackage -Package $package.PackageFullName -ErrorAction Continue
+$runtime = if ($Platform -eq "ARM64") { "win-arm64" } else { "win-x64" }
+
+function Get-ManifestPath {
+    param([System.IO.DirectoryInfo]$Project)
+    Join-Path $Project.FullName "bin\$Platform\$Configuration\net9.0-windows10.0.26100.0\$runtime\AppxManifest.xml"
+}
+
+# Removing a package DELETES its data container (%LOCALAPPDATA%\Packages\<PFN>),
+# and MSIX redirects both %LOCALAPPDATA% and SpecialFolder.LocalApplicationData
+# into it -- so an unregister wipes extension settings. Two guards:
+#   1. skip the removal entirely when the registration already points at the
+#      build output we are about to register; Add-AppxPackage -Register updates
+#      an existing registration in place.
+#   2. when a removal really is needed (the install path moved), pass
+#      -PreserveApplicationData so the container survives.
+Write-Host "Unregistering stale app packages..."
+foreach ($project in $installableProjects) {
+    $expected = Split-Path -Parent (Get-ManifestPath -Project $project)
+    foreach ($package in @(Get-AppxPackage -Name $project.Name -ErrorAction SilentlyContinue)) {
+        $current = $package.InstallLocation
+        if ($current -and $current.TrimEnd('\') -ieq $expected.TrimEnd('\')) {
+            Write-Host "Keeping $($package.PackageFullName) - already registered from $current"
+            continue
+        }
+
+        Write-Host "Removing $($package.PackageFullName) - registered from '$current', expected '$expected'"
+        Remove-AppxPackage -Package $package.PackageFullName -PreserveApplicationData -ErrorAction Continue
     }
 }
 
 Write-Host "Registering monorepo app manifests..."
 foreach ($project in $installableProjects) {
     $name = $project.Name
-    $runtime = if ($Platform -eq "ARM64") { "win-arm64" } else { "win-x64" }
-    $manifestPath = Join-Path $project.FullName "bin\$Platform\$Configuration\net9.0-windows10.0.26100.0\$runtime\AppxManifest.xml"
+    $manifestPath = Get-ManifestPath -Project $project
     if (-not (Test-Path $manifestPath)) {
         Write-Warning "Skipping $name - no build at $manifestPath. Build first if this extension should be registered."
         continue
