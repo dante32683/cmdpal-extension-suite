@@ -57,7 +57,6 @@ static async Task<int> RunWatchAsync(StateStore store)
     store.UpdateState(startState =>
     {
         startState.StartedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-        startState.LastHeartbeatAt = startState.StartedAt;
         startState.LastError = null;
         startState.WatchFolder = cfg.WatchFolder;
     });
@@ -96,16 +95,11 @@ static async Task<int> RunWatchAsync(StateStore store)
                 }
                 lastConfigMtime = mtime;
             }
-
-            store.UpdateState(st =>
-                st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture));
         }
     }
     finally
     {
         watcher.Stop();
-        store.UpdateState(finalState =>
-            finalState.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture));
     }
 
     return 0;
@@ -179,7 +173,6 @@ static async Task<int> RunProcessOneAsync(StateStore store, string imagePath)
         st.Processed++;
         st.LastProcessedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         st.LastProcessedPath = destination;
-        st.LastHeartbeatAt = st.LastProcessedAt;
         st.LastError = null;
     });
     Console.WriteLine($"{info.Name}  ->  {Path.GetFileName(destination)}");

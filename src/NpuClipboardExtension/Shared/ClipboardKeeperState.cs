@@ -7,9 +7,6 @@ public sealed class ClipboardKeeperState
     [JsonPropertyName("startedAt")]
     public string? StartedAt { get; set; }
 
-    [JsonPropertyName("lastHeartbeatAt")]
-    public string? LastHeartbeatAt { get; set; }
-
     [JsonPropertyName("lastCapturedAt")]
     public string? LastCapturedAt { get; set; }
 

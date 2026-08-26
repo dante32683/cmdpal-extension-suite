@@ -13,9 +13,6 @@ public sealed class StateFile
     [JsonPropertyName("startedAt")]
     public string? StartedAt { get; set; }
 
-    [JsonPropertyName("lastHeartbeatAt")]
-    public string? LastHeartbeatAt { get; set; }
-
     [JsonPropertyName("lastEventAt")]
     public string? LastEventAt { get; set; }
 
