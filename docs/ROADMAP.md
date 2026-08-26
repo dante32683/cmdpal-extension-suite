@@ -58,7 +58,7 @@ Command Palette extensions only run while the palette is active. A file watcher 
 2. Debounce `Created`/`Changed` bursts (screenshots often fire both events).
 3. For each stable new file, call `ImageDescriptionGenerator` to get a brief description, slugify it (same rules as `AiNamingService`), and rename the file.
 4. Skip files already matching the `YYYY-MM-DD_` prefix.
-5. Write heartbeat + state to `%LocalAppData%\NpuOrganize\state.json` so the Watcher Dashboard can show live status without IPC.
+5. Write state after startup and watcher activity to `%LocalAppData%\NpuOrganize\state.json`; process checks provide liveness.
 6. Honour a `stop.flag` file (written by `StartStopKeeperCommand`) for clean shutdown.
 
 ### MSIX identity requirement

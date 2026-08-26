@@ -136,16 +136,13 @@ internal sealed class ScreenshotWatcher : IDisposable
 
         var now = DateTime.UtcNow;
         _pending.AddOrUpdate(fullPath, _ => new PendingFile(fullPath, now), (_, p) => p with { LastEventAt = now });
-        TouchHeartbeat();
+        RecordEvent();
     }
 
-    private void TouchHeartbeat()
+    private void RecordEvent()
     {
         _store.UpdateState(st =>
-        {
-            st.LastEventAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-            st.LastHeartbeatAt = st.LastEventAt;
-        });
+            st.LastEventAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private async Task ProcessLoopAsync(CancellationToken ct)
@@ -280,7 +277,6 @@ internal sealed class ScreenshotWatcher : IDisposable
                 st.Processed++;
                 st.LastProcessedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
                 st.LastProcessedPath = destPath;
-                st.LastHeartbeatAt = st.LastProcessedAt;
                 st.LastError = null;
             });
 
@@ -340,7 +336,6 @@ internal sealed class ScreenshotWatcher : IDisposable
         _store.UpdateState(st =>
         {
             st.Skipped++;
-            st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         });
         _store.AppendLog($"skip   {message}");
     }
@@ -351,7 +346,6 @@ internal sealed class ScreenshotWatcher : IDisposable
         {
             st.Errors++;
             st.LastError = message;
-            st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         });
         _store.AppendLog("ERROR  " + message);
     }
