@@ -117,6 +117,10 @@ The pending review feature stores each selection rewrite in a `PendingRewriteSto
 
 All planned features implemented including cross-device sync via shared folder.
 
+> ⚠️ 2026-07-09 audit surfaced open reliability/security issues in this subsystem —
+> see `docs/BUGS.md` BUG-017..022. Highest priority: **BUG-017** (settings write
+> storm / silent config-and-secret loss). Fix before treating this extension as done.
+
 | Feature | Status |
 |---|---|
 | Clipboard history (text, images, files, links, emails, colors) | ✅ |

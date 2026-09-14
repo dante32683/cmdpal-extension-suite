@@ -110,6 +110,18 @@ public sealed class SecretPatternMatcherTests
     }
 
     [Fact]
+    public void Matcher_TimeoutFailsClosed()
+    {
+        var settings = new ClipboardAppSettings
+        {
+            SecretPatterns = [new SecretPattern { Name = "Backtracking", Regex = "(a+)+$" }],
+        };
+        var matcher = new SecretPatternMatcher(settings);
+
+        Assert.NotNull(matcher.Match(new string('a', 5000) + "!"));
+    }
+
+    [Fact]
     public void FormParser_ParsesValidLines()
     {
         string raw = "Cloudflare API Key | CF_API_KEY=\\w{20,}\nGitHub PAT | \\bghp_[A-Za-z0-9]{36}\\b";

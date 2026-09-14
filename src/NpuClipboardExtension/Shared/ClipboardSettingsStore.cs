@@ -25,9 +25,18 @@ public sealed class ClipboardSettingsStore
     {
         lock (_lock)
         {
-            update(_settings);
-            Normalize(_settings);
-            Save();
+            ClipboardAppSettings before = Clone(_settings);
+            try
+            {
+                update(_settings);
+                Normalize(_settings);
+                Save();
+            }
+            catch
+            {
+                _settings = before;
+                throw;
+            }
         }
     }
 
@@ -48,7 +57,6 @@ public sealed class ClipboardSettingsStore
                 _settings = JsonSerializer.Deserialize(json, ClipboardJsonContext.Default.ClipboardAppSettings) ?? new ClipboardAppSettings();
             }
             Normalize(_settings);
-            Save();
         }
         catch (Exception ex)
         {
@@ -70,6 +78,7 @@ public sealed class ClipboardSettingsStore
         catch (Exception ex)
         {
             Debug.WriteLine($"ClipboardSettingsStore Save failed: {ex.GetType().Name}: {ex.Message}");
+            throw;
         }
     }
 
@@ -79,6 +88,8 @@ public sealed class ClipboardSettingsStore
             settings.RetentionLimit = ClipboardAppSettings.DefaultRetentionLimit;
         if (settings.PasteDelayMs < 50)
             settings.PasteDelayMs = 250;
+        settings.DisabledApplicationNames ??= [];
+        settings.SecretPatterns ??= [];
         settings.DisabledApplicationNames.RemoveAll(string.IsNullOrWhiteSpace);
         if (settings.SecretPatterns is null || settings.SecretPatterns.Count == 0)
             settings.SecretPatterns = DefaultSecretPatterns.Copy();

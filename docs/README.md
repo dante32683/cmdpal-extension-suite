@@ -25,9 +25,10 @@ The repo-level docs are the authoritative standards for all extensions in this w
 - `src/NpuImageEditorExtension` - NPU Image Editor: OCR, background removal, upscale.
 - `src/NpuTextToolsExtension` - NPU Text Tools: six AI rewrite modes via Phi.
 - `src/NpuClipboardExtension` - NPU Clipboard: history, search, recorder controls.
+- `src/NpuClipboardKeeper` - companion recorder daemon for `NpuClipboardExtension`.
 - `src/NpuNotesExtension` - Markdown notes hub with create, search, browse, pin, and delete flows.
+- `src/NpuObsidianExtension` - Obsidian vault search, capture, append, rename, move, and delete flows.
 - `src/NpuDevToolboxExtension` - NPU developer toolbox shell.
-- `src/NPUToolsExtension` - original scaffold retained only as a temporary reference.
 - `src/NpuTools.Shared` - shared NPU helpers.
 - `tools/NpuAwakeKeeper` - companion daemon packaged by `NpuAwakeExtension`.
 
@@ -47,7 +48,7 @@ Imported project docs live under `docs/extensions/`. Treat them as historical or
 
 - `RAYCAST_MIGRATION_PLAN.md` - migration plan for Raycast tools into Command Palette extensions. This is planning material, not current architecture truth until implemented.
 - `NPU_NOTES_EXTENSION_GUIDE.md` - implementation guide for the Raycast-inspired NPU Notes extension.
-- `NPU_OBSIDIAN_EXTENSION_GUIDE.md` - implementation guide for a future NPU Obsidian vault extension.
+- `NPU_OBSIDIAN_EXTENSION_GUIDE.md` - implementation and maintenance guide for the NPU Obsidian vault extension.
 - `CMDPAL_EXTENSION_AUDIT.md` - local installed-extension audit and cleanup recommendations.
 - `docs/ephemeral-plans/` - ignored local planning notes for future agents on this machine. These files are intentionally excluded from git and are not authoritative unless copied into canonical docs.
 

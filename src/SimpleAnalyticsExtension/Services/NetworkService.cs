@@ -10,8 +10,8 @@ internal sealed class NetworkInfo
     public bool IsWifi { get; init; }
     public string Ssid { get; init; } = string.Empty;
     public int SignalBars { get; init; }  // 0-5 raw Windows signal bars
-    public double ReceiveMbps { get; init; }
-    public double TransmitMbps { get; init; }
+    public double LinkReceiveMbps { get; init; }
+    public double LinkTransmitMbps { get; init; }
 }
 
 internal sealed class NetworkService
@@ -52,8 +52,8 @@ internal sealed class NetworkService
                 IsWifi = isWifi,
                 Ssid = ssid,
                 SignalBars = signalBars,
-                ReceiveMbps = rxMbps,
-                TransmitMbps = txMbps,
+                LinkReceiveMbps = rxMbps,
+                LinkTransmitMbps = txMbps,
             };
         }
         catch

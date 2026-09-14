@@ -39,7 +39,6 @@ static async Task<int> RunWatchAsync()
     var capture = new ClipboardCaptureService(store, settings);
     var state = LoadState();
     state.StartedAt = DateTimeOffset.UtcNow.ToString("O");
-    state.LastHeartbeatAt = state.StartedAt;
     SaveState(state);
 
     uint lastSequence = NativeMethods.GetClipboardSequenceNumber();
@@ -49,7 +48,7 @@ static async Task<int> RunWatchAsync()
     while (!File.Exists(ClipboardPaths.StopFlagPath()))
     {
         await Task.Delay(700).ConfigureAwait(false);
-        state.LastHeartbeatAt = DateTimeOffset.UtcNow.ToString("O");
+        bool stateChanged = false;
 
         try
         {
@@ -65,12 +64,14 @@ static async Task<int> RunWatchAsync()
                     state.LastCapturedAt = DateTimeOffset.UtcNow.ToString("O");
                     state.LastSkippedReason = null;
                     AppendLog($"capture  {result.Message}");
+                    stateChanged = true;
                 }
                 else
                 {
                     state.Skipped++;
                     state.LastSkippedReason = result.Message;
                     AppendLog($"skip  {result.Message}");
+                    stateChanged = true;
                 }
             }
         }
@@ -79,6 +80,7 @@ static async Task<int> RunWatchAsync()
             state.Errors++;
             state.LastError = $"{ex.GetType().Name}: {ex.Message}";
             AppendLog($"error  {state.LastError}");
+            stateChanged = true;
         }
 
         // Prune sync folder entries older than 30 days once per hour.
@@ -88,7 +90,8 @@ static async Task<int> RunWatchAsync()
             lastPrune = DateTimeOffset.UtcNow;
         }
 
-        SaveState(state);
+        if (stateChanged)
+            SaveState(state);
     }
 
     TryDelete(ClipboardPaths.StopFlagPath());

@@ -21,6 +21,9 @@ internal sealed class NoteEntry
 
     public List<string> Tags { get; set; } = [];
 
+    // Preserve frontmatter owned by other tools when the note is rewritten.
+    public Dictionary<string, string> Frontmatter { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
     public string Body { get; set; } = "";
 
     public bool IsPinned { get; set; }

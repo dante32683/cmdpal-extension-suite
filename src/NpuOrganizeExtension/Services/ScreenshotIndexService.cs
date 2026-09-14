@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NpuTools.Organize.Models;
@@ -31,6 +33,8 @@ internal sealed partial class ScreenshotIndexService : IDisposable
     public void Dispose()
     {
         _saveCancellationTokenSource.Cancel();
+        try { _saveTask?.GetAwaiter().GetResult(); } catch { /* cancellation or a logged save failure */ }
+        try { SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); } catch { /* best effort final flush */ }
         _saveCancellationTokenSource.Dispose();
     }
 
@@ -59,6 +63,24 @@ internal sealed partial class ScreenshotIndexService : IDisposable
         {
             EnsureFresh();
             _entries[filePath] = entry;
+            QueueSave();
+        }
+    }
+
+    public void RelocateAndUpsert(string oldPath, string newPath, string description, string ocrText)
+    {
+        var entry = new ScreenshotIndexEntry
+        {
+            FilePath    = newPath,
+            Description = description,
+            OcrText     = ocrText,
+            IndexedAt   = DateTimeOffset.Now,
+        };
+        lock (_lock)
+        {
+            EnsureFresh();
+            _entries.Remove(oldPath);
+            _entries[newPath] = entry;
             QueueSave();
         }
     }
@@ -192,18 +214,25 @@ internal sealed partial class ScreenshotIndexService : IDisposable
         _saveCancellationTokenSource = new CancellationTokenSource();
         var token = _saveCancellationTokenSource.Token;
 
-        _saveTask = Task.Delay(TimeSpan.FromMilliseconds(500), token)
-            .ContinueWith(async t =>
-            {
-                if (t.IsCanceled) return;
-                await SaveAsync();
-            }, TaskScheduler.Default);
+        _saveTask = SaveAfterDelayAsync(token);
     }
 
-    private async Task SaveAsync()
+    private async Task SaveAfterDelayAsync(CancellationToken token)
     {
         try
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(500), token).ConfigureAwait(false);
+            await SaveAsync(token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+    }
+
+    private async Task SaveAsync(CancellationToken cancellationToken)
+    {
+        using var mutex = new Mutex(false, IndexMutexName());
+        try
+        {
+            try { mutex.WaitOne(); } catch (AbandonedMutexException) { }
             Directory.CreateDirectory(Path.GetDirectoryName(IndexPath)!);
             List<ScreenshotIndexEntry> snapshot;
             lock (_lock)
@@ -211,7 +240,9 @@ internal sealed partial class ScreenshotIndexService : IDisposable
                 snapshot = new List<ScreenshotIndexEntry>(_entries.Values);
             }
             string json = JsonSerializer.Serialize(snapshot, IndexJsonContext.Default.ListScreenshotIndexEntry);
-            await File.WriteAllTextAsync(IndexPath, json);
+            string tmp = $"{IndexPath}.{Environment.ProcessId}.{DateTime.UtcNow.Ticks}.tmp";
+            await File.WriteAllTextAsync(tmp, json, cancellationToken).ConfigureAwait(false);
+            File.Move(tmp, IndexPath, overwrite: true);
             lock (_lock)
             {
                 _lastWriteTime = File.GetLastWriteTimeUtc(IndexPath);
@@ -221,6 +252,16 @@ internal sealed partial class ScreenshotIndexService : IDisposable
         {
             Debug.WriteLine($"ScreenshotIndexService Save failed: {ex.GetType().Name}: {ex.Message}");
         }
+        finally
+        {
+            try { mutex.ReleaseMutex(); } catch { }
+        }
+    }
+
+    private static string IndexMutexName()
+    {
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(IndexPath));
+        return $"Local\\NpuOrganizeIndex-{Convert.ToHexString(hash)[..24]}";
     }
 
     private void EnsureFresh()

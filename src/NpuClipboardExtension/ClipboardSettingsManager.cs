@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -144,7 +145,16 @@ internal sealed class ClipboardSettingsManager : JsonSettingsManager
             settings.SecretDetectionEnabled = _secretDetectionEnabled.Value;
         });
 
-        _store.EnforceRetention(_runtimeSettings.Current);
+        // Settings changes arrive from the host's settings UI, which has no way
+        // to surface an exception; a failed write is logged and dropped here.
+        try
+        {
+            _store.EnforceRetention(_runtimeSettings.Current);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ClipboardSettingsManager EnforceRetention failed: {ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     private static T ParseEnum<T>(string? value, T fallback)

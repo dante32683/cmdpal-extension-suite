@@ -105,7 +105,7 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
 
         items.Add(new ListItem(new SelectionRewriteCommand(TextRewriteMode.FixGrammar, _service, _pending))
         {
-            Title    = "Run Test Capture — Fix Grammar",
+            Title    = "Run Test Capture: Fix Grammar",
             Subtitle = "Select text before running, then check above for result",
             Icon     = TextToolsVisuals.Phi,
             Tags     = [TextToolsVisuals.MutedTag("test capture")],
@@ -135,7 +135,7 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
                 "RDP sessions may intercept Ctrl+C before it reaches the remote app.",
                 "Apps with custom clipboard handling (e.g. terminals) may not respond.",
                 "Game overlays and screen readers may grab focus before the extension.",
-                "Rich-text clipboard formats are lost — only plain text is captured."),
+                "Formats that cannot be snapshotted by Win32 may not be restorable after capture."),
         });
 
         return [.. items];

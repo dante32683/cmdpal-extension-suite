@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -24,6 +25,15 @@ internal static partial class ClipboardHelper
     private static partial IntPtr GetClipboardData(uint uFormat);
 
     [LibraryImport("user32.dll")]
+    private static partial uint EnumClipboardFormats(uint format);
+
+    [LibraryImport("kernel32.dll")]
+    private static partial UIntPtr GlobalSize(IntPtr hMem);
+
+    [LibraryImport("kernel32.dll")]
+    private static partial IntPtr GlobalFree(IntPtr hMem);
+
+    [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool CloseClipboard();
 
@@ -40,23 +50,103 @@ internal static partial class ClipboardHelper
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GlobalUnlock(IntPtr hMem);
 
-    internal static void SetText(string text)
+    internal static bool SetText(string text)
     {
-        if (!OpenClipboard(IntPtr.Zero)) return;
+        if (!OpenClipboard(IntPtr.Zero)) return false;
         try
         {
-            EmptyClipboard();
+            if (!EmptyClipboard()) return false;
             byte[] bytes = Encoding.Unicode.GetBytes(text + '\0');
             var hMem = GlobalAlloc(GMEM_MOVEABLE, (UIntPtr)(uint)bytes.Length);
-            if (hMem == IntPtr.Zero) return;
+            if (hMem == IntPtr.Zero) return false;
             var ptr = GlobalLock(hMem);
-            if (ptr != IntPtr.Zero)
+            if (ptr == IntPtr.Zero)
             {
-                Marshal.Copy(bytes, 0, ptr, bytes.Length);
-                GlobalUnlock(hMem);
+                GlobalFree(hMem);
+                return false;
             }
 
-            SetClipboardData(CF_UNICODETEXT, hMem);
+            Marshal.Copy(bytes, 0, ptr, bytes.Length);
+            GlobalUnlock(hMem);
+            if (SetClipboardData(CF_UNICODETEXT, hMem) == IntPtr.Zero)
+            {
+                GlobalFree(hMem);
+                return false;
+            }
+            // Ownership transfers to the clipboard after SetClipboardData succeeds.
+            return true;
+        }
+        finally
+        {
+            CloseClipboard();
+        }
+    }
+
+    internal sealed class ClipboardSnapshot
+    {
+        internal List<(uint Format, byte[] Data)> Formats { get; } = [];
+    }
+
+    internal static ClipboardSnapshot? CaptureSnapshot()
+    {
+        if (!OpenClipboard(IntPtr.Zero)) return null;
+        try
+        {
+            var snapshot = new ClipboardSnapshot();
+            uint format = 0;
+            while ((format = EnumClipboardFormats(format)) != 0)
+            {
+                IntPtr handle = GetClipboardData(format);
+                UIntPtr size = handle == IntPtr.Zero ? UIntPtr.Zero : GlobalSize(handle);
+                if (handle == IntPtr.Zero || size == UIntPtr.Zero || size.ToUInt64() > int.MaxValue)
+                    continue;
+
+                IntPtr ptr = GlobalLock(handle);
+                if (ptr == IntPtr.Zero) continue;
+                try
+                {
+                    byte[] data = new byte[(int)size.ToUInt64()];
+                    Marshal.Copy(ptr, data, 0, data.Length);
+                    snapshot.Formats.Add((format, data));
+                }
+                finally
+                {
+                    GlobalUnlock(handle);
+                }
+            }
+            return snapshot;
+        }
+        finally
+        {
+            CloseClipboard();
+        }
+    }
+
+    internal static bool RestoreSnapshot(ClipboardSnapshot snapshot)
+    {
+        if (!OpenClipboard(IntPtr.Zero)) return false;
+        try
+        {
+            if (!EmptyClipboard()) return false;
+            foreach (var (format, data) in snapshot.Formats)
+            {
+                IntPtr handle = GlobalAlloc(GMEM_MOVEABLE, (UIntPtr)(uint)data.Length);
+                if (handle == IntPtr.Zero) return false;
+                IntPtr ptr = GlobalLock(handle);
+                if (ptr == IntPtr.Zero)
+                {
+                    GlobalFree(handle);
+                    return false;
+                }
+                Marshal.Copy(data, 0, ptr, data.Length);
+                GlobalUnlock(handle);
+                if (SetClipboardData(format, handle) == IntPtr.Zero)
+                {
+                    GlobalFree(handle);
+                    return false;
+                }
+            }
+            return true;
         }
         finally
         {

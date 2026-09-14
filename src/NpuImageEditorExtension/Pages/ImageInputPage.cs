@@ -32,6 +32,9 @@ internal sealed partial class ImageInputPage : DynamicListPage
     private readonly ImageEditorSettingsManager _settings;
     private readonly HashSet<string> _selected = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ListItem> _rowsByPath = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _stateLock = new();
+    private CancellationTokenSource? _scanCancellation;
+    private int _scanGeneration;
 
     private int _initialized;
     private string _folder = PicturesPath;
@@ -66,10 +69,14 @@ internal sealed partial class ImageInputPage : DynamicListPage
         // A pasted directory switches which folder we scan (e.g. jump to Downloads).
         if (q.Length > 0 && Directory.Exists(q) && !string.Equals(q, _folder, StringComparison.OrdinalIgnoreCase))
         {
-            _folder = q;
-            _query  = string.Empty;
+            lock (_stateLock)
+            {
+                _folder = q;
+                _query = string.Empty;
+                _selected.Clear();
+            }
             IsLoading = true;
-            _ = Task.Run(RescanAsync);
+            StartRescan(q);
             return;
         }
 
@@ -80,20 +87,46 @@ internal sealed partial class ImageInputPage : DynamicListPage
     public override IListItem[] GetItems()
     {
         if (Interlocked.Exchange(ref _initialized, 1) == 0)
-            _ = Task.Run(RescanAsync);
+            StartRescan(_folder);
 
         return BuildVisibleItems();
     }
 
-    private async Task RescanAsync()
+    private void StartRescan(string folder)
     {
-        var infos = await ScanFolderAsync(_folder);
+        int generation = Interlocked.Increment(ref _scanGeneration);
+        _scanCancellation?.Cancel();
+        _scanCancellation?.Dispose();
+        var cancellation = new CancellationTokenSource();
+        _scanCancellation = cancellation;
+        _ = Task.Run(() => RescanAsync(folder, generation, cancellation.Token));
+    }
 
-        _rowsByPath.Clear();
-        _browseRows = infos.Select(MakeRow).ToArray();
-        _clipboardRow = await TryBuildClipboardRowAsync();
+    private async Task RescanAsync(string folder, int generation, CancellationToken cancellationToken)
+    {
+        var infos = await ScanFolderAsync(folder, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var rowsByPath = new Dictionary<string, ListItem>(StringComparer.OrdinalIgnoreCase);
+        var browseRows = infos.Select(info => MakeRow(info, rowsByPath)).ToArray();
+        var clipboardRow = await TryBuildClipboardRowAsync(rowsByPath);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (generation != Volatile.Read(ref _scanGeneration))
+            return;
+
+        lock (_stateLock)
+        {
+            if (generation != _scanGeneration)
+                return;
+            _rowsByPath.Clear();
+            foreach (var pair in rowsByPath)
+                _rowsByPath[pair.Key] = pair.Value;
+            _browseRows = browseRows;
+            _clipboardRow = clipboardRow;
+        }
 
         IsLoading = false;
+        RefreshHeader();
         RaiseItemsChanged();
     }
 
@@ -102,16 +135,27 @@ internal sealed partial class ImageInputPage : DynamicListPage
     // the checkbox and counter while the highlighted row stays put.
     private void Toggle(string path)
     {
-        if (!_selected.Remove(path))
-            _selected.Add(path);
+        lock (_stateLock)
+        {
+            if (!_selected.Remove(path))
+                _selected.Add(path);
 
-        if (_rowsByPath.TryGetValue(path, out var row))
-            ApplyRowState(row, path);
+            if (_rowsByPath.TryGetValue(path, out var row))
+                ApplyRowState(row, path);
+        }
 
         RefreshHeader();
     }
 
     private void RefreshHeader()
+    {
+        lock (_stateLock)
+        {
+            RefreshHeaderCore();
+        }
+    }
+
+    private void RefreshHeaderCore()
     {
         int n = _selected.Count;
 
@@ -145,6 +189,14 @@ internal sealed partial class ImageInputPage : DynamicListPage
 
     private IListItem[] BuildVisibleItems()
     {
+        lock (_stateLock)
+        {
+            return BuildVisibleItemsCore();
+        }
+    }
+
+    private IListItem[] BuildVisibleItemsCore()
+    {
         var rows = new List<ListItem>();
 
         // A pasted full file path surfaces that exact file, even if it lives outside the scanned
@@ -169,25 +221,30 @@ internal sealed partial class ImageInputPage : DynamicListPage
         return [.. items];
     }
 
-    private ListItem MakeRow(FileInfo info)
+    private ListItem MakeRow(FileInfo info) => MakeRow(info, _rowsByPath);
+
+    private ListItem MakeRow(FileInfo info, Dictionary<string, ListItem> rowsByPath)
     {
         var row = new ListItem(new NoOpCommand()) { Title = info.Name, Subtitle = FormatAge(info.LastWriteTime) };
-        _rowsByPath[info.FullName] = row;
+        rowsByPath[info.FullName] = row;
         ApplyRowState(row, info.FullName);
         return row;
     }
 
     private void ApplyRowState(ListItem row, string path)
     {
-        bool selected = _selected.Contains(path);
-        row.Command = new ToggleBatchSelectionCommand(path, selected, Toggle);
-        row.Icon    = selected ? ImageEditorVisuals.Selected : ImageEditorVisuals.Unselected;
-        row.Tags    = selected
-            ? [ImageEditorVisuals.MutedTag("selected")]
-            : [ImageEditorVisuals.MutedTag("press Enter to add")];
+        lock (_stateLock)
+        {
+            bool selected = _selected.Contains(path);
+            row.Command = new ToggleBatchSelectionCommand(path, selected, Toggle);
+            row.Icon = selected ? ImageEditorVisuals.Selected : ImageEditorVisuals.Unselected;
+            row.Tags = selected
+                ? [ImageEditorVisuals.MutedTag("selected")]
+                : [ImageEditorVisuals.MutedTag("press Enter to add")];
+        }
     }
 
-    private async Task<ListItem?> TryBuildClipboardRowAsync()
+    private async Task<ListItem?> TryBuildClipboardRowAsync(Dictionary<string, ListItem> rowsByPath)
     {
         try
         {
@@ -204,7 +261,7 @@ internal sealed partial class ImageInputPage : DynamicListPage
                 Title    = "From Clipboard",
                 Subtitle = "Use the image currently in your clipboard",
             };
-            _rowsByPath[savedPath] = row;
+            rowsByPath[savedPath] = row;
             ApplyRowState(row, savedPath);
             return row;
         }
@@ -222,10 +279,11 @@ internal sealed partial class ImageInputPage : DynamicListPage
             Icon     = ImageEditorVisuals.Folder,
         };
 
-    private static async Task<FileInfo[]> ScanFolderAsync(string folder)
+    private static async Task<FileInfo[]> ScanFolderAsync(string folder, CancellationToken cancellationToken)
     {
         return await Task.Run(() =>
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!Directory.Exists(folder))
                 return Array.Empty<FileInfo>();
 
@@ -249,7 +307,7 @@ internal sealed partial class ImageInputPage : DynamicListPage
             {
                 return Array.Empty<FileInfo>();
             }
-        });
+        }, cancellationToken);
     }
 
     private static bool LooksLikeFilePath(string s) =>
