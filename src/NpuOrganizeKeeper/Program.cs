@@ -131,6 +131,12 @@ static async Task<int> RunProcessOneAsync(StateStore store, string imagePath)
     var cfg  = GetOrCreateConfig(store);
     var info = new FileInfo(imagePath);
 
+    if (cfg.SkipOnBattery && !PowerStatus.IsOnAcPower())
+    {
+        Console.WriteLine("NPU screenshot work is paused on battery power.");
+        return 0;
+    }
+
     Console.WriteLine($"Describing {info.Name}…");
 
     string description;

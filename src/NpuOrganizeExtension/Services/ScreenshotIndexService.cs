@@ -67,6 +67,24 @@ internal sealed partial class ScreenshotIndexService : IDisposable
         }
     }
 
+    public void RelocateAndUpsert(string oldPath, string newPath, string description, string ocrText)
+    {
+        var entry = new ScreenshotIndexEntry
+        {
+            FilePath    = newPath,
+            Description = description,
+            OcrText     = ocrText,
+            IndexedAt   = DateTimeOffset.Now,
+        };
+        lock (_lock)
+        {
+            EnsureFresh();
+            _entries.Remove(oldPath);
+            _entries[newPath] = entry;
+            QueueSave();
+        }
+    }
+
     public void UpdatePath(string oldPath, string newPath)
     {
         lock (_lock)

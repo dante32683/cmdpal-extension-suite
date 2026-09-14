@@ -10,15 +10,15 @@ internal static partial class SlugService
     [GeneratedRegex(@"[^a-z0-9]+")]
     private static partial Regex NonAlphanumeric();
 
-    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}")]
-    private static partial Regex AlreadyDatePrefixed();
+    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}_[a-z0-9]+(?:-[a-z0-9]+)*\.(?:png|jpe?g|webp)$", RegexOptions.IgnoreCase)]
+    private static partial Regex AlreadyOrganized();
 
     // Strips "Screenshot YYYY-MM-DD " prefix; time digits (013016) are intentionally kept as slug
     [GeneratedRegex(@"^(screenshot\s+)?\d{4}[-\s]\d{2}[-\s]\d{2}\s*", RegexOptions.IgnoreCase)]
     private static partial Regex LeadingDateNoise();
 
     internal static bool IsAlreadyOrganized(string fileName) =>
-        AlreadyDatePrefixed().IsMatch(fileName);
+        AlreadyOrganized().IsMatch(fileName);
 
     internal static string BuildProposedPath(string originalPath)
     {
@@ -27,9 +27,7 @@ internal static partial class SlugService
         string ext      = Path.GetExtension(originalPath);
         string date     = File.GetCreationTime(originalPath).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         string slug     = Slugify(stem);
-        string proposed = string.IsNullOrEmpty(slug)
-            ? $"{date}{ext}"
-            : $"{date}_{slug}{ext}";
+        string proposed = $"{date}_{(string.IsNullOrEmpty(slug) ? "screenshot" : slug)}{ext}";
 
         return CollisionSafe(dir, proposed, ext);
     }
