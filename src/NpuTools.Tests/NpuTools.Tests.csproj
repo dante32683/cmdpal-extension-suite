@@ -32,6 +32,8 @@
     <!-- Link SlugGenerator.cs directly from NpuOrganizeKeeper source,
          avoiding MSIX/WinRT dependencies while testing the algorithm. -->
     <Compile Include="..\NpuOrganizeKeeper\SlugGenerator.cs" Link="SlugGenerator.cs" />
+    <Compile Include="..\NpuOrganizeExtension\Services\SlugService.cs" Link="Organize\SlugService.cs" />
+    <Compile Include="..\NpuOrganizeExtension\Services\OrganizeSettings.cs" Link="Organize\OrganizeSettings.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardClassifier.cs" Link="Clipboard\ClipboardClassifier.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardEntryKind.cs" Link="Clipboard\ClipboardEntryKind.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardEntry.cs" Link="Clipboard\ClipboardEntry.cs" />
