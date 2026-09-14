@@ -23,6 +23,7 @@ namespace NpuOrganizeKeeper;
 internal sealed class ScreenshotWatcher : IDisposable
 {
     private readonly StateStore _store;
+    private readonly OrganizeIndexStore _index = new();
     private readonly Func<KeeperConfig> _readConfig;
     private readonly ConcurrentDictionary<string, PendingFile> _pending = new(StringComparer.OrdinalIgnoreCase);
     private FileSystemWatcher? _fsw;
@@ -52,7 +53,12 @@ internal sealed class ScreenshotWatcher : IDisposable
         {
             try
             {
-                _ignoreRegex = new Regex(cfg.IgnorePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                if (cfg.IgnorePattern.Length > 512)
+                    throw new ArgumentException("ignorePattern is limited to 512 characters.");
+                _ignoreRegex = new Regex(
+                    cfg.IgnorePattern,
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                    TimeSpan.FromMilliseconds(100));
             }
             catch (Exception ex)
             {
@@ -115,19 +121,28 @@ internal sealed class ScreenshotWatcher : IDisposable
             return;
 
         if (cfg.SkipAlreadyNamed && SlugGenerator.IsAlreadyDateNamed(basename)) return;
-        if (_ignoreRegex is not null && _ignoreRegex.IsMatch(basename)) return;
+        if (_ignoreRegex is not null)
+        {
+            try
+            {
+                if (_ignoreRegex.IsMatch(basename)) return;
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                _store.AppendLog($"watch  WARN   ignorePattern timed out for '{basename}'");
+                return;
+            }
+        }
 
         var now = DateTime.UtcNow;
         _pending.AddOrUpdate(fullPath, _ => new PendingFile(fullPath, now), (_, p) => p with { LastEventAt = now });
-        TouchHeartbeat();
+        RecordEvent();
     }
 
-    private void TouchHeartbeat()
+    private void RecordEvent()
     {
-        var st = _store.LoadState();
-        st.LastEventAt     = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-        st.LastHeartbeatAt = st.LastEventAt;
-        _store.SaveState(st);
+        _store.UpdateState(st =>
+            st.LastEventAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private async Task ProcessLoopAsync(CancellationToken ct)
@@ -255,13 +270,15 @@ internal sealed class ScreenshotWatcher : IDisposable
                 return;
             }
 
-            var st = _store.LoadState();
-            st.Processed        += 1;
-            st.LastProcessedAt   = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-            st.LastProcessedPath = destPath;
-            st.LastHeartbeatAt   = st.LastProcessedAt;
-            st.LastError         = null;
-            _store.SaveState(st);
+            _index.UpdatePath(fullPath, destPath, description);
+
+            _store.UpdateState(st =>
+            {
+                st.Processed++;
+                st.LastProcessedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
+                st.LastProcessedPath = destPath;
+                st.LastError = null;
+            });
 
             _store.AppendLog($"rename  {info.Name}  ->  {finalBasename}  [{confidence}]");
         }
@@ -316,20 +333,20 @@ internal sealed class ScreenshotWatcher : IDisposable
 
     private void SkipAndCount(string message)
     {
-        var st = _store.LoadState();
-        st.Skipped        += 1;
-        st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-        _store.SaveState(st);
+        _store.UpdateState(st =>
+        {
+            st.Skipped++;
+        });
         _store.AppendLog($"skip   {message}");
     }
 
     private void FailAndCount(string message)
     {
-        var st = _store.LoadState();
-        st.Errors         += 1;
-        st.LastError       = message;
-        st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-        _store.SaveState(st);
+        _store.UpdateState(st =>
+        {
+            st.Errors++;
+            st.LastError = message;
+        });
         _store.AppendLog("ERROR  " + message);
     }
 

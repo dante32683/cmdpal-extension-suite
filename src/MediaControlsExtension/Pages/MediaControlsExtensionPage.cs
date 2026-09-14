@@ -13,6 +13,7 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
     private readonly MediaService _mediaService;
     private readonly Lock _refreshLock = new();
     private readonly bool _isBandPage;
+    private bool _disposed;
 
     private bool _isInitialized;
     private readonly NowPlayingListItem _playPauseCurrentSessionItem;
@@ -44,41 +45,9 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
         this.Id = "com.dziad.mediacontrolsextension";
         this.PlaceholderText = Strings.SearchPlaceholder!;
 
-        this._mediaService.Initialized += (_, _) =>
-        {
-            this._isInitialized = true;
-            this.RebuildAndRaiseIfChanged();
-        };
-
-        this._mediaService.MediaSourcesChanged += (_, _) =>
-        {
-            List<MediaSourceListItem> mediaSourceListItems = [.. this._mediaService.Sources.Select(mediaSource => new MediaSourceListItem(this._mediaService, mediaSource, this._settingsManager, this._yetAnotherHelper, this._isBandPage))];
-            MediaSourceListItem[] oldItems;
-            lock (this._refreshLock)
-            {
-                oldItems = [.. this._items];
-                this._items = mediaSourceListItems;
-            }
-
-            this.RebuildAndRaiseIfChanged();
-
-            _ = Task.Run(() =>
-            {
-                foreach (var item in oldItems)
-                {
-                    try
-                    {
-                        item.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError(ex);
-                    }
-                }
-            });
-        };
-
-        this._mediaService.LoadingStatusChanged += (_, _) => this.IsLoading = this._mediaService.IsLoading;
+        this._mediaService.Initialized += this.MediaServiceOnInitialized;
+        this._mediaService.MediaSourcesChanged += this.MediaServiceOnMediaSourcesChanged;
+        this._mediaService.LoadingStatusChanged += this.MediaServiceOnLoadingStatusChanged;
         this._settingsManager.Settings.SettingsChanged += this.SettingsOnSettingsChanged;
 
         this.EmptyContent = new CommandItem
@@ -113,8 +82,53 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
 
         // Subscribe after items are constructed so DockHeadItem's handler (registered in its
         // constructor above) runs first and Title/Subtitle are current when RaiseItemsChanged fires.
-        this._mediaService.CurrentMediaSourceChanged += (_, _) => this.UpdateCurrentMediaItems();
-        this._mediaService.CurrentMediaPlaybackChanged += (_, _) => this.UpdateCurrentMediaItems();
+        this._mediaService.CurrentMediaSourceChanged += this.MediaServiceOnCurrentMediaSourceChanged;
+        this._mediaService.CurrentMediaPlaybackChanged += this.MediaServiceOnCurrentMediaPlaybackChanged;
+    }
+
+    private void MediaServiceOnInitialized(object? sender, EventArgs e)
+    {
+        if (_disposed) return;
+        _isInitialized = true;
+        RebuildAndRaiseIfChanged();
+    }
+
+    private void MediaServiceOnMediaSourcesChanged(object? sender, EventArgs e)
+    {
+        if (_disposed) return;
+        List<MediaSourceListItem> newItems = [.. _mediaService.Sources.Select(mediaSource => new MediaSourceListItem(_mediaService, mediaSource, _settingsManager, _yetAnotherHelper, _isBandPage))];
+        MediaSourceListItem[] oldItems;
+        lock (_refreshLock)
+        {
+            oldItems = [.. _items];
+            _items = newItems;
+        }
+        RebuildAndRaiseIfChanged();
+        _ = Task.Run(() => DisposeItems(oldItems));
+    }
+
+    private void MediaServiceOnLoadingStatusChanged(object? sender, EventArgs e)
+    {
+        if (!_disposed) IsLoading = _mediaService.IsLoading;
+    }
+
+    private void MediaServiceOnCurrentMediaSourceChanged(object? sender, MediaSource? e)
+    {
+        if (!_disposed) UpdateCurrentMediaItems();
+    }
+
+    private void MediaServiceOnCurrentMediaPlaybackChanged(object? sender, EventArgs e)
+    {
+        if (!_disposed) UpdateCurrentMediaItems();
+    }
+
+    private static void DisposeItems(IEnumerable<MediaSourceListItem> items)
+    {
+        foreach (var item in items)
+        {
+            try { item.Dispose(); }
+            catch (Exception ex) { Logger.LogError(ex); }
+        }
     }
 
     private void UpdateCurrentMediaItems()
@@ -246,7 +260,21 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+        this._mediaService.Initialized -= this.MediaServiceOnInitialized;
+        this._mediaService.MediaSourcesChanged -= this.MediaServiceOnMediaSourcesChanged;
+        this._mediaService.LoadingStatusChanged -= this.MediaServiceOnLoadingStatusChanged;
+        this._mediaService.CurrentMediaSourceChanged -= this.MediaServiceOnCurrentMediaSourceChanged;
+        this._mediaService.CurrentMediaPlaybackChanged -= this.MediaServiceOnCurrentMediaPlaybackChanged;
         this._settingsManager.Settings.SettingsChanged -= this.SettingsOnSettingsChanged;
+        MediaSourceListItem[] items;
+        lock (_refreshLock)
+        {
+            items = [.. _items];
+            _items.Clear();
+        }
+        DisposeItems(items);
         this._playPauseCurrentSessionItem?.Dispose();
         this._bandFirstItem?.Dispose();
     }

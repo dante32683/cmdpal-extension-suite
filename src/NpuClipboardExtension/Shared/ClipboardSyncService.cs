@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace NpuTools.Clipboard.Data;
@@ -10,14 +11,18 @@ namespace NpuTools.Clipboard.Data;
 // Only text entries are synced — images and file paths are device-local.
 public static class ClipboardSyncService
 {
+    public readonly record struct SyncEntry(ClipboardEntry Entry, string SourcePath);
+
     private static string SyncDir(string syncFolder) =>
         Path.Combine(syncFolder, "clipboard-sync");
 
-    public static void WriteEntry(ClipboardEntry entry, string? syncFolder)
+    public static void WriteEntry(ClipboardEntry entry, string? syncFolder, ClipboardAppSettings? settings = null)
     {
         if (string.IsNullOrWhiteSpace(syncFolder)) return;
         if (entry.Kind != ClipboardEntryKind.Text || string.IsNullOrWhiteSpace(entry.Text)) return;
         if (string.IsNullOrWhiteSpace(entry.Id)) return;
+        if (settings is not null && new SecretPatternMatcher(settings).Match(entry.Text) is not null)
+            return;
 
         try
         {
@@ -35,6 +40,9 @@ public static class ClipboardSyncService
     }
 
     public static IReadOnlyList<ClipboardEntry> ReadNewEntries(string? syncFolder, ISet<string> knownIds)
+        => ReadNewEntriesWithPaths(syncFolder, knownIds).Select(item => item.Entry).ToArray();
+
+    public static IReadOnlyList<SyncEntry> ReadNewEntriesWithPaths(string? syncFolder, ISet<string> knownIds)
     {
         if (string.IsNullOrWhiteSpace(syncFolder)) return [];
 
@@ -42,7 +50,7 @@ public static class ClipboardSyncService
         if (!Directory.Exists(dir)) return [];
 
         string thisMachine = Environment.MachineName;
-        var result = new List<ClipboardEntry>();
+        var result = new List<SyncEntry>();
 
         try
         {
@@ -63,7 +71,7 @@ public static class ClipboardSyncService
                     if (entry.Kind != ClipboardEntryKind.Text) continue;
                     if (string.IsNullOrWhiteSpace(entry.Text)) continue;
 
-                    result.Add(entry);
+                    result.Add(new SyncEntry(entry, file));
                 }
                 catch (Exception ex)
                 {

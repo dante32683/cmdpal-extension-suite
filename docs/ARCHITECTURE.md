@@ -20,10 +20,11 @@ This repo targets .NET 9 and `Microsoft.CommandPalette.Extensions` SDK v0.9+. It
 │   ├── NpuClipboardExtension/             # NPU Clipboard — history, search, recorder controls
 │   ├── NpuClipboardKeeper/                # Companion recorder daemon for NpuClipboardExtension
 │   ├── NpuNotesExtension/                 # Markdown notes hub
+│   ├── NpuObsidianExtension/              # Obsidian vault search and capture
 │   ├── NpuDevToolboxExtension/            # NPU Dev Toolbox shell
 │   ├── NpuTools.Shared/                   # Shared NPU helpers
 │   ├── NpuTools.Tests/                    # xunit tests for shared services
-│   └── NPUToolsExtension/                 # Original scaffold, temporary reference
+│   └── (no archived scaffold projects)    # Historical scaffolds are not built
 ├── tools/
 │   └── NpuAwakeKeeper/                    # Companion daemon copied into Awake package output
 ├── references/

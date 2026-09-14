@@ -55,7 +55,7 @@ internal sealed partial class SimpleAnalyticsExtensionPage : ListPage
     {
         try
         {
-            return $"{_cpu.GetCpuPercent():F0}% usage";
+            return _cpu.IsAvailable ? $"{_cpu.GetCpuPercent():F0}% usage" : "Usage unavailable";
         }
         catch (Exception ex)
         {

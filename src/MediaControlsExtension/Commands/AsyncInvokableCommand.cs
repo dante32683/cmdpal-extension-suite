@@ -36,12 +36,13 @@ internal abstract class AsyncInvokableCommand : InvokableCommand
             // If the command is not set to return immediately, we will wait for the async operation to complete
             // and return the result.
             var cmdResult = Task.Run(this.SafeInvokeAsync);
-            if (cmdResult.Wait(this.Timeout))
+            try
             {
+                ICommandResult result = cmdResult.WaitAsync(this.Timeout).GetAwaiter().GetResult();
                 Logger.LogDebug("Async command " + this.GetType().FullName + " returned after " + stopwatch.Elapsed);
-                return cmdResult.Result;
+                return result;
             }
-            else
+            catch (TimeoutException)
             {
                 Logger.LogDebug("Async command " + this.GetType().FullName + " timed out " + stopwatch.Elapsed);
                 return this.TimeoutResult;
@@ -49,16 +50,16 @@ internal abstract class AsyncInvokableCommand : InvokableCommand
         }
     }
 
-    private Task<ICommandResult> SafeInvokeAsync()
+    private async Task<ICommandResult> SafeInvokeAsync()
     {
         try
         {
-            return this.InvokeAsync();
+            return await this.InvokeAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex);
-            return Task.FromResult<ICommandResult>(CommandResult.KeepOpen());
+            return CommandResult.KeepOpen();
         }
     }
 

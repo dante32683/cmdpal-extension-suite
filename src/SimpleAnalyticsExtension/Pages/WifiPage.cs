@@ -67,14 +67,14 @@ internal sealed partial class WifiPage : ListPage
         }
 
         // Combined speed row — max adapter throughput in one line
-        if (info.ReceiveMbps > 0 || info.TransmitMbps > 0)
+        if (info.LinkReceiveMbps > 0 || info.LinkTransmitMbps > 0)
         {
-            var speedSubtitle = (info.ReceiveMbps > 0 && info.TransmitMbps > 0)
-                ? $"\u2193 {info.ReceiveMbps:F0} / \u2191 {info.TransmitMbps:F0} Mbps"
-                : info.ReceiveMbps > 0
-                    ? $"\u2193 {info.ReceiveMbps:F0} Mbps"
-                    : $"\u2191 {info.TransmitMbps:F0} Mbps";
-            rows.Add(Row("Speed", speedSubtitle, DownloadIcon, default, null));
+            var speedSubtitle = (info.LinkReceiveMbps > 0 && info.LinkTransmitMbps > 0)
+                ? $"\u2193 {info.LinkReceiveMbps:F0} / \u2191 {info.LinkTransmitMbps:F0} Mbps"
+                : info.LinkReceiveMbps > 0
+                    ? $"\u2193 {info.LinkReceiveMbps:F0} Mbps"
+                    : $"\u2191 {info.LinkTransmitMbps:F0} Mbps";
+            rows.Add(Row("Link speed", speedSubtitle, DownloadIcon, default, null));
         }
 
         return [.. rows];

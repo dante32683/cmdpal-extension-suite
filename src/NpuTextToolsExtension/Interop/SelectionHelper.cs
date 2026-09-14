@@ -46,6 +46,7 @@ internal static partial class SelectionHelper
     {
         await Task.Delay(initialDelayMs);
 
+        var snapshot = ClipboardHelper.CaptureSnapshot();
         uint seqBefore = ClipboardHelper.GetClipboardSequenceNumber();
         SendCtrlC();
 
@@ -53,10 +54,23 @@ internal static partial class SelectionHelper
         while (DateTime.UtcNow < deadline)
         {
             await Task.Delay(40);
-            if (ClipboardHelper.GetClipboardSequenceNumber() != seqBefore)
-                return ClipboardHelper.GetText();
+            uint sequence = ClipboardHelper.GetClipboardSequenceNumber();
+            if (sequence != seqBefore)
+            {
+                string? result = ClipboardHelper.GetText();
+                // Restore only if no other clipboard owner changed the clipboard after Ctrl+C.
+                if (snapshot is not null && ClipboardHelper.GetClipboardSequenceNumber() == sequence)
+                    ClipboardHelper.RestoreSnapshot(snapshot);
+                return result;
+            }
         }
 
+        if (snapshot is not null && ClipboardHelper.GetClipboardSequenceNumber() != seqBefore)
+        {
+            uint sequence = ClipboardHelper.GetClipboardSequenceNumber();
+            if (ClipboardHelper.GetClipboardSequenceNumber() == sequence)
+                ClipboardHelper.RestoreSnapshot(snapshot);
+        }
         return null;
     }
 }

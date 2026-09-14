@@ -31,8 +31,7 @@ internal static class AwakeTime
 
     public static bool IsScheduleActiveNow(AwakeSchedule schedule, DateTimeOffset nowLocal)
     {
-        int dow = (int)nowLocal.DayOfWeek;
-        if (!schedule.Enabled || !schedule.Days.Contains(dow))
+        if (!schedule.Enabled || schedule.Days is not { Length: > 0 })
         {
             return false;
         }
@@ -44,13 +43,15 @@ internal static class AwakeTime
 
         var current = nowLocal.TimeOfDay;
         if (start == end)
-        {
-            return true;
-        }
+            return schedule.Days.Contains((int)nowLocal.DayOfWeek);
 
-        return start < end
-            ? current >= start && current < end
-            : current >= start || current < end;
+        if (start < end)
+            return schedule.Days.Contains((int)nowLocal.DayOfWeek) && current >= start && current < end;
+
+        // The after-midnight portion belongs to the previous selected day.
+        int currentDay = (int)nowLocal.DayOfWeek;
+        int selectedDay = current >= start ? currentDay : currentDay == 0 ? 6 : currentDay - 1;
+        return schedule.Days.Contains(selectedDay) && (current >= start || current < end);
     }
 
     public static string FormatDays(IEnumerable<int> days)
@@ -102,9 +103,9 @@ internal static class AwakeTime
         }
 
         var parts = value.Trim().Split(':', StringSplitOptions.TrimEntries);
-        if (parts.Length < 2 ||
-            !int.TryParse(parts[0], out int h) ||
-            !int.TryParse(parts[1], out int m) ||
+        if (parts.Length != 2 ||
+            !int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out int h) ||
+            !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out int m) ||
             h is < 0 or > 23 ||
             m is < 0 or > 59)
         {

@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.Clipboard.Data;
@@ -70,7 +72,16 @@ internal sealed partial class DeleteAllCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
-        int deleted = _store.DeleteAll();
+        int deleted;
+        try
+        {
+            deleted = _store.DeleteAll();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"DeleteAllCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not clear history — the history file is unavailable.");
+        }
         return CommandResult.ShowToast($"Deleted {deleted} clipboard entr{(deleted == 1 ? "y" : "ies")}.");
     }
 }

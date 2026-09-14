@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CommandPalette.Extensions.Toolkit;
@@ -105,11 +106,39 @@ internal sealed class SettingsManager : JsonSettingsManager
         return string.IsNullOrWhiteSpace(raw) ? fallback : raw;
     }
 
+    // Settings used to be written as "timeDate.settings.json". Renaming the file
+    // orphaned every existing user's settings, so carry the old file over the
+    // first time we look for the new one. Directory-relative on purpose: it is
+    // correct wherever BaseSettingsPath resolves, and a no-op when the old file
+    // is absent or lives somewhere this process cannot reach.
+    private const string LegacySettingsFileName = "timeDate.settings.json";
+
     private static string SettingsJsonPath()
     {
         var directory = Utilities.BaseSettingsPath("Microsoft.CmdPal");
         Directory.CreateDirectory(directory);
-        return Path.Combine(directory, "timeDateDock.settings.json");
+        var path = Path.Combine(directory, "timeDateDock.settings.json");
+        MigrateLegacySettings(directory, path);
+        return path;
+    }
+
+    private static void MigrateLegacySettings(string directory, string path)
+    {
+        try
+        {
+            var legacy = Path.Combine(directory, LegacySettingsFileName);
+            if (File.Exists(path) || !File.Exists(legacy))
+                return;
+
+            File.Copy(legacy, path);
+        }
+        catch (IOException)
+        {
+            // Settings are cosmetic; falling back to defaults beats failing to load.
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
     }
 
     private static List<ChoiceSetSetting.Choice> ClockChoices() =>

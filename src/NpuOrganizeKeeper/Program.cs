@@ -54,12 +54,12 @@ static async Task<int> RunWatchAsync(StateStore store)
 
     var cfg = GetOrCreateConfig(store);
 
-    var startState = store.LoadState();
-    startState.StartedAt      = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-    startState.LastHeartbeatAt = startState.StartedAt;
-    startState.LastError       = null;
-    startState.WatchFolder     = cfg.WatchFolder;
-    store.SaveState(startState);
+    store.UpdateState(startState =>
+    {
+        startState.StartedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
+        startState.LastError = null;
+        startState.WatchFolder = cfg.WatchFolder;
+    });
 
     store.AppendLog($"watch  init  folder={cfg.WatchFolder}");
 
@@ -95,18 +95,11 @@ static async Task<int> RunWatchAsync(StateStore store)
                 }
                 lastConfigMtime = mtime;
             }
-
-            var st = store.LoadState();
-            st.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-            store.SaveState(st);
         }
     }
     finally
     {
         watcher.Stop();
-        var finalState = store.LoadState();
-        finalState.LastHeartbeatAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
-        store.SaveState(finalState);
     }
 
     return 0;
@@ -138,6 +131,12 @@ static async Task<int> RunProcessOneAsync(StateStore store, string imagePath)
     var cfg  = GetOrCreateConfig(store);
     var info = new FileInfo(imagePath);
 
+    if (cfg.SkipOnBattery && !PowerStatus.IsOnAcPower())
+    {
+        Console.WriteLine("NPU screenshot work is paused on battery power.");
+        return 0;
+    }
+
     Console.WriteLine($"Describing {info.Name}…");
 
     string description;
@@ -163,7 +162,26 @@ static async Task<int> RunProcessOneAsync(StateStore store, string imagePath)
     DateTime captureLocal = info.CreationTime > DateTime.MinValue ? info.CreationTime : info.LastWriteTime;
     string   baseFilename = SlugGenerator.BuildTargetFilename(slug, info.Extension, captureLocal);
 
-    Console.WriteLine($"{info.Name}  ->  {baseFilename}");
+    string directory = Path.GetDirectoryName(imagePath)!;
+    string destination = Path.Combine(directory, baseFilename);
+    if (!string.Equals(destination, imagePath, StringComparison.OrdinalIgnoreCase))
+    {
+        var existing = new HashSet<string>(Directory.EnumerateFiles(directory)
+            .Select(Path.GetFileName), StringComparer.OrdinalIgnoreCase);
+        string finalName = SlugGenerator.ResolveCollision(baseFilename, name => existing.Contains(name));
+        destination = Path.Combine(directory, finalName);
+        File.Move(imagePath, destination);
+        new OrganizeIndexStore().UpdatePath(imagePath, destination, description);
+    }
+
+    store.UpdateState(st =>
+    {
+        st.Processed++;
+        st.LastProcessedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
+        st.LastProcessedPath = destination;
+        st.LastError = null;
+    });
+    Console.WriteLine($"{info.Name}  ->  {Path.GetFileName(destination)}");
     return 0;
 }
 

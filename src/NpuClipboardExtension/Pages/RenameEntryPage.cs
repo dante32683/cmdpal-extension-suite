@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.Text.Json.Nodes;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
@@ -48,7 +50,15 @@ internal sealed partial class RenameEntryForm : FormContent
     public override CommandResult SubmitForm(string payload)
     {
         string name = JsonNode.Parse(payload)?["name"]?.ToString() ?? string.Empty;
-        _store.Rename(_id, name);
+        try
+        {
+            _store.Rename(_id, name);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"RenameEntryPage failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not rename the entry — the history file is unavailable.");
+        }
         return CommandResult.ShowToast("Clipboard entry renamed.");
     }
 }

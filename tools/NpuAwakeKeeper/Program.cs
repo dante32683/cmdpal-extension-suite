@@ -178,8 +178,7 @@ internal static class Program
 
     private static bool IsScheduleActiveNow(AwakeSchedule schedule, DateTimeOffset nowLocal)
     {
-        int dow = (int)nowLocal.DayOfWeek;
-        if (schedule.Days is null || schedule.Days.Length == 0 || !schedule.Days.Contains(dow))
+        if (schedule.Days is null || schedule.Days.Length == 0)
         {
             return false;
         }
@@ -191,13 +190,14 @@ internal static class Program
 
         var current = nowLocal.TimeOfDay;
         if (start == end)
-        {
-            return true;
-        }
+            return schedule.Days.Contains((int)nowLocal.DayOfWeek);
 
-        return start < end
-            ? current >= start && current < end
-            : current >= start || current < end;
+        if (start < end)
+            return schedule.Days.Contains((int)nowLocal.DayOfWeek) && current >= start && current < end;
+
+        int currentDay = (int)nowLocal.DayOfWeek;
+        int selectedDay = current >= start ? currentDay : currentDay == 0 ? 6 : currentDay - 1;
+        return schedule.Days.Contains(selectedDay) && (current >= start || current < end);
     }
 
     private static bool TryParseHourMinute(string? value, out TimeSpan hourMinute)
@@ -209,9 +209,9 @@ internal static class Program
         }
 
         var parts = value.Split(':', StringSplitOptions.TrimEntries);
-        if (parts.Length < 2 ||
-            !int.TryParse(parts[0], out int hour) ||
-            !int.TryParse(parts[1], out int minute) ||
+        if (parts.Length != 2 ||
+            !int.TryParse(parts[0], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int hour) ||
+            !int.TryParse(parts[1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int minute) ||
             hour is < 0 or > 23 ||
             minute is < 0 or > 59)
         {

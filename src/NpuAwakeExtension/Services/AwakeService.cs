@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using NpuTools.Awake.Models;
@@ -26,7 +27,9 @@ internal sealed class AwakeService
         var state = AwakeJson.Read(AwakePaths.StatePath, new AwakeStateFile(), AwakeJsonContext.Default.AwakeStateFile);
         var schedules = GetSchedules();
         int? pid = ReadDaemonPid();
-        if (pid is int value && !IsPidAlive(value))
+        // Only discard the pid file on a definite mismatch; an undecidable
+        // answer must not delete the record of a daemon that is still running.
+        if (pid is int value && InspectDaemon(value) == DaemonTrust.NotOurs)
         {
             pid = null;
             TryDelete(AwakePaths.DaemonPidPath);
@@ -45,7 +48,7 @@ internal sealed class AwakeService
     public IReadOnlyList<AwakeSchedule> GetSchedules()
     {
         return AwakeJson.Read(AwakePaths.SchedulesPath, new List<AwakeSchedule>(), AwakeJsonContext.Default.ListAwakeSchedule)
-            .Where(IsValidSchedule)
+            .Where(s => s is not null && IsValidSchedule(s))
             .ToList();
     }
 
@@ -126,8 +129,10 @@ internal sealed class AwakeService
     [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform call site via injection.")]
     public bool EnsureDaemonRunning()
     {
+        // Treat "cannot tell" as already running. Spawning a second daemon is
+        // worse than skipping a start we did not need to make.
         int? currentPid = ReadDaemonPid();
-        if (currentPid is int pid && IsPidAlive(pid))
+        if (currentPid is int pid && InspectDaemon(pid) != DaemonTrust.NotOurs)
         {
             return true;
         }
@@ -170,8 +175,13 @@ internal sealed class AwakeService
         {
             try
             {
-                using var process = Process.GetProcessById(value);
-                process.Kill(entireProcessTree: true);
+                // Kill only on a positive identification. The stop flag written
+                // above is what shuts down a daemon we cannot confirm.
+                if (InspectDaemon(value) == DaemonTrust.Trusted)
+                {
+                    using var process = Process.GetProcessById(value);
+                    process.Kill(entireProcessTree: true);
+                }
             }
             catch
             {
@@ -201,6 +211,7 @@ internal sealed class AwakeService
     private static bool IsValidSchedule(AwakeSchedule schedule)
     {
         return !string.IsNullOrWhiteSpace(schedule.Id) &&
+            schedule.Days is { Length: > 0 } &&
             schedule.Days.All(d => d is >= 0 and <= 6) &&
             AwakeTime.TryParseHourMinute(schedule.Start, out _) &&
             AwakeTime.TryParseHourMinute(schedule.End, out _);
@@ -224,12 +235,78 @@ internal sealed class AwakeService
         }
     }
 
-    private static bool IsPidAlive(int pid)
+    // Reading MainModule fails with Access Denied across an elevation or
+    // bitness boundary, which is not the same answer as "this is not our
+    // daemon" — the two call sites have opposite failure modes, so the
+    // undecidable case has to stay distinguishable from a definite mismatch.
+    private enum DaemonTrust
+    {
+        Trusted,
+        NotOurs,
+        Unknown,
+    }
+
+    private static DaemonTrust InspectDaemon(int pid)
+    {
+        Process process;
+        try
+        {
+            process = Process.GetProcessById(pid);
+        }
+        catch (ArgumentException)
+        {
+            // No process with this id — the pid file is stale.
+            return DaemonTrust.NotOurs;
+        }
+        catch
+        {
+            return DaemonTrust.Unknown;
+        }
+
+        using (process)
+        {
+            try
+            {
+                if (process.HasExited)
+                    return DaemonTrust.NotOurs;
+            }
+            catch
+            {
+                return DaemonTrust.Unknown;
+            }
+
+            string expectedPath = Path.GetFullPath(AwakePaths.KeeperExePath);
+            try
+            {
+                string? moduleName = process.MainModule?.FileName;
+                if (string.IsNullOrEmpty(moduleName))
+                    return DaemonTrust.Unknown;
+
+                return string.Equals(Path.GetFullPath(moduleName), expectedPath, StringComparison.OrdinalIgnoreCase)
+                    ? DaemonTrust.Trusted
+                    : DaemonTrust.NotOurs;
+            }
+            catch (Win32Exception)
+            {
+                // Access denied. The image name is still readable and is enough
+                // to rule the process out, but not enough to confirm it.
+                return NameMatches(process, expectedPath) ? DaemonTrust.Unknown : DaemonTrust.NotOurs;
+            }
+            catch (InvalidOperationException)
+            {
+                return DaemonTrust.Unknown;
+            }
+        }
+    }
+
+    private static bool NameMatches(Process process, string expectedPath)
     {
         try
         {
-            using var process = Process.GetProcessById(pid);
-            return !process.HasExited;
+            return string.Equals(
+                process.ProcessName,
+                Path.GetFileNameWithoutExtension(expectedPath),
+                StringComparison.OrdinalIgnoreCase);
         }
         catch
         {

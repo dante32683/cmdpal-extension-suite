@@ -68,7 +68,8 @@ internal sealed class TextToolsSettingsManager : JsonSettingsManager
 
     private static string CommandPaletteSettingsPath()
     {
-        string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        return Path.Combine(appData, "Microsoft", "PowerToys", "CommandPalette", "settings.json");
+        var directory = Utilities.BaseSettingsPath("Microsoft.CmdPal");
+        Directory.CreateDirectory(directory);
+        return Path.Combine(directory, "textTools.settings.json");
     }
 }

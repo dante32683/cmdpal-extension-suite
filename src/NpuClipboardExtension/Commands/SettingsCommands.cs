@@ -43,8 +43,16 @@ internal sealed partial class SetRetentionCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
-        _settings.Update(s => s.RetentionLimit = _limit);
-        _store.EnforceRetention(_settings.Current);
+        try
+        {
+            _settings.Update(s => s.RetentionLimit = _limit);
+            _store.EnforceRetention(_settings.Current);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"SetRetentionCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not save the retention limit.");
+        }
         return CommandResult.ShowToast(Name);
     }
 }
@@ -141,7 +149,16 @@ internal sealed partial class DeleteByWindowCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
-        int deleted = _store.DeleteOlderThan(_window);
+        int deleted;
+        try
+        {
+            deleted = _store.DeleteWithinLast(_window);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"DeleteByWindowCommand failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not delete entries — the history file is unavailable.");
+        }
         return CommandResult.ShowToast($"Deleted {deleted} clipboard entr{(deleted == 1 ? "y" : "ies")}.");
     }
 }

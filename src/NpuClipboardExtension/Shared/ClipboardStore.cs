@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace NpuTools.Clipboard.Data;
 
@@ -57,12 +58,15 @@ public sealed class ClipboardStore
 
     public void AddOrPromote(ClipboardEntry entry, ClipboardAppSettings settings)
     {
-        lock (_lock)
+        List<string> candidates = [];
+        bool saved = Mutate(() =>
         {
-            EnsureFresh();
             var existing = _entries.FirstOrDefault(e => e.ContentHash == entry.ContentHash);
             if (existing is not null)
             {
+                if (!string.IsNullOrWhiteSpace(existing.ImagePath) &&
+                    !string.Equals(existing.ImagePath, entry.ImagePath, StringComparison.OrdinalIgnoreCase))
+                    candidates.Add(existing.ImagePath);
                 existing.LastUsedAt = DateTimeOffset.Now;
                 existing.CreatedAt = entry.CreatedAt;
                 if (!string.IsNullOrWhiteSpace(entry.Title))
@@ -84,114 +88,127 @@ public sealed class ClipboardStore
                 _entries.Insert(0, entry);
             }
 
-            ApplyRetention(settings.NormalizedRetentionLimit);
-            Save();
-        }
+            candidates.AddRange(ApplyRetention(settings.NormalizedRetentionLimit));
+            return Save();
+        });
+        if (!saved) return;
+        CleanupUnreferencedBlobs(candidates);
         Changed?.Invoke();
     }
 
     public void MarkUsed(string id, ClipboardAppSettings settings)
     {
-        bool mutated;
-        lock (_lock)
+        List<string> candidates = [];
+        bool mutated = Mutate(() =>
         {
-            EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
-            if (entry is null) { mutated = false; return; }
+            if (entry is null) return false;
             entry.LastUsedAt = DateTimeOffset.Now;
             _entries.Remove(entry);
             _entries.Insert(0, entry);
-            ApplyRetention(settings.NormalizedRetentionLimit);
-            Save();
-            mutated = true;
+            candidates.AddRange(ApplyRetention(settings.NormalizedRetentionLimit));
+            return Save();
+        });
+        if (mutated)
+        {
+            CleanupUnreferencedBlobs(candidates);
+            Changed?.Invoke();
         }
-        if (mutated) Changed?.Invoke();
     }
 
     public void EnforceRetention(ClipboardAppSettings settings)
     {
-        bool removed;
-        lock (_lock)
+        List<string> candidates = [];
+        bool removed = Mutate(() =>
         {
-            EnsureFresh();
             int before = _entries.Count;
-            ApplyRetention(settings.NormalizedRetentionLimit);
-            removed = _entries.Count != before;
-            if (removed) Save();
+            candidates.AddRange(ApplyRetention(settings.NormalizedRetentionLimit));
+            return _entries.Count != before && Save();
+        });
+        if (removed)
+        {
+            CleanupUnreferencedBlobs(candidates);
+            Changed?.Invoke();
         }
-        if (removed) Changed?.Invoke();
     }
 
     public void Rename(string id, string name)
     {
-        bool mutated;
-        lock (_lock)
+        bool mutated = Mutate(() =>
         {
-            EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
-            if (entry is null) { mutated = false; return; }
+            if (entry is null) return false;
             entry.CustomName = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
-            Save();
-            mutated = true;
-        }
+            return Save();
+        });
         if (mutated) Changed?.Invoke();
     }
 
     public void SetPinned(string id, bool pinned)
     {
-        bool mutated;
-        lock (_lock)
+        bool mutated = Mutate(() =>
         {
-            EnsureFresh();
             var entry = _entries.FirstOrDefault(e => e.Id == id);
-            if (entry is null) { mutated = false; return; }
+            if (entry is null) return false;
             entry.IsPinned = pinned;
-            Save();
-            mutated = true;
-        }
+            return Save();
+        });
         if (mutated) Changed?.Invoke();
     }
 
     public void Delete(string id)
     {
-        lock (_lock)
+        List<string> candidates = [];
+        bool saved = Mutate(() =>
         {
-            EnsureFresh();
-            _entries.RemoveAll(e => e.Id == id);
-            Save();
-        }
+            candidates.AddRange(_entries.Where(e => e.Id == id).Select(e => e.ImagePath).OfType<string>());
+            int removed = _entries.RemoveAll(e => e.Id == id);
+            return removed > 0 && Save();
+        });
+        if (!saved) return;
+        CleanupUnreferencedBlobs(candidates);
         Changed?.Invoke();
     }
 
     public int DeleteAll()
     {
-        int count;
-        lock (_lock)
+        int count = 0;
+        List<string> candidates = [];
+        bool saved = Mutate(() =>
         {
-            EnsureFresh();
             count = _entries.Count;
+            candidates.AddRange(_entries.Select(e => e.ImagePath).OfType<string>());
             _entries.Clear();
-            Save();
-        }
+            return Save();
+        });
+        if (!saved) return 0;
+        CleanupUnreferencedBlobs(candidates);
         Changed?.Invoke();
         return count;
     }
 
-    public int DeleteOlderThan(TimeSpan window)
+    public int DeleteWithinLast(TimeSpan window)
     {
         DateTimeOffset cutoff = DateTimeOffset.Now - window;
-        int removed;
-        lock (_lock)
+        List<string> candidates = [];
+        int removed = Mutate(() =>
         {
-            EnsureFresh();
             int before = _entries.Count;
+            candidates.AddRange(_entries.Where(e => !e.IsPinned && e.CreatedAt >= cutoff).Select(e => e.ImagePath).OfType<string>());
             _entries.RemoveAll(e => !e.IsPinned && e.CreatedAt >= cutoff);
-            removed = before - _entries.Count;
-            Save();
+            int removedNow = before - _entries.Count;
+            return removedNow > 0 && Save() ? removedNow : 0;
+        });
+        if (removed > 0)
+        {
+            CleanupUnreferencedBlobs(candidates);
+            Changed?.Invoke();
         }
-        if (removed > 0) Changed?.Invoke();
         return removed;
     }
+
+    [Obsolete("Use DeleteWithinLast; this method deletes entries from the recent window.")]
+    public int DeleteOlderThan(TimeSpan window) => DeleteWithinLast(window);
 
     public IReadOnlyList<IReadOnlyList<ClipboardEntry>> Groups(ClipboardEntryKind? kind, string query)
     {
@@ -254,23 +271,25 @@ public sealed class ClipboardStore
     // because the capture path was the sync folder rather than the local clipboard.
     public void SyncFrom(string syncFolder, ClipboardAppSettings settings)
     {
-        var newEntries = ClipboardSyncService.ReadNewEntries(syncFolder, GetKnownIds());
-        if (newEntries.Count == 0) return;
-
         var matcher = new SecretPatternMatcher(settings);
-
-        bool merged;
-        lock (_lock)
+        bool merged = Mutate(() =>
         {
-            EnsureFresh();
-            merged = false;
-            foreach (var entry in newEntries)
+            var newEntries = ClipboardSyncService.ReadNewEntriesWithPaths(
+                syncFolder,
+                _entries.Select(e => e.Id).ToHashSet());
+            if (newEntries.Count == 0)
+                return false;
+
+            bool changed = false;
+            foreach (var item in newEntries)
             {
+                var entry = item.Entry;
                 if (_entries.Any(e => e.Id == entry.Id || e.ContentHash == entry.ContentHash))
                     continue;
                 if (matcher.Match(entry.Text) is { } matched)
                 {
                     Debug.WriteLine($"ClipboardStore.SyncFrom dropped '{entry.Id}': matched secret pattern: {matched}");
+                    TryDeleteSyncSource(item.SourcePath, syncFolder);
                     continue;
                 }
                 // Insert in chronological position (most recent first).
@@ -279,10 +298,15 @@ public sealed class ClipboardStore
                     _entries.Add(entry);
                 else
                     _entries.Insert(pos, entry);
-                merged = true;
+                changed = true;
             }
-            if (merged) Save();
-        }
+            if (changed)
+            {
+                ApplyRetention(settings.NormalizedRetentionLimit);
+                return Save();
+            }
+            return false;
+        });
         if (merged) Changed?.Invoke();
     }
 
@@ -298,14 +322,15 @@ public sealed class ClipboardStore
         return Convert.ToHexString(bytes);
     }
 
-    private void ApplyRetention(int retentionLimit)
+    private List<string> ApplyRetention(int retentionLimit)
     {
         if (retentionLimit < 0)
-            return;
+            return [];
 
         var unpinned = _entries.Where(e => !e.IsPinned).Skip(retentionLimit).ToArray();
         foreach (var entry in unpinned)
             _entries.Remove(entry);
+        return unpinned.Select(e => e.ImagePath).OfType<string>().ToList();
     }
 
     private void Load()
@@ -337,7 +362,7 @@ public sealed class ClipboardStore
         }
     }
 
-    private void Save()
+    private bool Save()
     {
         try
         {
@@ -352,12 +377,100 @@ public sealed class ClipboardStore
             // writeTime != _lastWriteTime check in EnsureFresh.
             File.SetLastWriteTimeUtc(path, DateTime.UtcNow);
             _lastWriteTime = File.GetLastWriteTimeUtc(path);
+            return true;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"ClipboardStore Save failed: {ex.GetType().Name}: {ex.Message}");
+            throw;
         }
     }
+
+    private T Mutate<T>(Func<T> mutation)
+    {
+        using var mutex = new Mutex(false, HistoryMutexName());
+        try
+        {
+            mutex.WaitOne();
+        }
+        catch (AbandonedMutexException)
+        {
+            // The abandoned owner has exited; the mutex is acquired and the file
+            // will be reloaded below before applying this mutation.
+        }
+
+        try
+        {
+            lock (_lock)
+            {
+                EnsureFresh();
+                return mutation();
+            }
+        }
+        catch
+        {
+            try { Load(); } catch { }
+            throw;
+        }
+        finally
+        {
+            // A release failure must never replace the exception that caused it.
+            try { mutex.ReleaseMutex(); } catch { }
+        }
+    }
+
+    private void CleanupUnreferencedBlobs(IEnumerable<string> candidates)
+    {
+        using var mutex = new Mutex(false, HistoryMutexName());
+        try { mutex.WaitOne(); } catch (AbandonedMutexException) { }
+        try
+        {
+            lock (_lock)
+            {
+                EnsureFresh();
+                string root = Path.GetFullPath(ClipboardPaths.BlobDir()).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                HashSet<string> referenced = _entries.Select(e => e.ImagePath).OfType<string>()
+                    .Select(Path.GetFullPath).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                foreach (string candidate in candidates.Where(p => !string.IsNullOrWhiteSpace(p)))
+                {
+                    try
+                    {
+                        string full = Path.GetFullPath(candidate);
+                        if (full.StartsWith(root, StringComparison.OrdinalIgnoreCase) && !referenced.Contains(full))
+                            File.Delete(full);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"ClipboardStore blob cleanup failed: {ex.GetType().Name}: {ex.Message}");
+                    }
+                }
+            }
+        }
+        finally
+        {
+            try { mutex.ReleaseMutex(); } catch { }
+        }
+    }
+
+    private static void TryDeleteSyncSource(string sourcePath, string? syncFolder)
+    {
+        if (string.IsNullOrWhiteSpace(syncFolder)) return;
+        try
+        {
+            string root = Path.GetFullPath(Path.Combine(syncFolder, "clipboard-sync"))
+                .TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            string full = Path.GetFullPath(sourcePath);
+            if (full.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                File.Delete(full);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ClipboardStore sync-secret cleanup failed: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    private static string HistoryMutexName() =>
+        $"Local\\NpuClipboardHistory-{BuildHash("mutex", ClipboardPaths.HistoryPath())[..24]}";
 
     private void EnsureFresh()
     {

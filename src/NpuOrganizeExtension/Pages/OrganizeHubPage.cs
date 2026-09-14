@@ -33,7 +33,7 @@ internal sealed partial class OrganizeHubPage : ListPage
             new ListItem(new IndexAllPage(_scanner, _indexService))
             {
                 Title    = "Index Screenshots",
-                Subtitle = "Scan and add missing screenshots to the search index",
+                Subtitle = "Standardize names and reconcile the search index",
                 Icon     = OrganizeVisuals.Search,
                 Tags     = [OrganizeVisuals.MutedTag("index")],
             },

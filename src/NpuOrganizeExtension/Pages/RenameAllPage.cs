@@ -21,6 +21,7 @@ internal sealed partial class RenameAllPage : ListPage
     private int _success = -1;
     private int _failed  = -1;
     private int _started; // Interlocked flag: 0 = not started, 1 = started
+    private bool _deferredOnBattery;
 
     public RenameAllPage(IReadOnlyList<RenameProposal> proposals, ScreenshotIndexService indexService)
     {
@@ -53,6 +54,19 @@ internal sealed partial class RenameAllPage : ListPage
             ];
         }
 
+        if (_deferredOnBattery)
+        {
+            return
+            [
+                new ListItem(new NoOpCommand())
+                {
+                    Title    = "Paused on battery",
+                    Subtitle = "Connect AC power and reopen Rename Screenshots to continue",
+                    Icon     = OrganizeVisuals.Warning,
+                },
+            ];
+        }
+
         return
         [
             new ListItem(new NoOpCommand())
@@ -71,11 +85,17 @@ internal sealed partial class RenameAllPage : ListPage
 
         foreach (var p in _proposals)
         {
+            if (OrganizePowerPolicy.ShouldDeferNpuWork())
+            {
+                _deferredOnBattery = true;
+                break;
+            }
+
             try
             {
                 var (destination, description, ocrText) = await AiNamingService.BuildProposedPathWithDataAsync(p.OriginalPath);
                 File.Move(p.OriginalPath, destination, overwrite: false);
-                _indexService.Upsert(destination, description, ocrText);
+                _indexService.RelocateAndUpsert(p.OriginalPath, destination, description, ocrText);
                 success++;
             }
             catch (Exception ex)

@@ -23,6 +23,9 @@ internal sealed partial class RenameSingleCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
+        if (OrganizePowerPolicy.ShouldDeferNpuWork())
+            return CommandResult.ShowToast("NPU screenshot work is paused on battery power.");
+
         _ = Task.Run(RenameAsync);
         return CommandResult.ShowToast("Renaming — AI description in progress…");
     }
@@ -33,7 +36,7 @@ internal sealed partial class RenameSingleCommand : InvokableCommand
         {
             var (destination, description, ocrText) = await AiNamingService.BuildProposedPathWithDataAsync(_proposal.OriginalPath);
             File.Move(_proposal.OriginalPath, destination, overwrite: false);
-            _indexService.Upsert(destination, description, ocrText);
+            _indexService.RelocateAndUpsert(_proposal.OriginalPath, destination, description, ocrText);
         }
         catch (Exception ex)
         {
