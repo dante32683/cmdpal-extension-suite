@@ -7,6 +7,10 @@
 - PowerToys v0.98.0 or newer.
 - `Microsoft.CommandPalette.Extensions` SDK v0.9.260303001 or newer.
 
+## CI Architecture Matrix
+
+GitHub Actions cross-builds the extension projects for both `win-x64` and `win-arm64` on `windows-latest`. The hosted runner itself is x64, so the xUnit suite runs only in the x64 matrix job; attempting to execute the ARM64 test binary on that runner fails because no ARM64 `dotnet.exe` host is installed. ARM64 coverage in CI is compile/package validation, while architecture-neutral unit behavior is exercised on x64.
+
 ## Solution Build
 
 Build every project in the monorepo:
