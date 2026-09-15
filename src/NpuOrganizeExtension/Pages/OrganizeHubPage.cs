@@ -11,12 +11,12 @@ internal sealed partial class OrganizeHubPage : ListPage
 
     public OrganizeHubPage(ScreenshotScannerService scanner, ScreenshotIndexService indexService)
     {
-        _scanner      = scanner;
+        _scanner = scanner;
         _indexService = indexService;
-        Id    = "com.local.nputools.organize.hub";
+        Id = "com.local.nputools.organize.hub";
         Title = "NPU Organize";
-        Name  = "Open";
-        Icon  = OrganizeVisuals.Folder;
+        Name = "Open";
+        Icon = OrganizeVisuals.Folder;
     }
 
     public override IListItem[] GetItems()

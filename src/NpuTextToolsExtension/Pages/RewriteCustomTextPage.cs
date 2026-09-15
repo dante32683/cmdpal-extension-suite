@@ -16,14 +16,14 @@ internal sealed partial class RewriteCustomTextPage : DynamicListPage
 
     public RewriteCustomTextPage(string instruction, TextRewriteService service)
     {
-        _instruction    = instruction;
-        _service        = service;
-        Id              = "com.local.nputools.texttools.custom.text";
-        Title           = "Custom Rewrite: Paste Text";
-        Name            = "Next";
-        Icon            = TextToolsVisuals.Phi;
+        _instruction = instruction;
+        _service = service;
+        Id = "com.local.nputools.texttools.custom.text";
+        Title = "Custom Rewrite: Paste Text";
+        Name = "Next";
+        Icon = TextToolsVisuals.Phi;
         PlaceholderText = "Now paste or type the text to rewrite…";
-        _items          = BuildItems(string.Empty);
+        _items = BuildItems(string.Empty);
     }
 
     public override void UpdateSearchText(string oldSearch, string newSearch)

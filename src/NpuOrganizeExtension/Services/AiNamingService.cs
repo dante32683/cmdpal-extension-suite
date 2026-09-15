@@ -37,8 +37,8 @@ internal static partial class AiNamingService
         string slug = await GenerateSlugAsync(originalPath);
         if (!string.IsNullOrEmpty(slug))
         {
-            string dir  = Path.GetDirectoryName(originalPath) ?? string.Empty;
-            string ext  = Path.GetExtension(originalPath);
+            string dir = Path.GetDirectoryName(originalPath) ?? string.Empty;
+            string ext = Path.GetExtension(originalPath);
             string date = File.GetCreationTime(originalPath).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
             return SlugService.CollisionSafe(dir, $"{date}_{slug}{ext}", ext);
         }
@@ -58,8 +58,8 @@ internal static partial class AiNamingService
             string proposedPath;
             if (!string.IsNullOrEmpty(slug))
             {
-                string dir  = Path.GetDirectoryName(originalPath) ?? string.Empty;
-                string ext  = Path.GetExtension(originalPath);
+                string dir = Path.GetDirectoryName(originalPath) ?? string.Empty;
+                string ext = Path.GetExtension(originalPath);
                 string date = File.GetCreationTime(originalPath).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 proposedPath = SlugService.CollisionSafe(dir, $"{date}_{slug}{ext}", ext);
             }
@@ -79,20 +79,20 @@ internal static partial class AiNamingService
     private static async Task<(string Description, string OcrText)> GetScreenshotDataAsync(string imagePath)
     {
         var descTask = SafeDescribeAsync(imagePath);
-        var ocrTask  = SafeOcrAsync(imagePath);
+        var ocrTask = SafeOcrAsync(imagePath);
         await Task.WhenAll(descTask, ocrTask);
         return (descTask.Result, ocrTask.Result);
     }
 
     private static async Task<string> SafeDescribeAsync(string imagePath)
     {
-        try   { return await DescribeAsync(imagePath); }
+        try { return await DescribeAsync(imagePath); }
         catch { return string.Empty; }
     }
 
     private static async Task<string> SafeOcrAsync(string imagePath)
     {
-        try   { return await RunOcrAsync(imagePath); }
+        try { return await RunOcrAsync(imagePath); }
         catch { return string.Empty; }
     }
 
@@ -142,7 +142,7 @@ internal static partial class AiNamingService
                 stripped.Append(c);
         }
 
-        string lower   = stripped.ToString().ToLowerInvariant();
+        string lower = stripped.ToString().ToLowerInvariant();
         string cleaned = NonAlphanumeric().Replace(lower, " ").Trim();
         if (cleaned.Length == 0) return string.Empty;
 
@@ -184,7 +184,7 @@ internal static partial class AiNamingService
 
         using var imageBuffer = ImageBuffer.CreateForSoftwareBitmap(bitmap);
         var generator = await ImageDescriptionGenerator.CreateAsync();
-        var response  = await generator.DescribeAsync(imageBuffer, ImageDescriptionKind.BriefDescription, new ContentFilterOptions());
+        var response = await generator.DescribeAsync(imageBuffer, ImageDescriptionKind.BriefDescription, new ContentFilterOptions());
         return (response?.Description ?? string.Empty).Trim();
     }
 }

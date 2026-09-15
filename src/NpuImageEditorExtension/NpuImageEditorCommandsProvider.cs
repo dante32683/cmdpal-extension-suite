@@ -15,37 +15,37 @@ internal sealed partial class NpuImageEditorCommandsProvider : CommandProvider
         // Clean up temp clipboard images from previous sessions (fire-and-forget; safe to fail).
         _ = System.Threading.Tasks.Task.Run(ImageEditorService.CleanupTempImages);
 
-        Id          = "com.local.nputools.imageeditor";
+        Id = "com.local.nputools.imageeditor";
         DisplayName = "NPU Image Editor";
-        Icon        = ImageEditorVisuals.Camera;
-        Settings    = _settingsManager.Settings;
+        Icon = ImageEditorVisuals.Camera;
+        Settings = _settingsManager.Settings;
 
         var hub = new ListItem(new ImageToolsHubPage(_settingsManager))
         {
-            Title    = "Image Editor",
+            Title = "Image Editor",
             Subtitle = "AI-powered image processing tools",
-            Icon     = ImageEditorVisuals.Camera,
+            Icon = ImageEditorVisuals.Camera,
         };
 
         var rmbg = new ListItem(new ImageInputPage(ImageOperation.RemoveBackground, 1, _settingsManager))
         {
-            Title    = "Remove Background",
+            Title = "Remove Background",
             Subtitle = "Automatically remove image background using Windows AI",
-            Icon     = ImageEditorVisuals.Eraser,
+            Icon = ImageEditorVisuals.Eraser,
         };
 
         var sr = new ListItem(new SuperResolutionPickerPage(_settingsManager))
         {
-            Title    = "Super Resolution",
+            Title = "Super Resolution",
             Subtitle = "Upscale an image 2×, 4×, or 8× using Windows AI",
-            Icon     = ImageEditorVisuals.Scale,
+            Icon = ImageEditorVisuals.Scale,
         };
 
         var ocr = new ListItem(new ImageInputPage(ImageOperation.Ocr, 1, _settingsManager))
         {
-            Title    = "OCR: Extract Text",
+            Title = "OCR: Extract Text",
             Subtitle = "Extract visible text from any image",
-            Icon     = ImageEditorVisuals.Ocr,
+            Icon = ImageEditorVisuals.Ocr,
         };
 
         _commands = [hub, rmbg, sr, ocr];

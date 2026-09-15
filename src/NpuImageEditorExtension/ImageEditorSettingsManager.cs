@@ -73,8 +73,8 @@ internal sealed class ImageEditorSettingsManager : JsonSettingsManager
         _current.DefaultScaleFactor =
             int.TryParse(_defaultScaleFactor.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int sf)
             && (sf == 2 || sf == 4 || sf == 8) ? sf : 2;
-        _current.AutoOpenResult      = _autoOpenResult.Value;
-        _current.OcrAutoCopyText     = _ocrAutoCopyText.Value;
+        _current.AutoOpenResult = _autoOpenResult.Value;
+        _current.OcrAutoCopyText = _ocrAutoCopyText.Value;
         _current.OcrAutoOpenTextFile = _ocrAutoOpenTextFile.Value;
     }
 }

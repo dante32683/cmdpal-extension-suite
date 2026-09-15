@@ -2,6 +2,10 @@
 # Checks all implemented extensions for UX convention violations.
 # Errors = must fix. Warnings = should fix.
 
+param(
+    [switch]$WarningsAsErrors
+)
+
 $srcRoot = Join-Path $PSScriptRoot "..\src"
 $extensions = Get-ChildItem $srcRoot -Directory |
     Where-Object { Test-Path (Join-Path $_.FullName "Package.appxmanifest") } |
@@ -86,7 +90,7 @@ foreach ($ext in $extensions) {
         (Get-Content $_.FullName -Raw) -match 'new\s+CommandContextItem\s*\('
     }
     if ($hasContextItems) {
-        $keyChordsFile = $allCs | Where-Object { $_.Name -eq "KeyChords.cs" }
+        $keyChordsFile = $allCs | Where-Object { $_.Name -in @("KeyChords.cs", "Chords.cs") }
         if (-not $keyChordsFile) {
             Add-Warning "[$($ext.Name)] NO-KEYCHORDS: Extension uses CommandContextItem but has no KeyChords.cs"
         }
@@ -117,4 +121,4 @@ if ($warnings.Count -gt 0) {
 
 Write-Host "Total: $($errors.Count) error(s), $($warnings.Count) warning(s)"
 
-if ($errors.Count -gt 0) { exit 1 } else { exit 0 }
+if ($errors.Count -gt 0 -or ($WarningsAsErrors -and $warnings.Count -gt 0)) { exit 1 } else { exit 0 }

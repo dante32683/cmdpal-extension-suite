@@ -13,15 +13,15 @@ internal sealed partial class RewriteInputPage : DynamicListPage
 
     public RewriteInputPage(TextRewriteMode mode, TextRewriteService service, string? customInstruction = null)
     {
-        _mode              = mode;
-        _service           = service;
+        _mode = mode;
+        _service = service;
         _customInstruction = customInstruction;
-        Id              = $"com.local.nputools.texttools.{mode.ToString().ToLowerInvariant()}";
-        Title           = TextRewriteService.ModeLabel(mode);
-        Name            = "Rewrite";
-        Icon            = TextToolsVisuals.Phi;
+        Id = $"com.local.nputools.texttools.{mode.ToString().ToLowerInvariant()}";
+        Title = TextRewriteService.ModeLabel(mode);
+        Name = "Rewrite";
+        Icon = TextToolsVisuals.Phi;
         PlaceholderText = "Paste or type your text here…";
-        _items          = BuildItems(string.Empty);
+        _items = BuildItems(string.Empty);
     }
 
     public override void UpdateSearchText(string oldSearch, string newSearch)

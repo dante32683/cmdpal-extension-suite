@@ -81,7 +81,7 @@ internal sealed class ImageEditorService
         var bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
         var scaler = await ImageScaler.CreateAsync();
-        int newW = bitmap.PixelWidth  * scaleFactor;
+        int newW = bitmap.PixelWidth * scaleFactor;
         int newH = bitmap.PixelHeight * scaleFactor;
         var scaled = scaler.ScaleSoftwareBitmap(bitmap, newW, newH);
 
@@ -102,9 +102,9 @@ internal sealed class ImageEditorService
     {
         int n = source.PixelWidth * source.PixelHeight;
 
-        byte[] srcPixels  = new byte[n * 4];
+        byte[] srcPixels = new byte[n * 4];
         byte[] maskPixels = new byte[n];
-        byte[] dstPixels  = new byte[n * 4];
+        byte[] dstPixels = new byte[n * 4];
 
         source.CopyToBuffer(srcPixels.AsBuffer());
         mask.CopyToBuffer(maskPixels.AsBuffer());
@@ -139,17 +139,17 @@ internal sealed class ImageEditorService
         Directory.CreateDirectory(tempDir);
 
         string fileName = $"clipboard_{DateTimeOffset.Now:yyyyMMdd_HHmmss_fff}_{Guid.NewGuid():N}.png";
-        string outPath  = Path.Combine(tempDir, fileName);
+        string outPath = Path.Combine(tempDir, fileName);
 
         RandomAccessStreamReference reference = await content.GetBitmapAsync();
         using IRandomAccessStream source = await reference.OpenReadAsync();
         var decoder = await BitmapDecoder.CreateAsync(source);
-        var bitmap  = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        var bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
-        var folder   = await StorageFolder.GetFolderFromPathAsync(tempDir);
-        var file     = await folder.CreateFileAsync(fileName, CreationCollisionOption.FailIfExists);
+        var folder = await StorageFolder.GetFolderFromPathAsync(tempDir);
+        var file = await folder.CreateFileAsync(fileName, CreationCollisionOption.FailIfExists);
         using var outStream = await file.OpenAsync(FileAccessMode.ReadWrite);
-        var encoder  = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outStream);
+        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outStream);
         encoder.SetSoftwareBitmap(bitmap);
         await encoder.FlushAsync();
 
@@ -186,7 +186,7 @@ internal sealed class ImageEditorService
 
     private static string GetOutputPath(string input, string suffix, string extension, string? outputDir = null)
     {
-        string dir  = outputDir ?? Path.GetDirectoryName(input)!;
+        string dir = outputDir ?? Path.GetDirectoryName(input)!;
         string stem = Path.GetFileNameWithoutExtension(input);
         string candidate = Path.Combine(dir, $"{stem}{suffix}{extension}");
         if (!File.Exists(candidate))
@@ -215,7 +215,7 @@ internal sealed class ImageEditorService
         IProgress<BatchProgress>? progress,
         CancellationToken ct)
     {
-        string opName    = operation.ToString();
+        string opName = operation.ToString();
         string sourceDir = Path.GetDirectoryName(paths.Count > 0 ? paths[0] : ".")!;
         string outputDir = Path.Combine(sourceDir, $"{opName}_batch_{DateTime.Now:yyyyMMdd_HHmmss_fff}_{Guid.NewGuid():N}");
         Directory.CreateDirectory(outputDir);

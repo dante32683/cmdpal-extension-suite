@@ -13,13 +13,13 @@ internal sealed partial class BatteryPage : ListPage
     private static readonly IconInfo[] ChargingLevelIcons;
     private static readonly IconInfo[] SaverLevelIcons;
     private static readonly IconInfo LightningIcon = new("\uE945");
-    private static readonly IconInfo ClockIcon     = new("\uE917");
+    private static readonly IconInfo ClockIcon = new("\uE917");
     private static readonly IconInfo DefaultBatteryIcon = new("\uEBA0");
 
     // Semantic colors matching MenuBar app (SystemFillColor* approximate values)
-    private static readonly Color GreenColor  = new Color { R = 108, G = 203, B = 95,  A = 255 }; // SystemFillColorSuccess
-    private static readonly Color YellowColor = new Color { R = 255, G = 192, B = 0,   A = 255 }; // SystemFillColorCaution
-    private static readonly Color RedColor    = new Color { R = 255, G = 95,  B = 95,  A = 255 }; // SystemFillColorCritical
+    private static readonly Color GreenColor = new Color { R = 108, G = 203, B = 95, A = 255 }; // SystemFillColorSuccess
+    private static readonly Color YellowColor = new Color { R = 255, G = 192, B = 0, A = 255 }; // SystemFillColorCaution
+    private static readonly Color RedColor = new Color { R = 255, G = 95, B = 95, A = 255 }; // SystemFillColorCritical
 
     private static OptionalColor Colored(Color c) =>
         new OptionalColor { HasValue = true, Color = c };
@@ -41,9 +41,9 @@ internal sealed partial class BatteryPage : ListPage
     {
         _service = service;
         Id = "com.dziad.simpleanalyticsextension.battery.details";
-        Icon  = DefaultBatteryIcon;
+        Icon = DefaultBatteryIcon;
         Title = "Battery";
-        Name  = "Battery Details";
+        Name = "Battery Details";
 
         _service.BatteryChanged += () => RaiseItemsChanged();
     }
@@ -55,10 +55,10 @@ internal sealed partial class BatteryPage : ListPage
         if (!info.HasBattery)
             return [Row("Battery", "No battery detected", DefaultBatteryIcon, default, null)];
 
-        var level        = Math.Clamp(info.Percent / 10, 0, 10);
-        var batteryIcon  = BatteryLevelIcons[level];
+        var level = Math.Clamp(info.Percent / 10, 0, 10);
+        var batteryIcon = BatteryLevelIcons[level];
         var chargingIcon = ChargingLevelIcons[level];
-        var saverIcon    = SaverLevelIcons[level];
+        var saverIcon = SaverLevelIcons[level];
 
         OptionalColor chargeColor;
         IconInfo statusIcon;
@@ -66,27 +66,27 @@ internal sealed partial class BatteryPage : ListPage
         if (info.IsCharging)
         {
             chargeColor = Colored(GreenColor);
-            statusIcon  = chargingIcon;
+            statusIcon = chargingIcon;
         }
         else if (info.IsPluggedIn && info.Percent < 99)
         {
             chargeColor = Colored(GreenColor);
-            statusIcon  = batteryIcon;
+            statusIcon = batteryIcon;
         }
         else if (info.IsPluggedIn)
         {
             chargeColor = default;
-            statusIcon  = batteryIcon;
+            statusIcon = batteryIcon;
         }
         else if (info.EnergySaverOn || info.Percent <= 20)
         {
             chargeColor = Colored(YellowColor);
-            statusIcon  = saverIcon;
+            statusIcon = saverIcon;
         }
         else
         {
             chargeColor = default;
-            statusIcon  = batteryIcon;
+            statusIcon = batteryIcon;
         }
 
         // Page accent tints the flyout header
@@ -150,9 +150,9 @@ internal sealed partial class BatteryPage : ListPage
 
     private static string StatusText(BatteryInfo info)
     {
-        if (info.IsCharging)                        return "Charging";
+        if (info.IsCharging) return "Charging";
         if (info.IsPluggedIn && info.Percent >= 99) return "Plugged in, fully charged";
-        if (info.IsPluggedIn)                       return "Smart charging";
+        if (info.IsPluggedIn) return "Smart charging";
         return "On battery";
     }
 
@@ -161,9 +161,9 @@ internal sealed partial class BatteryPage : ListPage
     {
         var item = new ListItem(new NoOpCommand())
         {
-            Title    = title,
+            Title = title,
             Subtitle = subtitle,
-            Icon     = icon,
+            Icon = icon,
         };
 
         if (tagText is not null)

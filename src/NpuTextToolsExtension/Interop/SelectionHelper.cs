@@ -7,21 +7,21 @@ namespace NpuTools.TextTools.Interop;
 // Captures text from the active application by simulating Ctrl+C and reading the clipboard.
 internal static partial class SelectionHelper
 {
-    private const uint INPUT_KEYBOARD  = 1;
+    private const uint INPUT_KEYBOARD = 1;
     private const uint KEYEVENTF_KEYUP = 0x0002;
-    private const ushort VK_CONTROL    = 0x11;
-    private const ushort VK_C          = 0x43;
+    private const ushort VK_CONTROL = 0x11;
+    private const ushort VK_C = 0x43;
 
     // INPUT struct for KEYBDINPUT variant; Size=40 matches the x64 Win32 layout of INPUT.
     [StructLayout(LayoutKind.Explicit, Size = 40)]
     private struct INPUT
     {
-        [FieldOffset(0)]  public uint   Type;
-        [FieldOffset(8)]  public ushort VKey;
+        [FieldOffset(0)] public uint Type;
+        [FieldOffset(8)] public ushort VKey;
         [FieldOffset(10)] public ushort Scan;
-        [FieldOffset(12)] public uint   KFlags;
-        [FieldOffset(16)] public uint   KTime;
-        [FieldOffset(24)] public nint   ExtraInfo;
+        [FieldOffset(12)] public uint KFlags;
+        [FieldOffset(16)] public uint KTime;
+        [FieldOffset(24)] public nint ExtraInfo;
     }
 
     [LibraryImport("user32.dll", SetLastError = true)]

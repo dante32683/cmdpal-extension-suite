@@ -16,12 +16,12 @@ internal sealed partial class SetSyncFolderPage : DynamicListPage
     public SetSyncFolderPage(ClipboardSettingsStore settings)
     {
         _settings = settings;
-        Id              = "com.local.nputools.clipboard.sync-folder";
-        Title           = "Cross-Device Sync Folder";
-        Name            = "Set Sync Folder";
-        Icon            = ClipboardVisuals.Sync;
+        Id = "com.local.nputools.clipboard.sync-folder";
+        Title = "Cross-Device Sync Folder";
+        Name = "Set Sync Folder";
+        Icon = ClipboardVisuals.Sync;
         PlaceholderText = "Paste the path to your sync folder (e.g. C:\\Users\\You\\OneDrive\\ClipSync)...";
-        _items          = BuildItems(string.Empty);
+        _items = BuildItems(string.Empty);
     }
 
     public override void UpdateSearchText(string oldSearch, string newSearch)
@@ -44,22 +44,22 @@ internal sealed partial class SetSyncFolderPage : DynamicListPage
             {
                 items.Add(new ListItem(new ClearSyncFolderCommand(_settings))
                 {
-                    Title    = "Clear sync folder",
+                    Title = "Clear sync folder",
                     Subtitle = $"Current: {current}",
-                    Icon     = ClipboardVisuals.Delete,
-                    Tags     = [ClipboardVisuals.CriticalTag("removes sync")],
+                    Icon = ClipboardVisuals.Delete,
+                    Tags = [ClipboardVisuals.CriticalTag("removes sync")],
                 });
             }
 
             items.Add(new ListItem(new NoOpCommand())
             {
-                Title    = string.IsNullOrWhiteSpace(current) ? "No sync folder configured" : $"Current: {current}",
+                Title = string.IsNullOrWhiteSpace(current) ? "No sync folder configured" : $"Current: {current}",
                 Subtitle = "Type or paste a folder path to enable cross-device sync of text entries",
-                Icon     = ClipboardVisuals.Sync,
-                Details  = new Details
+                Icon = ClipboardVisuals.Sync,
+                Details = new Details
                 {
                     Title = "How cross-device sync works",
-                    Body  = "Each device writes new text clipboard entries as JSON files to the sync folder. " +
+                    Body = "Each device writes new text clipboard entries as JSON files to the sync folder. " +
                             "Any sync service (OneDrive, Dropbox, Google Drive, etc.) copies those files to other devices. " +
                             "When you open Clipboard History on another device, it merges the new entries automatically.\n\n" +
                             "**Only text entries are synced** — images and file paths are device-specific.\n\n" +
@@ -109,9 +109,9 @@ internal sealed partial class ApplySyncFolderCommand : InvokableCommand
     public ApplySyncFolderCommand(ClipboardSettingsStore settings, string path)
     {
         _settings = settings;
-        _path     = path;
-        Name      = "Set Sync Folder";
-        Icon      = ClipboardVisuals.Sync;
+        _path = path;
+        Name = "Set Sync Folder";
+        Icon = ClipboardVisuals.Sync;
     }
 
     public override CommandResult Invoke()
@@ -128,8 +128,8 @@ internal sealed partial class ClearSyncFolderCommand : InvokableCommand
     public ClearSyncFolderCommand(ClipboardSettingsStore settings)
     {
         _settings = settings;
-        Name      = "Clear Sync Folder";
-        Icon      = ClipboardVisuals.Delete;
+        Name = "Clear Sync Folder";
+        Icon = ClipboardVisuals.Delete;
     }
 
     public override CommandResult Invoke()

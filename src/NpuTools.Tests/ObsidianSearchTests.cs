@@ -99,7 +99,7 @@ public sealed class ObsidianSearchTests
     [Fact]
     public void ExactTitleMatch_ScoresHigherThan_TitleSubstringMatch()
     {
-        int exact     = ObsidianSearchService.Score(Note("cat"), "cat");
+        int exact = ObsidianSearchService.Score(Note("cat"), "cat");
         int substring = ObsidianSearchService.Score(Note("cathedral notes"), "cat");
         Assert.True(exact > substring, $"exact={exact} should beat substring={substring}");
     }
@@ -108,7 +108,7 @@ public sealed class ObsidianSearchTests
     public void ExactTitleMatch_BeatsSubstring_EvenWithBacklinkDisadvantage()
     {
         // "cathedral" has 3 extra backlink points but exact-title "cat" should still win.
-        int exact     = ObsidianSearchService.Score(Note("cat"), "cat");
+        int exact = ObsidianSearchService.Score(Note("cat"), "cat");
         int substring = ObsidianSearchService.Score(Note("cathedral notes", backlinks: ["a.md", "b.md", "c.md"]), "cat");
         Assert.True(exact > substring, $"exact={exact} should beat substring+backlinks={substring}");
     }

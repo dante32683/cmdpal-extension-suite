@@ -45,16 +45,16 @@ internal sealed partial class ImageInputPage : DynamicListPage
 
     public ImageInputPage(ImageOperation operation, int scaleFactor, ImageEditorSettingsManager settings)
     {
-        _operation   = operation;
+        _operation = operation;
         _scaleFactor = scaleFactor;
-        _settings    = settings;
+        _settings = settings;
 
-        Id              = $"com.local.nputools.imageeditor.{operation.ToString().ToLowerInvariant()}.{scaleFactor}";
-        Title           = OperationLabel(operation, scaleFactor);
-        Name            = "Run";
-        Icon            = OperationIcon(operation);
+        Id = $"com.local.nputools.imageeditor.{operation.ToString().ToLowerInvariant()}.{scaleFactor}";
+        Title = OperationLabel(operation, scaleFactor);
+        Name = "Run";
+        Icon = OperationIcon(operation);
         PlaceholderText = "Tick images to process, or paste a file or folder path…";
-        IsLoading       = true;
+        IsLoading = true;
 
         _header = new ListItem(new NoOpCommand());
         RefreshHeader();
@@ -161,29 +161,29 @@ internal sealed partial class ImageInputPage : DynamicListPage
 
         if (n == 0)
         {
-            _header.Command  = new NoOpCommand();
-            _header.Title    = "No images selected yet";
+            _header.Command = new NoOpCommand();
+            _header.Title = "No images selected yet";
             _header.Subtitle = "Press Enter on an image below to add it";
-            _header.Icon     = OperationIcon(_operation);
-            _header.Tags     = [];
+            _header.Icon = OperationIcon(_operation);
+            _header.Tags = [];
         }
         else if (n == 1)
         {
             // A single selection processes straight to the normal result page.
             string only = _selected.First();
-            _header.Command  = new ImageResultPage(_operation, _scaleFactor, only, _settings);
-            _header.Title    = $"{OperationLabel(_operation, _scaleFactor)} — 1 image";
+            _header.Command = new ImageResultPage(_operation, _scaleFactor, only, _settings);
+            _header.Title = $"{OperationLabel(_operation, _scaleFactor)} — 1 image";
             _header.Subtitle = Path.GetFileName(only);
-            _header.Icon     = OperationIcon(_operation);
-            _header.Tags     = [ImageEditorVisuals.MutedTag("press Enter")];
+            _header.Icon = OperationIcon(_operation);
+            _header.Tags = [ImageEditorVisuals.MutedTag("press Enter")];
         }
         else
         {
-            _header.Command  = new BatchResultPage(_operation, _scaleFactor, [.. _selected], _settings);
-            _header.Title    = $"{OperationLabel(_operation, _scaleFactor)} — {n} images";
+            _header.Command = new BatchResultPage(_operation, _scaleFactor, [.. _selected], _settings);
+            _header.Title = $"{OperationLabel(_operation, _scaleFactor)} — {n} images";
             _header.Subtitle = $"Outputs land in a new subfolder in {Path.GetFileName(_folder)}";
-            _header.Icon     = ImageEditorVisuals.RunBatch;
-            _header.Tags     = [ImageEditorVisuals.MutedTag("press Enter")];
+            _header.Icon = ImageEditorVisuals.RunBatch;
+            _header.Tags = [ImageEditorVisuals.MutedTag("press Enter")];
         }
     }
 
@@ -258,7 +258,7 @@ internal sealed partial class ImageInputPage : DynamicListPage
 
             var row = new ListItem(new NoOpCommand())
             {
-                Title    = "From Clipboard",
+                Title = "From Clipboard",
                 Subtitle = "Use the image currently in your clipboard",
             };
             rowsByPath[savedPath] = row;
@@ -274,9 +274,9 @@ internal sealed partial class ImageInputPage : DynamicListPage
     private ListItem EmptyRow() =>
         new(new NoOpCommand())
         {
-            Title    = $"No images found in {Path.GetFileName(_folder)}",
+            Title = $"No images found in {Path.GetFileName(_folder)}",
             Subtitle = "Paste a folder path to scan a different location",
-            Icon     = ImageEditorVisuals.Folder,
+            Icon = ImageEditorVisuals.Folder,
         };
 
     private static async Task<FileInfo[]> ScanFolderAsync(string folder, CancellationToken cancellationToken)
@@ -319,24 +319,24 @@ internal sealed partial class ImageInputPage : DynamicListPage
     {
         var diff = DateTime.Now - dt;
         if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
-        if (diff.TotalHours   < 24) return $"{(int)diff.TotalHours}h ago";
-        if (diff.TotalDays    < 30) return $"{(int)diff.TotalDays}d ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
+        if (diff.TotalDays < 30) return $"{(int)diff.TotalDays}d ago";
         return dt.ToString("MMM d, yyyy", System.Globalization.CultureInfo.CurrentCulture);
     }
 
     internal static string OperationLabel(ImageOperation op, int scaleFactor = 2) => op switch
     {
         ImageOperation.RemoveBackground => "Remove Background",
-        ImageOperation.SuperResolution  => $"Super Resolution ({scaleFactor}×)",
-        ImageOperation.Ocr              => "Extract Text (OCR)",
-        _                               => op.ToString(),
+        ImageOperation.SuperResolution => $"Super Resolution ({scaleFactor}×)",
+        ImageOperation.Ocr => "Extract Text (OCR)",
+        _ => op.ToString(),
     };
 
     internal static IconInfo OperationIcon(ImageOperation op) => op switch
     {
         ImageOperation.RemoveBackground => ImageEditorVisuals.Eraser,
-        ImageOperation.SuperResolution  => ImageEditorVisuals.Scale,
-        ImageOperation.Ocr              => ImageEditorVisuals.Ocr,
-        _                               => ImageEditorVisuals.Camera,
+        ImageOperation.SuperResolution => ImageEditorVisuals.Scale,
+        ImageOperation.Ocr => ImageEditorVisuals.Ocr,
+        _ => ImageEditorVisuals.Camera,
     };
 }
