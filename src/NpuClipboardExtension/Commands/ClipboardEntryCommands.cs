@@ -66,6 +66,7 @@ internal sealed partial class PasteEntryCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
+        nint paletteWindow = ClipboardContentService.CaptureForegroundWindow();
         _ = System.Threading.Tasks.Task.Run(async () =>
         {
             try
@@ -73,12 +74,13 @@ internal sealed partial class PasteEntryCommand : InvokableCommand
                 var entry = _store.Get(_id);
                 if (entry is null) return;
                 var settings = _settings.Current;
-                await _content.PasteAsync(entry, _plainTextOnly, settings.PasteDelayMs).ConfigureAwait(false);
+                await _content.PasteAsync(entry, _plainTextOnly, settings.PasteDelayMs, paletteWindow).ConfigureAwait(false);
                 _store.MarkUsed(_id, settings);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"PasteEntryCommand failed: {ex.GetType().Name}: {ex.Message}");
+                new ToastStatusMessage("Paste failed — return focus to the target app and try again.").Show();
             }
         });
         return CommandResult.Dismiss();

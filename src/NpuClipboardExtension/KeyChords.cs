@@ -6,13 +6,18 @@ namespace NpuTools.Clipboard;
 
 internal static class KeyChords
 {
-    internal static KeyChord Copy          { get; } = KeyChordHelpers.FromModifiers(ctrl: true,  vkey: (int)VirtualKey.C);
-    internal static KeyChord Paste         { get; } = KeyChordHelpers.FromModifiers(ctrl: true,  vkey: (int)VirtualKey.V);
-    internal static KeyChord PastePlain    { get; } = KeyChordHelpers.FromModifiers(ctrl: true,  shift: true, vkey: (int)VirtualKey.V);
-    internal static KeyChord CopyPlain     { get; } = KeyChordHelpers.FromModifiers(ctrl: true,  shift: true, vkey: (int)VirtualKey.C);
-    internal static KeyChord Rename        { get; } = KeyChordHelpers.FromModifiers(vkey: (int)VirtualKey.F2);
-    internal static KeyChord Pin           { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.P);
-    internal static KeyChord Delete         { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.Delete);
-    internal static KeyChord Reveal         { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.E);
+    internal static KeyChord Copy { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.C);
+    internal static KeyChord Paste { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.V);
+    internal static KeyChord PastePlain { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.V);
+    internal static KeyChord CopyPlain { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.C);
+    internal static KeyChord Rename { get; } = KeyChordHelpers.FromModifiers(vkey: (int)VirtualKey.F2);
+    internal static KeyChord Pin { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.P);
+    internal static KeyChord Delete { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.Delete);
+    internal static KeyChord Reveal { get; } = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: (int)VirtualKey.E);
     internal static KeyChord ToggleRecorder { get; } = KeyChordHelpers.FromModifiers(ctrl: true, vkey: (int)VirtualKey.R);
+    internal static KeyChord DeleteRecent5 { get; } = KeyChordHelpers.FromModifiers(ctrl: true, alt: true, vkey: (int)VirtualKey.Number1);
+    internal static KeyChord DeleteRecent15 { get; } = KeyChordHelpers.FromModifiers(ctrl: true, alt: true, vkey: (int)VirtualKey.Number2);
+    internal static KeyChord DeleteRecent30 { get; } = KeyChordHelpers.FromModifiers(ctrl: true, alt: true, vkey: (int)VirtualKey.Number3);
+    internal static KeyChord DeleteRecent60 { get; } = KeyChordHelpers.FromModifiers(ctrl: true, alt: true, vkey: (int)VirtualKey.Number4);
+    internal static KeyChord DeleteRecentDay { get; } = KeyChordHelpers.FromModifiers(ctrl: true, alt: true, vkey: (int)VirtualKey.Number5);
 }
