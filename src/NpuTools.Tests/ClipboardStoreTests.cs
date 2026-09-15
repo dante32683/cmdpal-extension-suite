@@ -9,49 +9,34 @@ namespace NpuTools.Tests;
 
 public sealed class ClipboardStoreTests : IDisposable
 {
+    private readonly string _testDirectory;
     private readonly string _historyPath;
-    private readonly string? _backupPath;
+    private readonly string _blobDirectory;
 
     public ClipboardStoreTests()
     {
-        _historyPath = ClipboardPaths.HistoryPath();
-        string dir = Path.GetDirectoryName(_historyPath)!;
-        Directory.CreateDirectory(dir);
-
-        // Backup existing user history.json to avoid destroying actual user data
-        if (File.Exists(_historyPath))
-        {
-            _backupPath = Path.Combine(dir, $"history.json.backup_{Guid.NewGuid():N}");
-            File.Move(_historyPath, _backupPath);
-        }
+        _testDirectory = Path.Combine(Path.GetTempPath(), $"NpuClipboardStoreTests_{Guid.NewGuid():N}");
+        _historyPath = Path.Combine(_testDirectory, "history.json");
+        _blobDirectory = Path.Combine(_testDirectory, "blobs");
+        Directory.CreateDirectory(_testDirectory);
     }
 
     public void Dispose()
     {
-        // Cleanup test file
         try
         {
-            if (File.Exists(_historyPath))
-                File.Delete(_historyPath);
+            Directory.Delete(_testDirectory, recursive: true);
         }
         catch { }
-
-        // Restore user backup
-        if (_backupPath is not null && File.Exists(_backupPath))
-        {
-            try
-            {
-                File.Move(_backupPath, _historyPath, overwrite: true);
-            }
-            catch { }
-        }
     }
+
+    private ClipboardStore CreateStore() => new(_historyPath, _blobDirectory);
 
     [Fact]
     public void ClipboardStore_LoadsDynamicallyWhenFileChanges()
     {
         // 1. Initialize store (should be empty initially)
-        var store = new ClipboardStore();
+        var store = CreateStore();
         Assert.Equal(0, store.Count);
 
         // 2. Simulate keeper writing to history.json on disk
@@ -96,7 +81,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_FiresOnMarkUsed()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         var entry = NewEntry("clip_changed_1", "changed item");
         store.AddOrPromote(entry, SettingsWith(limit: 200));
 
@@ -111,7 +96,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_DoesNotFireWhenMarkUsedTargetMissing()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         store.AddOrPromote(NewEntry("clip_present", "present"), SettingsWith(limit: 200));
 
         int fired = 0;
@@ -125,7 +110,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_FiresOnAddOrPromote()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         int fired = 0;
         store.Changed += () => fired++;
 
@@ -138,7 +123,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_FiresOnSetPinnedAndDelete()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         store.AddOrPromote(NewEntry("clip_pin", "pin me"), SettingsWith(limit: 200));
 
         int fired = 0;
@@ -153,7 +138,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_DoesNotFireWhenSetPinnedTargetMissing()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         int fired = 0;
         store.Changed += () => fired++;
 
@@ -165,7 +150,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_FiresOnRename()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         store.AddOrPromote(NewEntry("clip_rename", "renamable"), SettingsWith(limit: 200));
 
         int fired = 0;
@@ -180,7 +165,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_FiresOnDeleteAll()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         store.AddOrPromote(NewEntry("clip_a", "a"), SettingsWith(limit: 200));
         store.AddOrPromote(NewEntry("clip_b", "b"), SettingsWith(limit: 200));
 
@@ -196,7 +181,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_FiresOnEnforceRetentionWhenSomethingRemoved()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         store.AddOrPromote(NewEntry("clip_r1", "1"), SettingsWith(limit: 1));
         store.AddOrPromote(NewEntry("clip_r2", "2"), SettingsWith(limit: 1));
 
@@ -211,7 +196,7 @@ public sealed class ClipboardStoreTests : IDisposable
     [Fact]
     public void ClipboardStore_ChangedEvent_DoesNotFireOnEnforceRetentionWhenNothingRemoved()
     {
-        var store = new ClipboardStore();
+        var store = CreateStore();
         store.AddOrPromote(NewEntry("clip_keep", "keep"), SettingsWith(limit: 10));
 
         int fired = 0;
@@ -251,7 +236,7 @@ public sealed class ClipboardStoreTests : IDisposable
                 JsonSerializer.Serialize(secretEntry, ClipboardJsonContext.Default.ClipboardEntry));
             File.SetLastWriteTimeUtc(Path.Combine(syncDir, "clip_sync_secret.json"), DateTime.UtcNow.AddSeconds(1));
 
-            var store = new ClipboardStore();
+            var store = CreateStore();
             var settings = new ClipboardAppSettings(); // defaults: SecretDetectionEnabled = true
             store.SyncFrom(syncRoot, settings);
 
@@ -294,7 +279,7 @@ public sealed class ClipboardStoreTests : IDisposable
         // extension writing MarkUsed can land on the same NTFS mtime, hiding the change
         // from EnsureFresh's writeTime != _lastWriteTime check. Save() now forces a fresh
         // mtime so the second write is reliably detected on the next read.
-        var store = new ClipboardStore();
+        var store = CreateStore();
         var entry = NewEntry("clip_mtime_1", "mtime");
         store.AddOrPromote(entry, SettingsWith(limit: 200));
 

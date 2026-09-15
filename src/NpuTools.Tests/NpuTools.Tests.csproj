@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- CA1707: Identifiers should not contain underscores — suppressed for xUnit test method naming convention. -->
     <NoWarn>$(NoWarn);CA1707</NoWarn>
     <!-- Tests do not ship as MSIX — disable MSIX tooling. -->
@@ -34,6 +35,8 @@
     <Compile Include="..\NpuOrganizeKeeper\SlugGenerator.cs" Link="SlugGenerator.cs" />
     <Compile Include="..\NpuOrganizeExtension\Services\SlugService.cs" Link="Organize\SlugService.cs" />
     <Compile Include="..\NpuOrganizeExtension\Services\OrganizeSettings.cs" Link="Organize\OrganizeSettings.cs" />
+    <Compile Include="..\NpuTextToolsExtension\TextRewriteMode.cs" Link="TextTools\TextRewriteMode.cs" />
+    <Compile Include="..\NpuTextToolsExtension\Services\TextRewritePromptBuilder.cs" Link="TextTools\TextRewritePromptBuilder.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardClassifier.cs" Link="Clipboard\ClipboardClassifier.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardEntryKind.cs" Link="Clipboard\ClipboardEntryKind.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\ClipboardEntry.cs" Link="Clipboard\ClipboardEntry.cs" />
@@ -50,6 +53,8 @@
     <Compile Include="..\NpuClipboardExtension\Shared\DefaultSecretPatterns.cs" Link="Clipboard\DefaultSecretPatterns.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\SecretPatternsParser.cs" Link="Clipboard\SecretPatternsParser.cs" />
     <Compile Include="..\NpuClipboardExtension\Shared\SecretPatternMatcher.cs" Link="Clipboard\SecretPatternMatcher.cs" />
+    <Compile Include="..\NpuClipboardExtension\Interop\User32.cs" Link="Clipboard\User32.cs" />
+    <Compile Include="..\NpuClipboardExtension\Services\PasteInputSequence.cs" Link="Clipboard\PasteInputSequence.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NoteEntry.cs" Link="Notes\NoteEntry.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NotesAppSettings.cs" Link="Notes\NotesAppSettings.cs" />
     <Compile Include="..\NpuNotesExtension\Models\NotesIndex.cs" Link="Notes\NotesIndex.cs" />

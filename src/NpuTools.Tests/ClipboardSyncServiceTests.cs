@@ -14,7 +14,7 @@ public sealed class ClipboardSyncServiceTests : IDisposable
     public ClipboardSyncServiceTests()
     {
         _syncFolder = Path.Combine(Path.GetTempPath(), "NpuSyncTest_" + Guid.NewGuid().ToString("N")[..8]);
-        _syncDir    = Path.Combine(_syncFolder, "clipboard-sync");
+        _syncDir = Path.Combine(_syncFolder, "clipboard-sync");
         Directory.CreateDirectory(_syncFolder);
     }
 
@@ -38,8 +38,11 @@ public sealed class ClipboardSyncServiceTests : IDisposable
     {
         var entry = new ClipboardEntry
         {
-            Id = "clip_img_1", Kind = ClipboardEntryKind.Image,
-            Title = "Image", ContentHash = "h1", SourceDevice = "REMOTE-PC",
+            Id = "clip_img_1",
+            Kind = ClipboardEntryKind.Image,
+            Title = "Image",
+            ContentHash = "h1",
+            SourceDevice = "REMOTE-PC",
             ImagePath = "C:\\fake.png",
         };
         ClipboardSyncService.WriteEntry(entry, _syncFolder);
@@ -51,8 +54,11 @@ public sealed class ClipboardSyncServiceTests : IDisposable
     {
         var entry = new ClipboardEntry
         {
-            Id = "clip_files_1", Kind = ClipboardEntryKind.Files,
-            Title = "Files", ContentHash = "h2", SourceDevice = "REMOTE-PC",
+            Id = "clip_files_1",
+            Kind = ClipboardEntryKind.Files,
+            Title = "Files",
+            ContentHash = "h2",
+            SourceDevice = "REMOTE-PC",
             FilePaths = ["C:\\foo.txt"],
         };
         ClipboardSyncService.WriteEntry(entry, _syncFolder);
