@@ -30,16 +30,16 @@ internal sealed partial class QuickRewritePage : DynamicListPage
 
     public QuickRewritePage(TextRewriteService service, TextToolsSettingsManager? settings = null, PendingRewriteStore? pending = null, CaptureDiagnosticsStore? diag = null)
     {
-        _service  = service;
+        _service = service;
         _settings = settings;
-        _pending  = pending;
-        _diag     = diag;
-        Id              = "com.local.nputools.texttools.quick";
-        Title           = "Quick Rewrite";
-        Name            = "Quick Rewrite";
-        Icon            = TextToolsVisuals.Phi;
+        _pending = pending;
+        _diag = diag;
+        Id = "com.local.nputools.texttools.quick";
+        Title = "Quick Rewrite";
+        Name = "Quick Rewrite";
+        Icon = TextToolsVisuals.Phi;
         PlaceholderText = "Type text to rewrite, or leave empty to rewrite selected text...";
-        _items          = BuildItems(string.Empty);
+        _items = BuildItems(string.Empty);
     }
 
     public override void UpdateSearchText(string oldSearch, string newSearch)
@@ -70,10 +70,10 @@ internal sealed partial class QuickRewritePage : DynamicListPage
                 var reviewPage = new PendingReviewPage(_pending, input, result, mode, _service);
                 items.Add(new ListItem(reviewPage)
                 {
-                    Title    = $"Review Last Rewrite — {TextRewriteService.ModeLabel(mode)}",
+                    Title = $"Review Last Rewrite — {TextRewriteService.ModeLabel(mode)}",
                     Subtitle = preview,
-                    Icon     = TextToolsVisuals.Check,
-                    Tags     = [TextToolsVisuals.StatusTag("pending review")],
+                    Icon = TextToolsVisuals.Check,
+                    Tags = [TextToolsVisuals.StatusTag("pending review")],
                 });
             }
         }
@@ -113,22 +113,22 @@ internal sealed partial class QuickRewritePage : DynamicListPage
 
         return new ListItem(command)
         {
-            Title    = TextRewriteService.ModeLabel(mode),
+            Title = TextRewriteService.ModeLabel(mode),
             Subtitle = fullSubtitle,
-            Icon     = TextToolsVisuals.Phi,
-            Tags     = [.. tags],
+            Icon = TextToolsVisuals.Phi,
+            Tags = [.. tags],
         };
     }
 
     private static string GetSubtitle(TextRewriteMode mode) => mode switch
     {
-        TextRewriteMode.FixGrammar   => "Correct grammar and spelling",
-        TextRewriteMode.MakeFormal   => "Rewrite in a professional tone",
-        TextRewriteMode.MakeConcise  => "Shorten while preserving meaning",
+        TextRewriteMode.FixGrammar => "Correct grammar and spelling",
+        TextRewriteMode.MakeFormal => "Rewrite in a professional tone",
+        TextRewriteMode.MakeConcise => "Shorten while preserving meaning",
         TextRewriteMode.BulletPoints => "Convert prose to bullet points",
-        TextRewriteMode.Simplify     => "Plain language for any audience",
-        TextRewriteMode.Custom       => "Two steps: enter instruction, then paste text",
-        _                            => mode.ToString(),
+        TextRewriteMode.Simplify => "Plain language for any audience",
+        TextRewriteMode.Custom => "Two steps: enter instruction, then paste text",
+        _ => mode.ToString(),
     };
 
     private static string Preview(string text) =>

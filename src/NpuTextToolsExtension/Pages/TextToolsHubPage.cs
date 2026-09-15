@@ -15,11 +15,11 @@ internal sealed partial class TextToolsHubPage : ListPage
     {
         _service = service;
         _pending = pending;
-        _diag    = diag;
-        Id    = "com.local.nputools.texttools.hub";
+        _diag = diag;
+        Id = "com.local.nputools.texttools.hub";
         Title = "Text Tools";
-        Name  = "Open";
-        Icon  = TextToolsVisuals.Hub;
+        Name = "Open";
+        Icon = TextToolsVisuals.Hub;
     }
 
     public override IListItem[] GetItems()
@@ -34,10 +34,10 @@ internal sealed partial class TextToolsHubPage : ListPage
             string preview = result.Length > 80 ? result[..80] + "…" : result;
             items.Add(new ListItem(new PendingReviewPage(_pending, input, result, mode, _service))
             {
-                Title    = $"Review Last Rewrite — {TextRewriteService.ModeLabel(mode)}",
+                Title = $"Review Last Rewrite — {TextRewriteService.ModeLabel(mode)}",
                 Subtitle = preview,
-                Icon     = TextToolsVisuals.Check,
-                Tags     = [TextToolsVisuals.StatusTag("pending review")],
+                Icon = TextToolsVisuals.Check,
+                Tags = [TextToolsVisuals.StatusTag("pending review")],
             });
         }
 
@@ -54,28 +54,28 @@ internal sealed partial class TextToolsHubPage : ListPage
         {
             items.Add(new ListItem(new RewriteInputPage(mode, _service))
             {
-                Title    = TextRewriteService.ModeLabel(mode),
+                Title = TextRewriteService.ModeLabel(mode),
                 Subtitle = subtitle,
-                Icon     = TextToolsVisuals.Phi,
-                Tags     = [TextToolsVisuals.MutedTag("type text")],
+                Icon = TextToolsVisuals.Phi,
+                Tags = [TextToolsVisuals.MutedTag("type text")],
             });
         }
 
         // Custom mode uses a two-step flow: instruction page → text page → result.
         items.Add(new ListItem(new RewriteCustomInstructionPage(_service))
         {
-            Title    = TextRewriteService.ModeLabel(TextRewriteMode.Custom),
+            Title = TextRewriteService.ModeLabel(TextRewriteMode.Custom),
             Subtitle = "Two steps: enter instruction, then paste text",
-            Icon     = TextToolsVisuals.Phi,
-            Tags     = [TextToolsVisuals.MutedTag("type instruction")],
+            Icon = TextToolsVisuals.Phi,
+            Tags = [TextToolsVisuals.MutedTag("type instruction")],
         });
 
         items.Add(new ListItem(new QuickRewritePage(_service, pending: _pending, diag: _diag))
         {
-            Title    = "Quick Rewrite",
+            Title = "Quick Rewrite",
             Subtitle = "Leave empty to rewrite selected text, or type text directly",
-            Icon     = TextToolsVisuals.Phi,
-            Tags     = [TextToolsVisuals.MutedTag("select text first")],
+            Icon = TextToolsVisuals.Phi,
+            Tags = [TextToolsVisuals.MutedTag("select text first")],
         });
 
         return items.ToArray();

@@ -11,8 +11,8 @@ internal sealed partial class RevealInExplorerCommand : InvokableCommand
     public RevealInExplorerCommand(string path)
     {
         _path = path;
-        Name  = "Open File Location";
-        Icon  = OrganizeVisuals.Folder;
+        Name = "Open File Location";
+        Icon = OrganizeVisuals.Folder;
     }
 
     public override CommandResult Invoke()

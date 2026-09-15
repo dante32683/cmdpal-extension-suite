@@ -15,10 +15,10 @@ internal sealed partial class RenameSingleCommand : InvokableCommand
 
     public RenameSingleCommand(RenameProposal proposal, ScreenshotIndexService indexService)
     {
-        _proposal     = proposal;
+        _proposal = proposal;
         _indexService = indexService;
-        Name          = "Rename";
-        Icon          = OrganizeVisuals.Rename;
+        Name = "Rename";
+        Icon = OrganizeVisuals.Rename;
     }
 
     public override CommandResult Invoke()

@@ -138,11 +138,11 @@ public sealed class SlugServiceTests
     // ── NormalizeExtension ─────────────────────────────────────────────────────
 
     [Theory]
-    [InlineData(".png",  ".png")]
-    [InlineData("png",   ".png")]
-    [InlineData("PNG",   ".png")]
-    [InlineData(".PNG",  ".png")]
-    [InlineData("",      "")]
+    [InlineData(".png", ".png")]
+    [InlineData("png", ".png")]
+    [InlineData("PNG", ".png")]
+    [InlineData(".PNG", ".png")]
+    [InlineData("", "")]
     public void NormalizeExtension_LowercasesAndPrependsDot(string input, string expected)
     {
         Assert.Equal(expected, SlugGenerator.NormalizeExtension(input));

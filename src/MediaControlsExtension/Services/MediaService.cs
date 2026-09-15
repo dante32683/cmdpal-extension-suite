@@ -230,7 +230,7 @@ internal sealed partial class MediaService : INotifyPropertyChanged, IDisposable
     {
         this.Refresh();
     }
-    
+
     private void FireMediaSourcesChanged()
     {
         if (this._hasPendingMediaSourcesChanged)

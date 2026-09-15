@@ -117,13 +117,13 @@ internal static class WorkspaceScanner
 
     private static string MarkerToType(string marker) => marker switch
     {
-        ".git"          => "git",
+        ".git" => "git",
         "*.sln" or "*.csproj" => "dotnet",
-        "package.json"  => "node",
-        "Cargo.toml"    => "rust",
+        "package.json" => "node",
+        "Cargo.toml" => "rust",
         "pyproject.toml" => "python",
-        "go.mod"        => "go",
+        "go.mod" => "go",
         "pom.xml" or "build.gradle" => "java",
-        _               => "project",
+        _ => "project",
     };
 }

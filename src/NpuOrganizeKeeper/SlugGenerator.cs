@@ -77,7 +77,7 @@ internal static class SlugGenerator
 
         int dot = baseFilename.LastIndexOf('.');
         string stem = dot == -1 ? baseFilename : baseFilename[..dot];
-        string ext  = dot == -1 ? string.Empty : baseFilename[dot..];
+        string ext = dot == -1 ? string.Empty : baseFilename[dot..];
 
         for (int i = 2; i < 10_000; i++)
         {

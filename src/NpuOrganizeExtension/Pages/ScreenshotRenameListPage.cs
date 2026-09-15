@@ -20,15 +20,15 @@ internal sealed partial class ScreenshotRenameListPage : ListPage
 
     public ScreenshotRenameListPage(ScreenshotScannerService scanner, ScreenshotIndexService indexService, bool dryRun = false)
     {
-        _scanner      = scanner;
+        _scanner = scanner;
         _indexService = indexService;
-        _dryRun       = dryRun;
-        Id       = dryRun
+        _dryRun = dryRun;
+        Id = dryRun
             ? "com.local.nputools.organize.dryrun"
             : "com.local.nputools.organize.rename";
-        Title    = dryRun ? "Preview Screenshot Rename" : "Rename Screenshots";
-        Name     = dryRun ? "Preview" : "Rename";
-        Icon     = dryRun ? OrganizeVisuals.DryRun : OrganizeVisuals.Rename;
+        Title = dryRun ? "Preview Screenshot Rename" : "Rename Screenshots";
+        Name = dryRun ? "Preview" : "Rename";
+        Icon = dryRun ? OrganizeVisuals.DryRun : OrganizeVisuals.Rename;
         IsLoading = true; // Indicate loading state initially
     }
 
@@ -68,9 +68,9 @@ internal sealed partial class ScreenshotRenameListPage : ListPage
             {
                 newItems.Add(new ListItem(new NoOpCommand())
                 {
-                    Title    = "No screenshots to rename",
+                    Title = "No screenshots to rename",
                     Subtitle = _scanner.ScreenshotsFolder,
-                    Icon     = OrganizeVisuals.Check,
+                    Icon = OrganizeVisuals.Check,
                 });
             }
             else
@@ -79,29 +79,29 @@ internal sealed partial class ScreenshotRenameListPage : ListPage
                 {
                     newItems.Add(new ListItem(new RenameAllPage(proposals, _indexService))
                     {
-                        Title    = $"Rename All ({proposals.Count})",
+                        Title = $"Rename All ({proposals.Count})",
                         Subtitle = "AI-rename and index every screenshot below",
-                        Icon     = OrganizeVisuals.Check,
-                        Tags     = [OrganizeVisuals.MutedTag("batch")],
+                        Icon = OrganizeVisuals.Check,
+                        Tags = [OrganizeVisuals.MutedTag("batch")],
                     });
                 }
 
                 newItems.Add(new ListItem(new OpenFolderCommand(_scanner.ScreenshotsFolder))
                 {
                     Title = "Open Screenshots Folder",
-                    Icon  = OrganizeVisuals.Folder,
+                    Icon = OrganizeVisuals.Folder,
                 });
 
                 foreach (var proposal in proposals)
                 {
-                    string date    = System.IO.File.GetCreationTime(proposal.OriginalPath).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+                    string date = System.IO.File.GetCreationTime(proposal.OriginalPath).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
                     string preview = _dryRun ? $"→ {date}_[AI title].png" : $"→ {date}_[AI reads on rename].png";
                     var item = new ListItem(_dryRun ? new NoOpCommand() : new RenameSingleCommand(proposal, _indexService))
                     {
-                        Title    = proposal.OriginalName,
+                        Title = proposal.OriginalName,
                         Subtitle = preview,
-                        Icon     = OrganizeVisuals.File,
-                        Tags     = [OrganizeVisuals.MutedTag(_dryRun ? "preview" : "rename")],
+                        Icon = OrganizeVisuals.File,
+                        Tags = [OrganizeVisuals.MutedTag(_dryRun ? "preview" : "rename")],
                     };
                     newItems.Add(item);
                 }

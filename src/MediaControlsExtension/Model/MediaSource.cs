@@ -90,7 +90,7 @@ internal sealed partial class MediaSource : BaseObservable, IDisposable
 
     public void UpdateSessionWhenDifferent(GlobalSystemMediaTransportControlsSession session)
     {
-        if(session == this.Session)
+        if (session == this.Session)
         {
             return;
         }
@@ -160,14 +160,14 @@ internal sealed partial class MediaSource : BaseObservable, IDisposable
             async (request, token) =>
             {
                 await this.UpdatePropertiesFromSession(
-                    this.Session, 
-                    request.UpdatePlayback, 
-                    request.UpdateMediaProperties, 
+                    this.Session,
+                    request.UpdatePlayback,
+                    request.UpdateMediaProperties,
                     token);
                 return null;
             },
-            _ => {  },
-            _ => {  }
+            _ => { },
+            _ => { }
         );
 
         this.TriggerUpdate(true, true);
@@ -181,7 +181,7 @@ internal sealed partial class MediaSource : BaseObservable, IDisposable
         }
 
         this._disposed = true;
-        
+
         this.UnhookSession();
 
         this._thumbnailLoader.Dispose();

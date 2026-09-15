@@ -10,10 +10,10 @@ internal sealed partial class SuperResolutionPickerPage : ListPage
     public SuperResolutionPickerPage(ImageEditorSettingsManager settings)
     {
         _settings = settings;
-        Id    = "com.local.nputools.imageeditor.sr.picker";
+        Id = "com.local.nputools.imageeditor.sr.picker";
         Title = "Super Resolution";
-        Name  = "Select Scale";
-        Icon  = ImageEditorVisuals.Scale;
+        Name = "Select Scale";
+        Icon = ImageEditorVisuals.Scale;
     }
 
     public override IListItem[] GetItems() =>
@@ -26,9 +26,9 @@ internal sealed partial class SuperResolutionPickerPage : ListPage
     private ListItem MakeScaleItem(int scale, string subtitle) =>
         new(new ImageInputPage(ImageOperation.SuperResolution, scale, _settings))
         {
-            Title    = $"Super Resolution ({scale}×)",
+            Title = $"Super Resolution ({scale}×)",
             Subtitle = subtitle,
-            Icon     = ImageEditorVisuals.Scale,
-            Tags     = [ImageEditorVisuals.MutedTag("browse or paste path")],
+            Icon = ImageEditorVisuals.Scale,
+            Tags = [ImageEditorVisuals.MutedTag("browse or paste path")],
         };
 }

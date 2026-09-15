@@ -22,11 +22,11 @@ internal static partial class SlugService
 
     internal static string BuildProposedPath(string originalPath)
     {
-        string dir      = Path.GetDirectoryName(originalPath) ?? string.Empty;
-        string stem     = Path.GetFileNameWithoutExtension(originalPath);
-        string ext      = Path.GetExtension(originalPath);
-        string date     = File.GetCreationTime(originalPath).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        string slug     = Slugify(stem);
+        string dir = Path.GetDirectoryName(originalPath) ?? string.Empty;
+        string stem = Path.GetFileNameWithoutExtension(originalPath);
+        string ext = Path.GetExtension(originalPath);
+        string date = File.GetCreationTime(originalPath).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        string slug = Slugify(stem);
         string proposed = $"{date}_{(string.IsNullOrEmpty(slug) ? "screenshot" : slug)}{ext}";
 
         return CollisionSafe(dir, proposed, ext);

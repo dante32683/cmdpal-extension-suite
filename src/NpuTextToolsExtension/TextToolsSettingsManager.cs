@@ -53,13 +53,13 @@ internal sealed class TextToolsSettingsManager : JsonSettingsManager
     {
         return QuickMode.Value switch
         {
-            "FixGrammar"   => TextRewriteMode.FixGrammar,
-            "MakeFormal"   => TextRewriteMode.MakeFormal,
-            "MakeConcise"  => TextRewriteMode.MakeConcise,
+            "FixGrammar" => TextRewriteMode.FixGrammar,
+            "MakeFormal" => TextRewriteMode.MakeFormal,
+            "MakeConcise" => TextRewriteMode.MakeConcise,
             "BulletPoints" => TextRewriteMode.BulletPoints,
-            "Simplify"     => TextRewriteMode.Simplify,
-            "Custom"       => TextRewriteMode.Custom,
-            _              => null,
+            "Simplify" => TextRewriteMode.Simplify,
+            "Custom" => TextRewriteMode.Custom,
+            _ => null,
         };
     }
 
