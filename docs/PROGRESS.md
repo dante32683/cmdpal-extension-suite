@@ -73,7 +73,7 @@ All P0 features shipped. Screenshot search with relevance ranking and context ac
 
 ---
 
-## NPU Image Editor — ~98%
+## NPU Image Editor — ~99%
 
 All planned features shipped. ImageForegroundExtractor for automatic background removal, 2×/4×/8× super resolution, image browser, and settings system.
 
@@ -113,13 +113,12 @@ The pending review feature stores each selection rewrite in a `PendingRewriteSto
 
 ---
 
-## NPU Clipboard — ~98%
+## NPU Clipboard — ~99%
 
 All planned features implemented including cross-device sync via shared folder.
 
-> ⚠️ 2026-07-09 audit surfaced open reliability/security issues in this subsystem —
-> see `docs/BUGS.md` BUG-017..022. Highest priority: **BUG-017** (settings write
-> storm / silent config-and-secret loss). Fix before treating this extension as done.
+The reliability and security issues found in the July 2026 audit are resolved; see
+`docs/BUGS.md` BUG-017..022 for the fixes and regression coverage.
 
 | Feature | Status |
 |---|---|
@@ -222,9 +221,9 @@ All planned features shipped. Workspace detection, Explorer/Terminal/IDE launch,
 
 Roughly in priority order:
 
-1. **CI: restore/build pipeline** — build validation per push
-2. **Publish: release artifacts** — per-extension MSIX publish flow
-3. **DevToolbox: Open Explorer window detection** — detect open Explorer windows as workspace
+1. **Publish: release artifacts** — per-extension MSIX publish flow
+2. **DevToolbox: Open Explorer window detection** — detect open Explorer windows as workspace
+3. **Testing: lifecycle and COM-host smoke tests** — complement the 172 pure-logic tests
 
 ### Future Enhancements (post-migration)
 

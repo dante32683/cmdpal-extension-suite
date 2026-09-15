@@ -28,7 +28,7 @@ The repo-level docs are the authoritative standards for all extensions in this w
 - `src/NpuClipboardKeeper` - companion recorder daemon for `NpuClipboardExtension`.
 - `src/NpuNotesExtension` - Markdown notes hub with create, search, browse, pin, and delete flows.
 - `src/NpuObsidianExtension` - Obsidian vault search, capture, append, rename, move, and delete flows.
-- `src/NpuDevToolboxExtension` - NPU developer toolbox shell.
+- `src/NpuDevToolboxExtension` - workspace discovery, quick-open actions, recent workspaces, and AI commit-message generation.
 - `src/NpuTools.Shared` - shared NPU helpers.
 - `tools/NpuAwakeKeeper` - companion daemon packaged by `NpuAwakeExtension`.
 

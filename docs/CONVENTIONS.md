@@ -37,7 +37,7 @@
 
 ## Icons
 
-- Always use explicit Unicode escapes for glyphs: `new IconInfo("")`.
+- Always use explicit Unicode escapes for glyphs: `new IconInfo("\uE713")`.
 - Do not paste glyph characters directly into source — they can be silently corrupted.
 - The default icon font is Segoe Fluent Icons. Verify codepoints against that font, not Segoe MDL2 Assets (they overlap but are not identical).
 - Use `IconHelpers.FromRelativePath("Assets\\MyIcon.png")` for file-based icons.
@@ -58,7 +58,7 @@
 
 ## Verifying A New Page Or Feature
 
-Command Palette extensions cannot be unit-tested outside the MSIX+COM host. The verification loop is:
+Pure services, parsing, persistence, and policy code should be unit-tested without the host. SDK rendering, COM activation, and Windows AI integration cannot be fully tested outside the MSIX+COM host. The verification loop for those host boundaries is:
 
 1. Build and deploy (`Stop-Process` → `dotnet build` → `Add-AppxPackage -Register` → "Reload Command Palette extensions"). See `RUNBOOK.md § Per-Extension Dev Loop`.
 2. Open the log and confirm `Loaded N command(s)` appears with the expected count. If N is wrong, look for a crash above that line. See `RUNBOOK.md § Reading The Log`.
@@ -113,6 +113,12 @@ git merge feat/your-feature-name --no-ff -m "Merge feat/your-feature-name: one-l
 ### GetItems() must never block
 
 `GetItems()` is called synchronously on the COM apartment thread. Blocking it freezes the entire Command Palette UI — no input, no rendering, no dismiss — for the duration of the block.
+
+Recursive filesystem enumeration and bulk file reads count as blocking work too,
+even when each individual read is synchronous and cached. For live collections,
+keep an immutable in-memory snapshot for `GetItems()` and `UpdateSearchText()`, refresh
+that snapshot with `Task.Run`, and call `RaiseItemsChanged()` when the refresh finishes.
+Show a loading row while the first snapshot is being built.
 
 **Do not do this:**
 ```csharp
@@ -376,6 +382,22 @@ else
 ```
 
 If the primary is fixed (e.g. always "Open File"), include it in MoreCommands only if you want a different shortcut label for it — which is rarely necessary. Prefer leaving it out and adding only the secondary actions.
+
+### Clipboard history performance and paste delivery
+
+- Do not project the entire retained history into SDK objects. Cap empty-query views,
+  cap search results, and report the total so users know they can refine the query.
+- Keep `Details` lazy. Large payload bodies, image previews, and metadata should be
+  constructed only when the host requests details for the selected row.
+- Do not build history rows in a provider or page constructor. Constructors wire
+  services and cached pages; `GetItems()` renders the bounded current view.
+- A paste command must copy successfully, return control so the palette can hide, wait
+  for a different foreground window, release chord modifiers, and only then synthesize
+  `Ctrl+V`. Mark the entry used after `SendInput` succeeds.
+- Check the `SendInput` return count and preserve the PowerToys injected-input marker
+  on every synthesized key so the host keyboard hook does not consume the paste.
+- Retry transient `Clipboard.Flush()` ownership failures with a small bounded backoff.
+  Never send paste keys when the selected image or every selected file is missing.
 
 ---
 
