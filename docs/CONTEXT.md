@@ -44,10 +44,9 @@ Each extension process provides the commands, pages, services, and package metad
 - **NpuImageEditorExtension** — OCR (`OcrEngine`), background removal (`ImageObjectExtractor`), 2× upscale (`ImageScaler`).
 - **NpuTextToolsExtension** — Six AI rewrite modes via Phi `LanguageModel` (grammar, formal, concise, bullets, simplify, custom).
 - **NpuClipboardExtension** — Clipboard history recorder, search, filter by type, copy/paste/pin/delete/rename, `NpuClipboardKeeper` daemon.
-
-### Shell Projects (not yet implemented)
-
-- **NpuDevToolboxExtension**
+- **NpuNotesExtension** — Markdown notes with search, categories, related-note discovery, cleanup, rename, and move workflows.
+- **NpuObsidianExtension** — Obsidian vault search, capture, append, summarize, related-note discovery, rename, move, and delete workflows.
+- **NpuDevToolboxExtension** — Workspace discovery and quick-open actions with recent-workspace tracking and AI commit-message generation.
 
 ## Key Gotchas
 
