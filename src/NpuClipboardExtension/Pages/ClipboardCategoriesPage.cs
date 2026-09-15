@@ -10,6 +10,7 @@ internal sealed partial class ClipboardCategoriesPage : ListPage
     private readonly ClipboardStore _store;
     private readonly ClipboardSettingsStore _settings;
     private readonly ClipboardContentService _content;
+    private readonly IListItem[] _items;
 
     public ClipboardCategoriesPage(ClipboardStore store, ClipboardSettingsStore settings, ClipboardContentService content)
     {
@@ -21,11 +22,9 @@ internal sealed partial class ClipboardCategoriesPage : ListPage
         Title = "Clipboard Categories";
         Name = "Browse Categories";
         Icon = ClipboardVisuals.Clipboard;
-    }
 
-    public override IListItem[] GetItems()
-    {
-        return
+        // Cache category pages so repeated renders do not accumulate store event subscriptions.
+        _items =
         [
             new ListItem(new ClipboardHistoryPage(_store, _settings, _content, ClipboardEntryKind.Text))
             {
@@ -65,4 +64,6 @@ internal sealed partial class ClipboardCategoriesPage : ListPage
             }
         ];
     }
+
+    public override IListItem[] GetItems() => _items;
 }

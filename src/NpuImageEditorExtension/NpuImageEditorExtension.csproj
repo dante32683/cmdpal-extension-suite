@@ -13,6 +13,8 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Windows AI foreground extraction is an intentional preview capability. -->
+    <NoWarn>$(NoWarn);CS8305</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="..\NpuTools.Shared\Assets\*.png" Link="Assets\%(Filename)%(Extension)" />

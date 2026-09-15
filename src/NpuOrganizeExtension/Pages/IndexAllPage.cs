@@ -19,7 +19,7 @@ internal sealed partial class IndexAllPage : ListPage
     private List<string> _filesToReconcile = [];
     private int _indexed = -1;
     private int _renamed;
-    private int _failed  = -1;
+    private int _failed = -1;
     private int _current;
     private string _currentFile = string.Empty;
     private int _started; // Interlocked flag: 0 = not started, 1 = started
@@ -28,12 +28,12 @@ internal sealed partial class IndexAllPage : ListPage
 
     public IndexAllPage(ScreenshotScannerService scanner, ScreenshotIndexService indexService)
     {
-        _scanner      = scanner;
+        _scanner = scanner;
         _indexService = indexService;
-        Id    = "com.local.nputools.organize.index-all";
+        Id = "com.local.nputools.organize.index-all";
         Title = "Index Screenshots";
-        Name  = "Index Screenshots";
-        Icon  = OrganizeVisuals.Search;
+        Name = "Index Screenshots";
+        Icon = OrganizeVisuals.Search;
         IsLoading = true;
     }
 
@@ -146,7 +146,7 @@ internal sealed partial class IndexAllPage : ListPage
     {
         int indexed = 0;
         int renamed = 0;
-        int failed  = 0;
+        int failed = 0;
 
         for (int i = 0; i < _filesToReconcile.Count; i++)
         {
@@ -187,7 +187,7 @@ internal sealed partial class IndexAllPage : ListPage
 
         _indexed = indexed;
         _renamed = renamed;
-        _failed  = failed;
+        _failed = failed;
         IsLoading = false;
         RaiseItemsChanged();
     }

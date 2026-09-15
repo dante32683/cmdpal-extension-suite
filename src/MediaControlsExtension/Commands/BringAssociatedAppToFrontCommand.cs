@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //
 // Copyright (c) Jiří Polášek. All rights reserved.
 //
@@ -19,7 +19,7 @@ internal sealed partial class BringAssociatedAppToFrontCommand : InvokableComman
         this.Icon = Icons.SwitchApps;
         this.Name = Strings.Command_SwitchToApplication!;
     }
-    
+
     public BringAssociatedAppToFrontCommand(MediaSource mediaSource) : this()
     {
         ArgumentNullException.ThrowIfNull(mediaSource);

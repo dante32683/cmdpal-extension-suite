@@ -29,8 +29,8 @@ internal sealed partial class QuickOpenCommand : DynamicListPage
         (string title, string placeholder) = action switch
         {
             "terminal" => ("Open in Terminal", "Search workspaces..."),
-            "ide"      => ("Open in IDE",      "Search workspaces..."),
-            _          => ("Open in Explorer", "Search workspaces..."),
+            "ide" => ("Open in IDE", "Search workspaces..."),
+            _ => ("Open in Explorer", "Search workspaces..."),
         };
 
         Id = $"com.local.nputools.devtoolbox.quick.{action}";
@@ -39,8 +39,8 @@ internal sealed partial class QuickOpenCommand : DynamicListPage
         Icon = action switch
         {
             "terminal" => DevToolboxVisuals.Terminal,
-            "ide"      => DevToolboxVisuals.Ide,
-            _          => DevToolboxVisuals.Explorer,
+            "ide" => DevToolboxVisuals.Ide,
+            _ => DevToolboxVisuals.Explorer,
         };
         PlaceholderText = placeholder;
         _items = BuildItems(string.Empty);
@@ -107,8 +107,8 @@ internal sealed partial class QuickOpenCommand : DynamicListPage
             ICommand command = _action switch
             {
                 "terminal" => new OpenInTerminalCommand(path, _settings, _recents),
-                "ide"      => new OpenInIdeCommand(path, _settings, _recents),
-                _          => new OpenInExplorerCommand(path, _recents),
+                "ide" => new OpenInIdeCommand(path, _settings, _recents),
+                _ => new OpenInExplorerCommand(path, _recents),
             };
 
             var tags = new List<Tag>();
@@ -117,10 +117,10 @@ internal sealed partial class QuickOpenCommand : DynamicListPage
 
             items[i] = new ListItem(command)
             {
-                Title    = name,
+                Title = name,
                 Subtitle = path,
-                Icon     = DevToolboxVisuals.Workspace,
-                Tags     = [.. tags],
+                Icon = DevToolboxVisuals.Workspace,
+                Tags = [.. tags],
             };
         }
 

@@ -11,8 +11,8 @@ internal sealed partial class OpenFolderCommand : InvokableCommand
     public OpenFolderCommand(string path)
     {
         _path = path;
-        Name  = "Open Folder";
-        Icon  = OrganizeVisuals.Folder;
+        Name = "Open Folder";
+        Icon = OrganizeVisuals.Folder;
     }
 
     public override CommandResult Invoke()

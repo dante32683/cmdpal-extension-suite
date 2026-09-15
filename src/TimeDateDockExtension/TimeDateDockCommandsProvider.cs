@@ -38,11 +38,13 @@ public sealed partial class TimeDateDockCommandsProvider : CommandProvider, Syst
             new CommandItem(_timeDockPage)
             {
                 Title = "Time",
+                Subtitle = "Current time using your configured format",
                 Icon = TimeDockPage.AddBandIcon,
             },
             new CommandItem(_dateDockPage)
             {
                 Title = "Date",
+                Subtitle = "Current date using your configured format",
                 Icon = DateDockPage.AddBandIcon,
             },
         ];

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 // 
 // Copyright (c) Jiří Polášek. All rights reserved.
 // 
@@ -16,12 +16,12 @@ internal sealed partial class MediaCurrentSessionCommand : AsyncInvokableCommand
 
     public MediaSessionOp MediaSessionOp => this._mediaSessionOp;
 
-    public MediaCurrentSessionCommand(MediaService mediaService,  MediaSessionOp mediaSessionOp, YetAnotherHelper yetAnotherHelper, string? id = null)
+    public MediaCurrentSessionCommand(MediaService mediaService, MediaSessionOp mediaSessionOp, YetAnotherHelper yetAnotherHelper, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(mediaService);
         ArgumentNullException.ThrowIfNull(mediaSessionOp);
         ArgumentNullException.ThrowIfNull(yetAnotherHelper);
-        
+
         this._mediaService = mediaService;
         this._mediaSessionOp = mediaSessionOp;
         this._yetAnotherHelper = yetAnotherHelper;

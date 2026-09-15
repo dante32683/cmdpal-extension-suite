@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.VisualBasic.FileIO;
 using NpuTools.Obsidian.Models;
 
@@ -20,6 +21,11 @@ internal sealed partial class ObsidianVaultStore
     private readonly ObsidianMetadataStore _metadata;
     private readonly object _cacheLock = new();
     private readonly Dictionary<string, (ObsidianNote Note, DateTime LastWriteTimeUtc)> _cache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _snapshotLock = new();
+    private readonly List<Action> _refreshCallbacks = [];
+    private ObsidianNote[] _snapshot = [];
+    private DateTimeOffset _lastSnapshotRefreshUtc = DateTimeOffset.MinValue;
+    private bool _snapshotRefreshRunning;
 
     public ObsidianVaultStore(ObsidianSettingsStore settings, ObsidianMetadataStore metadata)
     {
@@ -31,6 +37,39 @@ internal sealed partial class ObsidianVaultStore
     {
         string vaultPath = _settings.Current.VaultPath;
         return !string.IsNullOrWhiteSpace(vaultPath) && Directory.Exists(vaultPath);
+    }
+
+    public bool IsSnapshotReady
+    {
+        get { lock (_snapshotLock) { return _lastSnapshotRefreshUtc != DateTimeOffset.MinValue; } }
+    }
+
+    // UI pages use this non-blocking view. The filesystem scan runs in the background
+    // and asks the page to render again when a fresher snapshot is available.
+    public IReadOnlyList<ObsidianNote> GetSnapshot(Action? refreshed = null)
+    {
+        bool startRefresh = false;
+        ObsidianNote[] snapshot;
+        lock (_snapshotLock)
+        {
+            snapshot = _snapshot;
+            bool stale = DateTimeOffset.UtcNow - _lastSnapshotRefreshUtc > TimeSpan.FromSeconds(2);
+            if (stale)
+            {
+                if (refreshed is not null && !_refreshCallbacks.Contains(refreshed))
+                    _refreshCallbacks.Add(refreshed);
+                if (!_snapshotRefreshRunning)
+                {
+                    _snapshotRefreshRunning = true;
+                    startRefresh = true;
+                }
+            }
+        }
+
+        if (startRefresh)
+            _ = Task.Run(RefreshSnapshot);
+
+        return snapshot;
     }
 
     public IReadOnlyList<ObsidianNote> GetAll()
@@ -90,6 +129,11 @@ internal sealed partial class ObsidianVaultStore
         }
         _metadata.Prune(notes);
         notes.Sort((a, b) => b.LastModifiedUtc.CompareTo(a.LastModifiedUtc));
+        lock (_snapshotLock)
+        {
+            _snapshot = [.. notes];
+            _lastSnapshotRefreshUtc = DateTimeOffset.UtcNow;
+        }
         return notes;
     }
 
@@ -116,9 +160,19 @@ internal sealed partial class ObsidianVaultStore
         return note;
     }
 
-    public void RecordOpened(ObsidianNote note) => _metadata.RecordOpened(note);
+    public void RecordOpened(ObsidianNote note)
+    {
+        _metadata.RecordOpened(note);
+        _metadata.Apply(note);
+    }
 
-    public void SetPinned(ObsidianNote note, bool pinned) => _metadata.SetPinned(note, pinned);
+    public void SetPinned(ObsidianNote note, bool pinned)
+    {
+        _metadata.SetPinned(note, pinned);
+        note.IsPinned = false;
+        note.PinOrder = null;
+        _metadata.Apply(note);
+    }
 
     public ObsidianNote RenameNote(ObsidianNote note, string newTitle)
     {
@@ -157,6 +211,7 @@ internal sealed partial class ObsidianVaultStore
             ?? throw new IOException($"Renamed note could not be read back from '{newPath}'.");
         _metadata.Remap(note, newNote);
         _metadata.Apply(newNote);
+        InvalidateSnapshot();
         return newNote;
     }
 
@@ -196,6 +251,7 @@ internal sealed partial class ObsidianVaultStore
             ?? throw new IOException($"Moved note could not be read back from '{newPath}'.");
         _metadata.Remap(note, newNote);
         _metadata.Apply(newNote);
+        InvalidateSnapshot();
         return newNote;
     }
 
@@ -279,6 +335,7 @@ internal sealed partial class ObsidianVaultStore
             return;
         }
         _metadata.Remove(note);
+        InvalidateSnapshot();
     }
 
     public ObsidianNote Create(string title, string body, string? subfolder = null)
@@ -305,7 +362,50 @@ internal sealed partial class ObsidianVaultStore
         var note = TryLoad(path, settings.VaultPath) ?? throw new IOException("Created note could not be read back.");
         _metadata.RecordOpened(note);
         _metadata.Apply(note);
+        InvalidateSnapshot();
         return note;
+    }
+
+    private void RefreshSnapshot()
+    {
+        try
+        {
+            GetAll();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ObsidianVaultStore background refresh failed: {ex.GetType().Name}: {ex.Message}");
+            lock (_snapshotLock)
+                _lastSnapshotRefreshUtc = DateTimeOffset.UtcNow;
+        }
+        finally
+        {
+            Action[] callbacks;
+            lock (_snapshotLock)
+            {
+                _snapshotRefreshRunning = false;
+                callbacks = [.. _refreshCallbacks];
+                _refreshCallbacks.Clear();
+            }
+
+            foreach (Action callback in callbacks)
+            {
+                try
+                {
+                    callback();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"ObsidianVaultStore refresh callback failed: {ex.GetType().Name}: {ex.Message}");
+                }
+            }
+        }
+    }
+
+    private void InvalidateSnapshot()
+    {
+        lock (_snapshotLock)
+            _lastSnapshotRefreshUtc = DateTimeOffset.MinValue;
     }
 
     public static void AppendToNote(ObsidianNote note, string text)

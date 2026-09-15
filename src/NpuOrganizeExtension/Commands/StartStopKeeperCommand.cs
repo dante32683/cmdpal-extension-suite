@@ -18,9 +18,9 @@ internal sealed partial class StartStopKeeperCommand : InvokableCommand
     public StartStopKeeperCommand(string keeperPath, bool isRunning)
     {
         _keeperPath = keeperPath;
-        _isRunning  = isRunning;
-        Name        = isRunning ? "Stop Watcher" : "Start Watcher";
-        Icon        = isRunning ? OrganizeVisuals.Stop : OrganizeVisuals.Start;
+        _isRunning = isRunning;
+        Name = isRunning ? "Stop Watcher" : "Start Watcher";
+        Icon = isRunning ? OrganizeVisuals.Stop : OrganizeVisuals.Start;
     }
 
     public override CommandResult Invoke()
@@ -37,9 +37,9 @@ internal sealed partial class StartStopKeeperCommand : InvokableCommand
             {
                 Process.Start(new ProcessStartInfo(_keeperPath)
                 {
-                    UseShellExecute  = true,
-                    WindowStyle      = ProcessWindowStyle.Hidden,
-                    CreateNoWindow   = true,
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true,
                 });
             }
         }

@@ -20,26 +20,21 @@ Status: in progress
 
 ## Implemented Extensions (continued)
 
-- NPU Organize: screenshot rename proposals using `ImageDescriptionGenerator` (BriefDescription vision model → stopword-filtered 5-token slug), dry-run mode, watcher dashboard stub, hub page. AI naming falls back to time-digit slug when model unavailable. OrganizeKeeper daemon built and integrated — WatcherDashboardPage shows live state. Requires `Microsoft.WindowsAppSDK.AI` 1.8.47 and `systemAIModels` capability. Screenshot search: `ScreenshotIndexService` persists OCR text + AI description per file to `%LocalAppData%\NpuOrganize\index.json`; `ScreenshotSearchPage` (DynamicListPage) searches by content or description in real time (in-memory, sub-millisecond per keystroke); `IndexAllPage` reconciles every supported screenshot so it has both a canonical `YYYY-MM-DD_description-slug` name and a current index entry; rename/index AI work honors the shared `skipOnBattery` config. End-to-end rename → index → search was verified 2026-05-17; reconciliation logic and policy tests were added 2026-09-14.
-- NPU Image Editor: OCR via OcrEngine, background removal via ImageObjectExtractor, 2x super-resolution via ImageScaler, hub + per-operation input pages. Uses built-in SDK `CopyTextCommand` and `OpenFileCommand` from the Toolkit namespace.
+- NPU Organize: screenshot rename proposals using `ImageDescriptionGenerator` (BriefDescription vision model → stopword-filtered 5-token slug), dry-run mode, watcher dashboard, and hub page. AI naming falls back to a time-digit slug when the model is unavailable. OrganizeKeeper is built and integrated, and `WatcherDashboardPage` shows live state. The current central package versions and `systemAIModels` capability are authoritative for the experimental Windows AI dependency. Screenshot search persists OCR text and AI descriptions in `%LocalAppData%\NpuOrganize\index.json`; `IndexAllPage` reconciles names and index entries. End-to-end rename → index → search was verified 2026-05-17; reconciliation logic and policy tests were added 2026-09-14.
+- NPU Image Editor: OCR via `OcrEngine`, background removal via `ImageForegroundExtractor`, and 2×/4×/8× super-resolution, with a hub and per-operation input pages. Uses built-in SDK `CopyTextCommand` and `OpenFileCommand` from the Toolkit namespace.
 - NPU Text Tools: six rewrite modes (Fix Grammar, Make Formal, Make Concise, Bullet Points, Simplify, Custom) via Phi LanguageModel, hub + per-mode input pages. Custom mode uses two-step flow (instruction page → text page) matching Raycast UX. TestAiCommand removed from top-level command list.
 - NPU Clipboard: standalone clipboard history extension with `NpuClipboardKeeper` background recorder. Stores local history at `%LocalAppData%\NpuClipboard\history.json`, supports searchable/filterable text, images, files, links, emails, and colors; copy, paste, paste as plain text, rename, pin, delete, hard-confirm delete all, bulk delete by recent time window, count-based retention, disabled application names, image OCR via `OcrEngine`, Ask Clipboard local/Phi search, secret-pattern filtering (Cloudflare / GitHub / AWS defaults, user-editable, applies to local capture and cross-device sync), and cross-device sync via shared folder (OneDrive/Dropbox/etc.) — writes text entries as per-entry JSON files in `{syncFolder}/clipboard-sync/`, merges remote entries in the background on page open (rate-limited), and prunes files older than 30 days hourly.
 - NPU Notes: Markdown note hub with file-backed create, search, browse-by-category, preview/details, pin/unpin, open in editor, copy, reveal, settings, and Recycle Bin delete flows. Stores notes under `%UserProfile%\Documents\NpuNotes` by default with YAML frontmatter and `.notes-index.json` sidecar metadata.
+- NPU Obsidian: vault browser, persistent index, search, capture, append, summarize/find-related/smart-capture AI flows, rename, move, and delete.
+- NPU Dev Toolbox: workspace discovery, quick open in Explorer/terminal/IDE, recent-workspace tracking, and AI commit-message generation.
 
 ## Tests
 
-- `NpuTools.Tests`: xunit project targeting net9.0-windows10.0.26100.0. 53 tests covering:
-  - `SlugServiceTests`: Slugify algorithm, BuildTargetFilename, ResolveCollision, IsAlreadyDateNamed, NormalizeExtension against Raycast parity fixtures.
-  - `TextRewriteServiceTests`: all six rewrite-mode prompts validated for instruction text and format.
-  - All tests pass with `dotnet test src/NpuTools.Tests/NpuTools.Tests.csproj`.
-
-## Shell Projects
-
-- NPU Dev Toolbox
+- `NpuTools.Tests`: xUnit project targeting `net9.0-windows10.0.26100.0` with 172 tests at the 2026-09-14 audit. Coverage includes organize naming/policy, production text-rewrite prompts, clipboard classification/settings/storage/sync/security, note storage/search, Obsidian parsing/search/URI handling, and Awake JSON/time/smart parsing. Tests use isolated temporary storage and pass through `./scripts/check.ps1`.
 
 ## Next Work
 
-- Add CI for restore/build.
+- Keep the local `scripts/check.ps1` gate and x64/ARM64 CI build matrix green.
 - Publish release artifacts per extension.
 - NPU Notes: Find Related Notes, semantic fallback search, AI cleanup on create, rebuild index, rename, and move are shipped. Remaining: RAG Q&A (future).
 - NPU Obsidian: M1-M4 fully shipped (vault browser, persistent index, AI summarize/find-related/smart-capture, delete/rename/move). Bulk multi-select operations are a future enhancement outside the current migration scope.
@@ -53,7 +48,7 @@ OrganizeKeeper is a separate background daemon exe (not a Command Palette extens
 ### Why it must be a separate exe
 Command Palette extensions only run while the palette is active. A file watcher must be always-on, so it needs its own process lifetime.
 
-### What it must do
+### What it does
 1. Watch `%UserProfile%\Pictures\Screenshots` (or configured folder).
 2. Debounce `Created`/`Changed` bursts (screenshots often fire both events).
 3. For each stable new file, call `ImageDescriptionGenerator` to get a brief description, slugify it (same rules as `AiNamingService`), and rename the file.
@@ -64,8 +59,8 @@ Command Palette extensions only run while the palette is active. A file watcher 
 ### MSIX identity requirement
 `ImageDescriptionGenerator` requires MSIX packaged identity and the `systemAIModels` restricted capability. The keeper exe must be registered via `Add-AppxPackage -Register -ExternalLocation` with a `Package.appxmanifest` declaring `systemAIModels` — same pattern as the Raycast `NpuOrganizeBridge.Identity`.
 
-### Reference implementation
-The Raycast keeper at `C:\Portable\Raycast\npu-ext-suite\npu-organize-ext\keeper\` is a near-complete reference:
+### Historical reference implementation
+The Raycast keeper at `C:\Portable\Raycast\npu-ext-suite\npu-organize-ext\keeper\` informed the initial port:
 - `Program.cs` — `watch`, `status`, `process-one`, `parity-check` modes
 - `Watcher.cs` — `FileSystemWatcher` + debounce logic
 - `StateStore.cs` — state.json + config.json + log file management
@@ -73,4 +68,4 @@ The Raycast keeper at `C:\Portable\Raycast\npu-ext-suite\npu-organize-ext\keeper
 - `BridgeClient.cs` — calls NpuBridge.exe; replace with direct `ImageDescriptionGenerator` call
 
 ### WatcherDashboardPage current state
-`WatcherDashboardPage.cs` looks for `NpuOrganizeKeeper.exe` in `AppContext.BaseDirectory` (beside the extension exe). If absent, shows "OrganizeKeeper not installed". Once the exe is built and placed there, the dashboard will show running/stopped state and start/stop controls.
+The extension build copies `NpuOrganizeKeeper.exe` beside the extension executable. `WatcherDashboardPage` reports running/stopped state and exposes start/stop controls; if packaging is incomplete, it reports that the keeper is not installed.

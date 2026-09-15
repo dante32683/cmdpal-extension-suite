@@ -19,18 +19,18 @@ internal sealed partial class RenameAllPage : ListPage
     private readonly IReadOnlyList<RenameProposal> _proposals;
     private readonly ScreenshotIndexService _indexService;
     private int _success = -1;
-    private int _failed  = -1;
+    private int _failed = -1;
     private int _started; // Interlocked flag: 0 = not started, 1 = started
     private bool _deferredOnBattery;
 
     public RenameAllPage(IReadOnlyList<RenameProposal> proposals, ScreenshotIndexService indexService)
     {
-        _proposals    = proposals;
+        _proposals = proposals;
         _indexService = indexService;
-        Id    = "com.local.nputools.organize.rename-all";
+        Id = "com.local.nputools.organize.rename-all";
         Title = $"Rename All ({proposals.Count})";
-        Name  = "Rename All";
-        Icon  = OrganizeVisuals.Check;
+        Name = "Rename All";
+        Icon = OrganizeVisuals.Check;
         IsLoading = true;
     }
 
@@ -81,7 +81,7 @@ internal sealed partial class RenameAllPage : ListPage
     private async Task RunRenameAsync()
     {
         int success = 0;
-        int failed  = 0;
+        int failed = 0;
 
         foreach (var p in _proposals)
         {
@@ -106,7 +106,7 @@ internal sealed partial class RenameAllPage : ListPage
         }
 
         _success = success;
-        _failed  = failed;
+        _failed = failed;
         IsLoading = false;
         RaiseItemsChanged();
     }

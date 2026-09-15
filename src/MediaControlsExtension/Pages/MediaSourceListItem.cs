@@ -18,6 +18,8 @@ internal sealed partial class MediaSourceListItem : ListItemBase, IDisposable
     private readonly PlayPauseSpecificMediaCommand _command;
 
     private NiceIconInfo? _lastIcon;
+    private string? _lastTagIconPath;
+    private IconInfo? _tagIcon;
     private MediaSource _mediaSource;
     private bool _disposed;
     private bool _asBand;
@@ -129,7 +131,15 @@ internal sealed partial class MediaSourceListItem : ListItemBase, IDisposable
 
             if (this._settingsManager.ShowThumbnails)
             {
-                tags.Add(new Tag { Text = mediaSource.ApplicationName ?? "", Icon = new IconInfo(mediaSource.ApplicationIconPath) });
+                if (!string.Equals(this._lastTagIconPath, mediaSource.ApplicationIconPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    this._lastTagIconPath = mediaSource.ApplicationIconPath;
+                    this._tagIcon = string.IsNullOrWhiteSpace(mediaSource.ApplicationIconPath)
+                        ? Icons.Unknown
+                        : new IconInfo(mediaSource.ApplicationIconPath);
+                }
+
+                tags.Add(new Tag { Text = mediaSource.ApplicationName ?? "", Icon = this._tagIcon ?? Icons.Unknown });
             }
 
             return [.. tags];

@@ -94,10 +94,10 @@ internal sealed class BatteryService
             return new BatteryInfo { HasBattery = false };
         }
 
-        var hasBattery    = (status.BatteryFlag & 0x80) == 0 && status.BatteryLifePercent != 255;
-        var percent       = hasBattery ? (int)status.BatteryLifePercent : 0;
-        var isPluggedIn   = status.ACLineStatus == 1;
-        var isCharging    = (status.BatteryFlag & 0x08) != 0;
+        var hasBattery = (status.BatteryFlag & 0x80) == 0 && status.BatteryLifePercent != 255;
+        var percent = hasBattery ? (int)status.BatteryLifePercent : 0;
+        var isPluggedIn = status.ACLineStatus == 1;
+        var isCharging = (status.BatteryFlag & 0x08) != 0;
         var energySaverOn = (status.SystemStatusFlag & 0x01) != 0;
 
         TimeSpan? timeRemaining = null;
@@ -107,7 +107,7 @@ internal sealed class BatteryService
         var (chargeRateWatts, wattAvailable) = GetAverageWatts();
         var isCalculating = !wattAvailable;
 
-        double remainingWh  = 0;
+        double remainingWh = 0;
         double fullChargeWh = 0;
         try
         {
@@ -121,16 +121,16 @@ internal sealed class BatteryService
 
         return new BatteryInfo
         {
-            Percent         = percent,
-            HasBattery      = hasBattery,
-            IsPluggedIn     = isPluggedIn,
-            IsCharging      = isCharging,
-            IsCalculating   = isCalculating,
-            EnergySaverOn   = energySaverOn,
+            Percent = percent,
+            HasBattery = hasBattery,
+            IsPluggedIn = isPluggedIn,
+            IsCharging = isCharging,
+            IsCalculating = isCalculating,
+            EnergySaverOn = energySaverOn,
             ChargeRateWatts = chargeRateWatts,
-            RemainingWh     = remainingWh,
-            FullChargeWh    = fullChargeWh,
-            TimeRemaining   = timeRemaining,
+            RemainingWh = remainingWh,
+            FullChargeWh = fullChargeWh,
+            TimeRemaining = timeRemaining,
         };
     }
 }

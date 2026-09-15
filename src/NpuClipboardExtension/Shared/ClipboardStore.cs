@@ -14,6 +14,8 @@ public sealed class ClipboardStore
 {
     private readonly object _lock = new();
     private readonly List<ClipboardEntry> _entries = [];
+    private readonly string _historyPath;
+    private readonly string _blobDirectory;
     private DateTime _lastWriteTime = DateTime.MinValue;
 
     // Raised after every successful mutation. Subscribers (typically pages) should call
@@ -21,8 +23,10 @@ public sealed class ClipboardStore
     // The event fires outside _lock to avoid holding the lock across subscriber callbacks.
     public event Action? Changed;
 
-    public ClipboardStore()
+    public ClipboardStore(string? historyPath = null, string? blobDirectory = null)
     {
+        _historyPath = Path.GetFullPath(historyPath ?? ClipboardPaths.HistoryPath());
+        _blobDirectory = Path.GetFullPath(blobDirectory ?? ClipboardPaths.BlobDir());
         Load();
     }
 
@@ -207,24 +211,13 @@ public sealed class ClipboardStore
         return removed;
     }
 
-    [Obsolete("Use DeleteWithinLast; this method deletes entries from the recent window.")]
-    public int DeleteOlderThan(TimeSpan window) => DeleteWithinLast(window);
-
-    public IReadOnlyList<IReadOnlyList<ClipboardEntry>> Groups(ClipboardEntryKind? kind, string query)
-    {
-        var source = Search(kind, query);
-        var groups = new List<List<ClipboardEntry>>();
-        foreach (var entry in source)
-        {
-            if (groups.Count == 0 || groups[^1][0].GroupId != entry.GroupId)
-                groups.Add([]);
-            groups[^1].Add(entry);
-        }
-        return groups;
-    }
-
     public IReadOnlyList<ClipboardEntry> Search(ClipboardEntryKind? kind, string query)
+        => Search(kind, query, int.MaxValue, out _);
+
+    public IReadOnlyList<ClipboardEntry> Search(ClipboardEntryKind? kind, string query, int maxResults, out int totalMatches)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxResults);
+
         lock (_lock)
         {
             EnsureFresh();
@@ -242,10 +235,11 @@ public sealed class ClipboardStore
                     e.FilePaths.Any(p => p.Contains(needle, StringComparison.OrdinalIgnoreCase)));
             }
 
-            return q.OrderByDescending(e => e.IsPinned)
+            var ordered = q.OrderByDescending(e => e.IsPinned)
                 .ThenByDescending(e => e.LastUsedAt ?? e.CreatedAt)
-                .Select(Clone)
                 .ToArray();
+            totalMatches = ordered.Length;
+            return ordered.Take(maxResults).Select(Clone).ToArray();
         }
     }
 
@@ -339,7 +333,7 @@ public sealed class ClipboardStore
         {
             try
             {
-                string path = ClipboardPaths.HistoryPath();
+                string path = _historyPath;
                 if (File.Exists(path))
                 {
                     _lastWriteTime = File.GetLastWriteTimeUtc(path);
@@ -366,7 +360,7 @@ public sealed class ClipboardStore
     {
         try
         {
-            string path = ClipboardPaths.HistoryPath();
+            string path = _historyPath;
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             string tmp = $"{path}.{Environment.ProcessId}.{DateTime.UtcNow.Ticks}.tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(_entries, ClipboardJsonContext.Default.ListClipboardEntry));
@@ -428,7 +422,7 @@ public sealed class ClipboardStore
             lock (_lock)
             {
                 EnsureFresh();
-                string root = Path.GetFullPath(ClipboardPaths.BlobDir()).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                string root = _blobDirectory.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
                 HashSet<string> referenced = _entries.Select(e => e.ImagePath).OfType<string>()
                     .Select(Path.GetFullPath).ToHashSet(StringComparer.OrdinalIgnoreCase);
                 foreach (string candidate in candidates.Where(p => !string.IsNullOrWhiteSpace(p)))
@@ -469,14 +463,14 @@ public sealed class ClipboardStore
         }
     }
 
-    private static string HistoryMutexName() =>
-        $"Local\\NpuClipboardHistory-{BuildHash("mutex", ClipboardPaths.HistoryPath())[..24]}";
+    private string HistoryMutexName() =>
+        $"Local\\NpuClipboardHistory-{BuildHash("mutex", _historyPath)[..24]}";
 
     private void EnsureFresh()
     {
         try
         {
-            string path = ClipboardPaths.HistoryPath();
+            string path = _historyPath;
             if (!File.Exists(path))
             {
                 if (_entries.Count > 0)

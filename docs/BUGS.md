@@ -4,22 +4,56 @@ This is the active issue ledger for the monorepo.
 
 ## Open
 
-The 2026-07-12 suite audit pass resolved the settings write storm, clipboard
-cross-process history race, sync retention gap, recent-delete naming trap,
-sync-secret file retention, image-blob cleanup, OCR secret filtering, note
-frontmatter/stale-write handling, Obsidian create containment, Awake schedule
-and PID validation, Organize index/state races, project/worktree detection,
-Image Editor scan/output races, Media async/disposal handling, and analytics
-label/native-call issues. Remaining items in this ledger are the explicit
-follow-ups that still need host-level or broader regression coverage.
+No known implementation defects are currently open. Host-only AI and COM behavior
+still requires the manual acceptance described in `RUNBOOK.md`; that boundary is a
+verification limitation, not an unconfirmed bug.
+
+## Resolved in the 2026-09-15 clipboard performance audit
+
+- Clipboard History no longer constructs the full retained history, eager details,
+  previews, metadata, and context-command graph during provider startup. The initial
+  view is capped at 50 rows, searches at 100 rows, and details are created only for
+  the selected item; the footer makes the complete-history search behavior explicit.
+- Paste now waits for Command Palette to release the foreground window, releases
+  modifiers left down by the invoking shortcut, and marks synthesized keys for the
+  PowerToys keyboard hook. `SendInput` failures are surfaced instead of being ignored.
+- Clipboard ownership is flushed with bounded retries. Missing images or an all-missing
+  file selection fail safely instead of pasting stale clipboard content.
+- Category pages are cached so repeated renders do not accumulate store subscriptions.
+- Isolated performance tests cover 5,000-entry cold loads and repeated bounded searches;
+  key-sequence tests protect the focus-safe paste contract.
+
+## Resolved in the 2026-09-14 quality audit
+
+- Notes and Obsidian no longer recursively scan and read entire vaults from page
+  constructors, `GetItems()`, or `UpdateSearchText()`; UI callbacks use asynchronously
+  refreshed snapshots.
+- Media invokable commands no longer synchronously wait up to five seconds on the COM
+  thread.
+- Dev Toolbox terminal and IDE launches pass paths as structured arguments or working
+  directories, and surface launch failures instead of throwing from `Invoke()`.
+- Clipboard store tests use isolated temporary history and blob paths instead of moving
+  the user's live history file.
+- Clipboard Keeper enforces one recorder instance, and state persistence uses atomic
+  replacement.
+- Text rewrite tests now exercise the production prompt builder instead of a test-only
+  copy.
+
+## Resolved in the 2026-07-12 audit
+
+The July suite audit fixed the settings write storm, clipboard cross-process
+history race, sync retention gap, recent-delete naming trap, sync-secret file
+retention, image-blob cleanup, OCR secret filtering, note frontmatter/stale-write
+handling, Obsidian create containment, Awake schedule and PID validation, Organize
+index/state races, project/worktree detection, Image Editor scan/output races,
+Media async/disposal handling, and analytics label/native-call issues.
 
 > Source: bug audit of the NpuClipboardExtension + NpuClipboardKeeper subsystem
 > on 2026-07-09 (cross-device sync + secret-pattern filter code). All items below
 > are unit-testable in `NpuTools.Tests` without the COM/MSIX host unless noted.
-> Suggested fix order: BUG-017 → BUG-019 → BUG-021 → BUG-020 → (cleanups) →
-> BUG-018 / BUG-022 on their own branches.
+> The entries below preserve the original defect descriptions and implemented fixes.
 
-### BUG-017: `ClipboardSettingsStore.Load()` unconditionally `Save()`s — settings write storm and silent config/secret loss
+### ~~BUG-017: `ClipboardSettingsStore.Load()` unconditionally `Save()`s~~ — RESOLVED 2026-07-12
 
 Extension: NpuClipboardExtension / NpuClipboardKeeper
 Severity: High — a just-saved secret pattern or sync folder can be silently and permanently lost; a dropped secret pattern means a secret that should have been filtered gets captured and synced
@@ -46,7 +80,7 @@ process persists its stale in-memory copy. Example: user sets the sync folder
 (toast confirms), but the keeper's in-flight `Save()` reverts it to null before
 the next 700 ms reload picks it up.
 
-Proposed fix (simple, safe):
+Fix:
 
 - Remove `Save()` from `Load()`. Normalize in memory only.
 - If default backfill must persist, do it once in the constructor and only when
@@ -54,7 +88,7 @@ Proposed fix (simple, safe):
 - Make `Update()` the sole write path.
 - Makes BUG-018-on-settings and the unused-param half of the Low cleanups moot.
 
-### BUG-018: `history.json` cross-process writes are last-writer-wins (TOCTOU)
+### ~~BUG-018: `history.json` cross-process writes are last-writer-wins (TOCTOU)~~ — RESOLVED 2026-07-12
 
 Extension: NpuClipboardExtension / NpuClipboardKeeper
 Severity: Medium — a keeper capture and a user action (pin/rename/delete/paste) landing together can drop one of the two
@@ -69,12 +103,12 @@ is a read-modify-write gap: process A `EnsureFresh()` (state X) → process B wr
 X+edit → process A `Save()` writes X+otherEdit, dropping B's change. Rare
 (sub-millisecond overlap) but real; inherent to the lock-free file design.
 
-Proposed fix (moderate, own branch — deadlock risk if mis-scoped):
+Fix:
 
 - Guard the read-modify-write in `Save`/`EnsureFresh` with a named cross-process
   `Mutex`, or retry-on-mtime-change. Not urgent; note as known risk if deferred.
 
-### BUG-019: `SecretPatternMatcher.Match` fails **open** on regex timeout
+### ~~BUG-019: `SecretPatternMatcher.Match` fails **open** on regex timeout~~ — RESOLVED 2026-07-12
 
 Extension: NpuClipboardExtension
 Severity: Medium — security filter fails in the unsafe direction: a secret that triggers regex backtracking is treated as "not a secret" and gets captured and synced to disk
@@ -87,14 +121,14 @@ Root cause:
 returns `null` (= "not a secret"). For a filter whose purpose is to keep secrets
 off disk, a timeout should fail **closed** (drop the entry), not open.
 
-Proposed fix (simple):
+Fix:
 
 - On timeout, return a sentinel name (e.g. `"<pattern timeout>"`) so the caller
   drops the entry; log a warning. Trade-off: a slow benign pattern would drop
   legitimate text — acceptable given the security intent and the generous 100 ms
   timeout. Also audit `DefaultSecretPatterns` for ReDoS-prone rules.
 
-### BUG-020: `ClipboardStore.DeleteOlderThan(window)` name is inverted vs. behavior
+### ~~BUG-020: `ClipboardStore.DeleteOlderThan(window)` name is inverted vs. behavior~~ — RESOLVED 2026-07-12
 
 Extension: NpuClipboardExtension
 Severity: Medium — latent data-loss trap; current callers are correct, a future caller will not be
@@ -109,12 +143,12 @@ created *within* the last `window` (the recent ones). All current callers are
 the exact opposite. A future "delete entries older than 30 days" retention feature
 calling `DeleteOlderThan(TimeSpan.FromDays(30))` would wipe the last 30 days.
 
-Proposed fix (mechanical):
+Fix:
 
 - Rename to `DeleteWithinLast(TimeSpan)` and update the call sites
   (`NpuClipboardCommandsProvider`, `ClipboardSettingsPage`). No behavior change.
 
-### BUG-021: `SyncFrom` merges entries but never enforces retention
+### ~~BUG-021: `SyncFrom` merges entries but never enforces retention~~ — RESOLVED 2026-07-12
 
 Extension: NpuClipboardExtension
 Severity: Medium — a receive-mostly device can grow history past the configured limit until the next capture
@@ -127,40 +161,31 @@ Root cause:
 `ApplyRetention`. Bounded and self-corrects at the next `AddOrPromote` /
 `EnforceRetention`, but violates the retention contract in the meantime.
 
-Proposed fix (one line):
+Fix:
 
 - Call `ApplyRetention(settings.NormalizedRetentionLimit)` inside the
   `if (merged)` block before `Save()`.
 
-### BUG-022: OCR text is never scanned against secret patterns
+### ~~BUG-022: OCR text is never scanned against secret patterns~~ — RESOLVED 2026-07-12
 
 Extension: NpuClipboardKeeper
 Severity: Low — a screenshot of an API key/password is OCR'd into `OcrText`, stored, and made search-indexed; the secret filter only runs on the `Text` branch. Lower risk (images are not synced cross-device) but the secret still lands on disk
 Discovered: 2026-07-09 (audit)
 File: `src/NpuClipboardKeeper/ClipboardCaptureService.cs` (Bitmap branch)
 
-Proposed fix (own branch — touches the capture path, verify on a real screenshot
-per AGENTS.md rule #5):
+Fix (the capture path still requires real-image host acceptance per AGENTS.md rule #5):
 
 - Run `secretMatcher.Match(ocr)` on the image branch and drop or redact `OcrText`
   on match.
 
-### Low-severity cleanups (batch alongside BUG-017..021)
+### Low-severity cleanup follow-ups — RESOLVED 2026-09-14
 
-- **Dead code:** `ClipboardStore.Groups()` has no callers in `src/` (the history
-  page does its own grouping). Safe to delete.
-- **Unused parameter:** `SecretPatternsPage(ClipboardSettingsStore settings)`
-  ignores the injected store — `GetContent()` and `SubmitForm()` both construct a
-  fresh `new ClipboardSettingsStore()`. Drop the parameter or use the injected one.
-- **Cosmetic:** `ClipboardHistoryPage.BuildItems` assumes same-`GroupId` entries
-  are contiguous, but `Search` orders by `IsPinned` then `LastUsedAt`; promoting
-  one burst member (Copy/Paste bumps `LastUsedAt`) splits the group and emits its
-  date header twice.
-- **Edge case:** toggling the recorder off→on quickly can leave two
-  `NpuClipboardKeeper` processes double-capturing (old instance still polls
-  `stop.flag` every 700 ms). Consider a single-instance mutex in the keeper.
+- Removed the unused `ClipboardStore.Groups()` and obsolete `DeleteOlderThan()` APIs.
+- Reused the injected settings store throughout the secret-pattern form.
+- De-duplicated activity-burst headers even when sorting separates group members.
+- Added a named single-instance semaphore to the clipboard keeper.
 
-## Resolved
+## Earlier resolved issues
 
 ### ~~BUG-016: Clipboard Copy/Paste doesn't refresh the history list~~ — RESOLVED 2026-06-30
 
@@ -280,7 +305,7 @@ Fix:
 - `NormalizeLinkTarget` helper strips anchors and `.md` from all link targets before lookup.
 - Six new parser tests and the Obsidian extension and test suite both build clean.
 
-## Resolved
+## Earlier resolved issues (continued)
 
 ### ~~BUG-010: Awake keeper not running after extension reload~~ — RESOLVED 2026-05-18
 

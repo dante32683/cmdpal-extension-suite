@@ -2,22 +2,12 @@ name: Build & Test
 
 on:
   push:
-    branches: [ main, "fix/**", "feat/**" ]
   pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  check:
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runtime: win-x64
-            platform: x64
-          - runtime: win-arm64
-            platform: ARM64
-
     steps:
       - uses: actions/checkout@v4
 
@@ -26,55 +16,20 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore
-        run: dotnet restore NpuCommandPaletteExtensions.sln
-
-      - name: UX convention lint
+      - name: Repository quality gate
         shell: pwsh
-        run: ./tools/Lint-UxConventions.ps1
+        run: ./scripts/check.ps1
 
-      - name: Build — Awake extension
-        run: dotnet build src/NpuAwakeExtension/NpuAwakeExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
+  arm64-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Build — Notes extension
-        run: dotnet build src/NpuNotesExtension/NpuNotesExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
 
-      - name: Build — Obsidian extension
-        run: dotnet build src/NpuObsidianExtension/NpuObsidianExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Organize extension
-        run: dotnet build src/NpuOrganizeExtension/NpuOrganizeExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Text Tools extension
-        run: dotnet build src/NpuTextToolsExtension/NpuTextToolsExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Image Editor extension
-        run: dotnet build src/NpuImageEditorExtension/NpuImageEditorExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Clipboard extension
-        run: dotnet build src/NpuClipboardExtension/NpuClipboardExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Dev Toolbox extension
-        run: dotnet build src/NpuDevToolboxExtension/NpuDevToolboxExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Action Center extension
-        run: dotnet build src/ActionCenterExtension/ActionCenterExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Simple Analytics extension
-        run: dotnet build src/SimpleAnalyticsExtension/SimpleAnalyticsExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Time Date Dock extension
-        run: dotnet build src/TimeDateDockExtension/TimeDateDockExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Media Controls extension
-        run: dotnet build src/MediaControlsExtension/MediaControlsExtension.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Organize Keeper
-        run: dotnet build src/NpuOrganizeKeeper/NpuOrganizeKeeper.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Build — Clipboard Keeper
-        run: dotnet build src/NpuClipboardKeeper/NpuClipboardKeeper.csproj -r ${{ matrix.runtime }} -p:Platform=${{ matrix.platform }} --no-restore -v q
-
-      - name: Test
-        if: matrix.runtime == 'win-x64'
-        run: dotnet test src/NpuTools.Tests/NpuTools.Tests.csproj -r win-x64 -p:Platform=x64 --no-restore -v q
+      - name: ARM64 compile and package validation
+        shell: pwsh
+        run: ./scripts/check.ps1 -Runtime win-arm64 -Platform ARM64 -BuildOnly

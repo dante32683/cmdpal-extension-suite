@@ -23,7 +23,7 @@ internal sealed class TextRewriteService
                 throw new InvalidOperationException($"Phi-Silica unavailable: {ready.Status}");
         }
 
-        string prompt = BuildPrompt(text, mode, customInstruction);
+        string prompt = TextRewritePromptBuilder.Build(text, mode, customInstruction);
         using var model = await LanguageModel.CreateAsync();
         var response = await model.GenerateResponseAsync(prompt);
         return (response.Text ?? string.Empty).Trim();
@@ -31,31 +31,14 @@ internal sealed class TextRewriteService
 
     public static string ModeLabel(TextRewriteMode mode) => mode switch
     {
-        TextRewriteMode.FixGrammar   => "Fix Grammar",
-        TextRewriteMode.MakeFormal   => "Make Formal",
-        TextRewriteMode.MakeConcise  => "Make Concise",
+        TextRewriteMode.FixGrammar => "Fix Grammar",
+        TextRewriteMode.MakeFormal => "Make Formal",
+        TextRewriteMode.MakeConcise => "Make Concise",
         TextRewriteMode.BulletPoints => "Bullet Points",
-        TextRewriteMode.Simplify     => "Simplify",
-        TextRewriteMode.Custom       => "Custom Rewrite",
-        _                            => mode.ToString(),
+        TextRewriteMode.Simplify => "Simplify",
+        TextRewriteMode.Custom => "Custom Rewrite",
+        _ => mode.ToString(),
     };
-
-    internal static string BuildPrompt(string text, TextRewriteMode mode, string? customInstruction)
-    {
-        string instruction = mode switch
-        {
-            TextRewriteMode.FixGrammar   => "Fix the grammar and spelling of the following text. Return only the corrected text with no explanation or commentary.",
-            TextRewriteMode.MakeFormal   => "Rewrite the following text in a formal, professional tone. Return only the rewritten text with no explanation.",
-            TextRewriteMode.MakeConcise  => "Make the following text more concise while preserving all key information. Return only the condensed text with no explanation.",
-            TextRewriteMode.BulletPoints => "Convert the following text into clear, concise bullet points. Return only the bullet points with no explanation.",
-            TextRewriteMode.Simplify     => "Simplify the following text so it is easy to understand. Return only the simplified text with no explanation.",
-            TextRewriteMode.Custom       => string.IsNullOrWhiteSpace(customInstruction)
-                                              ? "Rewrite the following text."
-                                              : customInstruction.Trim(),
-            _                            => throw new ArgumentOutOfRangeException(nameof(mode)),
-        };
-        return $"{instruction}\n\n{text}";
-    }
 
     private static bool TryUnlockNpuFeature()
     {

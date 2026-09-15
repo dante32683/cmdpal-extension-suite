@@ -24,8 +24,8 @@ internal sealed class CaptureDiagnosticsStore
     {
         lock (_lock)
         {
-            _lastAttemptTime  = DateTimeOffset.Now;
-            _lastStatus       = CaptureStatus.Success;
+            _lastAttemptTime = DateTimeOffset.Now;
+            _lastStatus = CaptureStatus.Success;
             _lastCapturedText = capturedText;
             _lastFailureReason = null;
         }
@@ -35,9 +35,9 @@ internal sealed class CaptureDiagnosticsStore
     {
         lock (_lock)
         {
-            _lastAttemptTime   = DateTimeOffset.Now;
-            _lastStatus        = status;
-            _lastCapturedText  = null;
+            _lastAttemptTime = DateTimeOffset.Now;
+            _lastStatus = status;
+            _lastCapturedText = null;
             _lastFailureReason = reason;
         }
     }

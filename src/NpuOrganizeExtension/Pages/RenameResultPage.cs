@@ -11,11 +11,11 @@ internal sealed partial class RenameResultPage : ListPage
     public RenameResultPage(int success, int failed)
     {
         _success = success;
-        _failed  = failed;
-        Id       = "com.local.nputools.organize.result";
-        Title    = "Rename Complete";
-        Name     = "Result";
-        Icon     = OrganizeVisuals.Check;
+        _failed = failed;
+        Id = "com.local.nputools.organize.result";
+        Title = "Rename Complete";
+        Name = "Result";
+        Icon = OrganizeVisuals.Check;
     }
 
     public override IListItem[] GetItems()

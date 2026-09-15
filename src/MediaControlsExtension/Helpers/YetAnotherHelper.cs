@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 // 
 // Copyright (c) Jiří Polášek. All rights reserved.
 // 
@@ -27,7 +27,7 @@ internal sealed partial class YetAnotherHelper(SettingsManager settingsManager)
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Win32 names")]
     private static partial class KeyModifierHelper
     {
-        private const int VK_SHIFT   = 0x10;
+        private const int VK_SHIFT = 0x10;
         private const int VK_CONTROL = 0x11;
         private const short KEY_PRESSED_MASK = unchecked((short)0x8000);
 

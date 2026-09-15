@@ -19,15 +19,15 @@ internal sealed partial class PendingReviewPage : ListPage
     public PendingReviewPage(PendingRewriteStore pending, string input, string result, TextRewriteMode mode, TextRewriteService service)
     {
         _pending = pending;
-        _input   = input;
-        _result  = result;
-        _mode    = mode;
+        _input = input;
+        _result = result;
+        _mode = mode;
         _service = service;
 
-        Id          = "com.local.nputools.texttools.pending-review";
-        Title       = $"Review — {TextRewriteService.ModeLabel(mode)}";
-        Name        = "Review";
-        Icon        = TextToolsVisuals.Check;
+        Id = "com.local.nputools.texttools.pending-review";
+        Title = $"Review — {TextRewriteService.ModeLabel(mode)}";
+        Name = "Review";
+        Icon = TextToolsVisuals.Check;
         ShowDetails = true;
     }
 
@@ -36,7 +36,7 @@ internal sealed partial class PendingReviewPage : ListPage
         _pending.Clear();
 
         string resultPreview = _result.Length > 200 ? _result[..200] + "…" : _result;
-        string inputPreview  = _input.Length > 200  ? _input[..200]  + "…" : _input;
+        string inputPreview = _input.Length > 200 ? _input[..200] + "…" : _input;
 
         return
         [

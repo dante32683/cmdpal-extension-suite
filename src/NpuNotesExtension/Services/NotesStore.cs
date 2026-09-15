@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.VisualBasic.FileIO;
 using NpuTools.Notes.Models;
 
@@ -32,6 +33,11 @@ internal sealed partial class NotesStore
     private readonly NotesIndexStore _index;
     private readonly object _cacheLock = new();
     private readonly Dictionary<string, (NoteEntry Entry, DateTime LastWriteTimeUtc)> _cache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _snapshotLock = new();
+    private readonly List<Action> _refreshCallbacks = [];
+    private NoteEntry[] _snapshot = [];
+    private DateTimeOffset _lastSnapshotRefreshUtc = DateTimeOffset.MinValue;
+    private bool _snapshotRefreshRunning;
 
     public NotesStore(NotesSettingsStore settings, NotesIndexStore index)
     {
@@ -40,6 +46,47 @@ internal sealed partial class NotesStore
     }
 
     public static IReadOnlyList<string> KnownCategories => Categories;
+
+    public bool IsSnapshotReady
+    {
+        get { lock (_snapshotLock) { return _lastSnapshotRefreshUtc != DateTimeOffset.MinValue; } }
+    }
+
+    // Command Palette calls page constructors and GetItems on its COM thread. Return the
+    // latest immutable snapshot there and refresh the filesystem cache on a worker thread.
+    public IReadOnlyList<NoteEntry> GetSnapshot(Action? refreshed = null)
+    {
+        bool startRefresh = false;
+        NoteEntry[] snapshot;
+        lock (_snapshotLock)
+        {
+            snapshot = _snapshot;
+            bool stale = DateTimeOffset.UtcNow - _lastSnapshotRefreshUtc > TimeSpan.FromSeconds(2);
+            if (stale)
+            {
+                if (refreshed is not null && !_refreshCallbacks.Contains(refreshed))
+                    _refreshCallbacks.Add(refreshed);
+                if (!_snapshotRefreshRunning)
+                {
+                    _snapshotRefreshRunning = true;
+                    startRefresh = true;
+                }
+            }
+        }
+
+        if (startRefresh)
+            _ = Task.Run(RefreshSnapshot);
+
+        return snapshot;
+    }
+
+    public IReadOnlyList<NoteEntry> GetSnapshotByCategory(string category, Action? refreshed = null)
+    {
+        string normalized = NormalizeCategory(category);
+        return GetSnapshot(refreshed)
+            .Where(e => string.Equals(e.Category, normalized, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
 
     public IReadOnlyList<NoteEntry> GetAll()
     {
@@ -101,6 +148,11 @@ internal sealed partial class NotesStore
         }
         _index.Prune(entries);
         entries.Sort(CompareByPinnedThenUpdated);
+        lock (_snapshotLock)
+        {
+            _snapshot = [.. entries];
+            _lastSnapshotRefreshUtc = DateTimeOffset.UtcNow;
+        }
         return entries;
     }
 
@@ -150,6 +202,7 @@ internal sealed partial class NotesStore
 
         string markdown = BuildMarkdown(null, id, parsed.Title, normalizedCategory, now, now, parsed.Body);
         WriteAtomic(path, markdown);
+        InvalidateSnapshot();
 
         var entry = TryLoad(path, root) ?? throw new IOException("Created note could not be read back.");
         _index.RecordOpened(entry);
@@ -160,11 +213,15 @@ internal sealed partial class NotesStore
     public void RecordOpened(NoteEntry entry)
     {
         _index.RecordOpened(entry);
+        _index.Apply(entry);
     }
 
     public void SetPinned(NoteEntry entry, bool pinned)
     {
         _index.SetPinned(entry, pinned);
+        entry.IsPinned = false;
+        entry.PinOrder = null;
+        _index.Apply(entry);
     }
 
     [SuppressMessage("Performance", "CA1822", Justification = "Service method — uniform instance call sites.")]
@@ -182,6 +239,7 @@ internal sealed partial class NotesStore
 
         string markdown = BuildMarkdown(entry, entry.Id, newTitle, entry.Category, entry.CreatedUtc, DateTimeOffset.UtcNow, newBody);
         WriteAtomic(entry.FilePath, markdown, overwrite: true);
+        InvalidateSnapshot();
     }
 
     internal static bool TryReadUpdatedUtc(string filePath, out DateTimeOffset updatedUtc)
@@ -253,6 +311,7 @@ internal sealed partial class NotesStore
         var newEntry = TryLoad(newPath, root) ?? throw new IOException($"Renamed note could not be read back from '{newPath}'.");
         _index.Remap(entry, newEntry);
         _index.Apply(newEntry);
+        InvalidateSnapshot();
         return newEntry;
     }
 
@@ -282,6 +341,7 @@ internal sealed partial class NotesStore
         var newEntry = TryLoad(newPath, root) ?? throw new IOException($"Moved note could not be read back from '{newPath}'.");
         _index.Remap(entry, newEntry);
         _index.Apply(newEntry);
+        InvalidateSnapshot();
         return newEntry;
     }
 
@@ -300,6 +360,49 @@ internal sealed partial class NotesStore
             return;
         }
         _index.Remove(entry);
+        InvalidateSnapshot();
+    }
+
+    private void RefreshSnapshot()
+    {
+        try
+        {
+            GetAll();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"NotesStore background refresh failed: {ex.GetType().Name}: {ex.Message}");
+            lock (_snapshotLock)
+                _lastSnapshotRefreshUtc = DateTimeOffset.UtcNow;
+        }
+        finally
+        {
+            Action[] callbacks;
+            lock (_snapshotLock)
+            {
+                _snapshotRefreshRunning = false;
+                callbacks = [.. _refreshCallbacks];
+                _refreshCallbacks.Clear();
+            }
+
+            foreach (Action callback in callbacks)
+            {
+                try
+                {
+                    callback();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"NotesStore refresh callback failed: {ex.GetType().Name}: {ex.Message}");
+                }
+            }
+        }
+    }
+
+    private void InvalidateSnapshot()
+    {
+        lock (_snapshotLock)
+            _lastSnapshotRefreshUtc = DateTimeOffset.MinValue;
     }
 
     public static string NormalizeCategory(string? value)

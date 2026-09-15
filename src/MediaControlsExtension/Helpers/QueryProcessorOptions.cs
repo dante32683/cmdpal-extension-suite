@@ -1,4 +1,4 @@
-﻿namespace JPSoftworks.MediaControlsExtension.Helpers;
+namespace JPSoftworks.MediaControlsExtension.Helpers;
 
 internal sealed record QueryProcessorOptions(
     bool SupportSlashPrefix = true,

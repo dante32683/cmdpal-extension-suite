@@ -24,7 +24,7 @@ internal sealed class ScreenshotScannerService
             var tempProposals = new List<RenameProposal>();
             foreach (string path in Directory.EnumerateFiles(ScreenshotsFolder))
             {
-                string ext  = Path.GetExtension(path).ToLowerInvariant();
+                string ext = Path.GetExtension(path).ToLowerInvariant();
                 string name = Path.GetFileName(path);
                 if (!Array.Exists(SupportedExtensions, e => e == ext)) continue;
                 if (SlugService.IsAlreadyOrganized(name)) continue;

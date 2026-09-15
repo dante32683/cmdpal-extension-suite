@@ -99,28 +99,28 @@ internal sealed class DevToolboxSettingsManager : JsonSettingsManager
         _runtimeSettings.Update(s =>
         {
             s.PreferredTerminal = ParseTerminal(_terminal.Value);
-            s.PreferredIde      = ParseIde(_ide.Value);
-            s.CustomTerminalExe        = _customTerminalExe.Value?.Trim() ?? string.Empty;
-            s.CustomIdeExe             = _customIdeExe.Value?.Trim() ?? string.Empty;
-            s.WindowsTerminalProfile   = _wtProfile.Value?.Trim() ?? string.Empty;
+            s.PreferredIde = ParseIde(_ide.Value);
+            s.CustomTerminalExe = _customTerminalExe.Value?.Trim() ?? string.Empty;
+            s.CustomIdeExe = _customIdeExe.Value?.Trim() ?? string.Empty;
+            s.WindowsTerminalProfile = _wtProfile.Value?.Trim() ?? string.Empty;
         });
     }
 
     private static TerminalChoice ParseTerminal(string? value) => value switch
     {
         "WindowsTerminal" => TerminalChoice.WindowsTerminal,
-        "PowerShell"      => TerminalChoice.PowerShell,
-        "Cmd"             => TerminalChoice.Cmd,
-        "Custom"          => TerminalChoice.Custom,
-        _                 => TerminalChoice.WindowsTerminal,
+        "PowerShell" => TerminalChoice.PowerShell,
+        "Cmd" => TerminalChoice.Cmd,
+        "Custom" => TerminalChoice.Custom,
+        _ => TerminalChoice.WindowsTerminal,
     };
 
     private static IdeChoice ParseIde(string? value) => value switch
     {
-        "VSCode"    => IdeChoice.VSCode,
-        "Cursor"    => IdeChoice.Cursor,
-        "Windsurf"  => IdeChoice.Windsurf,
-        "Custom"    => IdeChoice.Custom,
-        _           => IdeChoice.VSCode,
+        "VSCode" => IdeChoice.VSCode,
+        "Cursor" => IdeChoice.Cursor,
+        "Windsurf" => IdeChoice.Windsurf,
+        "Custom" => IdeChoice.Custom,
+        _ => IdeChoice.VSCode,
     };
 }

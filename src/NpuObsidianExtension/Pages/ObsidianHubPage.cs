@@ -130,7 +130,7 @@ internal sealed partial class ObsidianHubPage : ListPage
             // Use index-backed notes for the hub if available, else live scan.
             var notes = _indexStore.IsIndexed
                 ? _indexStore.GetSearchableNotes(current.VaultPath, _metadata)
-                : _store.GetAll();
+                : _store.GetSnapshot(() => RaiseItemsChanged());
 
             var pinned = notes.Where(n => n.IsPinned).OrderBy(n => n.PinOrder ?? int.MaxValue).Take(current.MaxRecentNotes).ToList();
             var recent = notes.Where(n => !n.IsPinned).OrderByDescending(n => n.LastOpenedUtc ?? n.LastModifiedUtc).Take(current.MaxRecentNotes).ToList();
@@ -138,7 +138,16 @@ internal sealed partial class ObsidianHubPage : ListPage
             AddSection(items, "Pinned Notes", pinned);
             AddSection(items, "Recent Notes", recent);
 
-            if (notes.Count == 0)
+            if (notes.Count == 0 && !_indexStore.IsIndexed && !_store.IsSnapshotReady)
+            {
+                items.Add(new ListItem(new NoOpCommand())
+                {
+                    Title = "Loading vault…",
+                    Subtitle = "Refreshing Markdown notes in the background",
+                    Icon = ObsidianVisuals.Index,
+                });
+            }
+            else if (notes.Count == 0)
             {
                 items.Add(new ListItem(new NoOpCommand())
                 {

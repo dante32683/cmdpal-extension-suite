@@ -5,19 +5,19 @@ namespace NpuTools.ImageEditor;
 
 internal static class ImageEditorVisuals
 {
-    internal static readonly IconInfo Camera  = new("\uE8BA"); // Photo
-    internal static readonly IconInfo Crop    = new("\uE7A8"); // Crop
-    internal static readonly IconInfo Eraser  = new("\uED60"); // Eraser
-    internal static readonly IconInfo Scale   = new("\uE8A3"); // ResizeTouchLarger
-    internal static readonly IconInfo Ocr     = new("\uE8F4"); // ScanQR
-    internal static readonly IconInfo Copy    = new("\uE8C8"); // Copy
-    internal static readonly IconInfo Folder  = new("\uE8DA"); // FolderOpen
-    internal static readonly IconInfo Check     = new("\uE73E"); // Accept
+    internal static readonly IconInfo Camera = new("\uE8BA"); // Photo
+    internal static readonly IconInfo Crop = new("\uE7A8"); // Crop
+    internal static readonly IconInfo Eraser = new("\uED60"); // Eraser
+    internal static readonly IconInfo Scale = new("\uE8A3"); // ResizeTouchLarger
+    internal static readonly IconInfo Ocr = new("\uE8F4"); // ScanQR
+    internal static readonly IconInfo Copy = new("\uE8C8"); // Copy
+    internal static readonly IconInfo Folder = new("\uE8DA"); // FolderOpen
+    internal static readonly IconInfo Check = new("\uE73E"); // Accept
     internal static readonly IconInfo Clipboard = new("\uE77F"); // Paste
-    internal static readonly IconInfo Selected   = new("\uE73A"); // CheckboxComposite (ticked)
+    internal static readonly IconInfo Selected = new("\uE73A"); // CheckboxComposite (ticked)
     internal static readonly IconInfo Unselected = new("\uE739"); // Checkbox (empty)
-    internal static readonly IconInfo RunBatch   = new("\uE768"); // Play
-    internal static readonly IconInfo Error      = new("\uEA39"); // ErrorBadge
+    internal static readonly IconInfo RunBatch = new("\uE768"); // Play
+    internal static readonly IconInfo Error = new("\uEA39"); // ErrorBadge
 
     internal static Tag MutedTag(string text) => new(text)
     {
