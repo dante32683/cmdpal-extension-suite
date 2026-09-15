@@ -32,7 +32,9 @@ Build every project in the monorepo:
 dotnet build NpuCommandPaletteExtensions.sln -p:Platform=x64
 ```
 
-The Command Palette SDK can emit packaging warning `APPX1707` for winmd references. That warning is known and does not block development builds.
+The Command Palette SDK winmd currently lacks implementation metadata and can emit
+packaging warning `APPX1707`. `Directory.Build.props` suppresses that external,
+non-actionable warning so real packaging diagnostics remain visible.
 
 ## PowerToys Reference Checkout
 
