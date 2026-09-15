@@ -66,7 +66,7 @@ internal sealed partial class SmartAwakeQueryCommand : InvokableCommand
     {
         _awakeService = awakeService;
         _query = query;
-        Id = $"com.local.nputools.awake.smart.query.{Math.Abs(query.GetHashCode())}";
+        Id = $"com.local.nputools.awake.smart.query.{StableId(query)}";
         Name = string.IsNullOrWhiteSpace(query) ? "Run Smart Awake" : $"Run: {query}";
         Icon = AwakeVisuals.Sparkle;
     }
@@ -92,6 +92,12 @@ internal sealed partial class SmartAwakeQueryCommand : InvokableCommand
             }
         });
         return CommandResult.Dismiss();
+    }
+
+    private static string StableId(string query)
+    {
+        byte[] hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(query));
+        return Convert.ToHexString(hash, 0, 8).ToLowerInvariant();
     }
 
     private static void ShowToast(string title, string message)

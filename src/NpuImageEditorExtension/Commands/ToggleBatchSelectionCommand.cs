@@ -12,10 +12,10 @@ internal sealed partial class ToggleBatchSelectionCommand : InvokableCommand
 
     public ToggleBatchSelectionCommand(string path, bool selected, Action<string> toggle)
     {
-        _path  = path;
+        _path = path;
         _toggle = toggle;
-        Name   = selected ? "Remove from Batch" : "Add to Batch";
-        Icon   = selected ? ImageEditorVisuals.Selected : ImageEditorVisuals.Unselected;
+        Name = selected ? "Remove from Batch" : "Add to Batch";
+        Icon = selected ? ImageEditorVisuals.Selected : ImageEditorVisuals.Unselected;
     }
 
     public override CommandResult Invoke()

@@ -10,10 +10,10 @@ internal sealed partial class ImageToolsHubPage : ListPage
     public ImageToolsHubPage(ImageEditorSettingsManager settings)
     {
         _settings = settings;
-        Id    = "com.local.nputools.imageeditor.hub";
+        Id = "com.local.nputools.imageeditor.hub";
         Title = "Image Editor";
-        Name  = "Open";
-        Icon  = ImageEditorVisuals.Camera;
+        Name = "Open";
+        Icon = ImageEditorVisuals.Camera;
     }
 
     public override IListItem[] GetItems() =>

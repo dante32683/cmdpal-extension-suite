@@ -54,10 +54,10 @@ internal sealed partial class ScreenshotIndexService : IDisposable
     {
         var entry = new ScreenshotIndexEntry
         {
-            FilePath    = filePath,
+            FilePath = filePath,
             Description = description,
-            OcrText     = ocrText,
-            IndexedAt   = DateTimeOffset.Now,
+            OcrText = ocrText,
+            IndexedAt = DateTimeOffset.Now,
         };
         lock (_lock)
         {
@@ -71,10 +71,10 @@ internal sealed partial class ScreenshotIndexService : IDisposable
     {
         var entry = new ScreenshotIndexEntry
         {
-            FilePath    = newPath,
+            FilePath = newPath,
             Description = description,
-            OcrText     = ocrText,
-            IndexedAt   = DateTimeOffset.Now,
+            OcrText = ocrText,
+            IndexedAt = DateTimeOffset.Now,
         };
         lock (_lock)
         {
@@ -154,10 +154,10 @@ internal sealed partial class ScreenshotIndexService : IDisposable
         int score = 0;
 
         bool inDesc = entry.Description.Contains(q, StringComparison.OrdinalIgnoreCase);
-        bool inOcr  = entry.OcrText.Contains(q, StringComparison.OrdinalIgnoreCase);
+        bool inOcr = entry.OcrText.Contains(q, StringComparison.OrdinalIgnoreCase);
 
         if (inDesc) score += 3;
-        if (inOcr)  score += 2;
+        if (inOcr) score += 2;
 
         if (score > 0 && IsWholeWord(entry.Description + " " + entry.OcrText, q))
             score += 1;
@@ -170,7 +170,7 @@ internal sealed partial class ScreenshotIndexService : IDisposable
         int idx = text.IndexOf(q, StringComparison.OrdinalIgnoreCase);
         while (idx >= 0)
         {
-            bool leftBound  = idx == 0 || !char.IsLetterOrDigit(text[idx - 1]);
+            bool leftBound = idx == 0 || !char.IsLetterOrDigit(text[idx - 1]);
             bool rightBound = idx + q.Length >= text.Length || !char.IsLetterOrDigit(text[idx + q.Length]);
             if (leftBound && rightBound)
                 return true;

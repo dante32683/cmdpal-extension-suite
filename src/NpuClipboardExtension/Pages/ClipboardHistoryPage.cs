@@ -15,13 +15,16 @@ namespace NpuTools.Clipboard.Pages;
 
 internal sealed partial class ClipboardHistoryPage : DynamicListPage
 {
+    internal const int InitialResultLimit = 50;
+    internal const int SearchResultLimit = 100;
+
     private readonly ClipboardStore _store;
     private readonly ClipboardSettingsStore _settings;
     private readonly ClipboardContentService _content;
     private readonly ClipboardEntryKind? _filter;
     private readonly Dictionary<string, IconInfo> _imageIcons = new(StringComparer.OrdinalIgnoreCase);
     private IListItem[] _items;
-    private int _syncRunning = 0;
+    private int _syncRunning;
     private DateTimeOffset _lastSync = DateTimeOffset.MinValue;
     private static readonly TimeSpan SyncInterval = TimeSpan.FromMinutes(5);
 
@@ -37,7 +40,7 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         Icon = ClipboardVisuals.Clipboard;
         PlaceholderText = "Search clipboard history...";
         ShowDetails = _settings.Current.PreviewMode == ClipboardPreviewMode.Always;
-        _items = BuildItems(string.Empty);
+        _items = [];
         // Store changes (Copy/Paste MarkUsed, Pin, Delete, keeper AddOrPromote, sync merge) must
         // re-render the list — the SDK only re-calls GetItems() when RaiseItemsChanged is fired.
         _store.Changed += OnStoreChanged;
@@ -79,7 +82,8 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
 
     private IListItem[] BuildItems(string query)
     {
-        var entries = _store.Search(_filter, query);
+        int resultLimit = string.IsNullOrWhiteSpace(query) ? InitialResultLimit : SearchResultLimit;
+        var entries = _store.Search(_filter, query, resultLimit, out int totalMatches);
         if (entries.Count == 0)
         {
             return
@@ -94,12 +98,11 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         }
 
         var items = new List<IListItem>();
-        string? lastGroup = null;
+        var seenGroups = new HashSet<string>(StringComparer.Ordinal);
         foreach (var entry in entries)
         {
-            if (entry.GroupId != lastGroup)
+            if (seenGroups.Add(entry.GroupId))
             {
-                lastGroup = entry.GroupId;
                 items.Add(new ListItem(new NoOpCommand())
                 {
                     Title = FormatGroupTitle(entry.CreatedAt),
@@ -110,17 +113,30 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
 
             items.Add(BuildEntryItem(entry));
         }
+
+        if (totalMatches > entries.Count)
+        {
+            items.Add(new ListItem(new NoOpCommand())
+            {
+                Title = $"Showing {entries.Count} of {totalMatches} entries",
+                Subtitle = string.IsNullOrWhiteSpace(query)
+                    ? "Type to search the complete clipboard history."
+                    : "Refine the search to narrow the remaining matches.",
+                Icon = ClipboardVisuals.Search,
+                Tags = [ClipboardVisuals.MutedTag("result limit")],
+            });
+        }
         return [.. items];
     }
 
-    private ListItem BuildEntryItem(ClipboardEntry entry)
+    private LazyDetailsListItem BuildEntryItem(ClipboardEntry entry)
     {
         var settings = _settings.Current;
         InvokableCommand primary = settings.PrimaryAction == ClipboardPrimaryAction.Copy
             ? new CopyEntryCommand(_store, _settings, _content, entry.Id)
             : new PasteEntryCommand(_store, _settings, _content, entry.Id);
 
-        var item = new ListItem(primary)
+        var item = new LazyDetailsListItem(primary, () => BuildEntryDetails(entry))
         {
             Title = DisplayTitle(entry),
             Subtitle = BuildSubtitle(entry),
@@ -129,6 +145,11 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
             MoreCommands = BuildMoreCommands(entry),
         };
 
+        return item;
+    }
+
+    private Details BuildEntryDetails(ClipboardEntry entry)
+    {
         var details = new Details
         {
             Title = DetailsTitle(entry),
@@ -139,9 +160,7 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         var heroImage = HeroImageFor(entry);
         if (heroImage is not null)
             details.HeroImage = heroImage;
-        item.Details = details;
-
-        return item;
+        return details;
     }
 
     private IContextItem[] BuildMoreCommands(ClipboardEntry entry)
@@ -152,12 +171,12 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
 
         var items = new List<IContextItem>();
         if (primaryIsCopy)
-            items.Add(new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id))           { Icon = ClipboardVisuals.Paste, RequestedShortcut = Paste      });
+            items.Add(new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id)) { Icon = ClipboardVisuals.Paste, RequestedShortcut = Paste });
         else
-            items.Add(new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id))            { Icon = ClipboardVisuals.Copy,  RequestedShortcut = Copy       });
+            items.Add(new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id)) { Icon = ClipboardVisuals.Copy, RequestedShortcut = Copy });
 
         items.Add(new CommandContextItem(new PasteEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true)) { Icon = ClipboardVisuals.Text, RequestedShortcut = PastePlain });
-        items.Add(new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true))  { Icon = ClipboardVisuals.Text, RequestedShortcut = CopyPlain  });
+        items.Add(new CommandContextItem(new CopyEntryCommand(_store, _settings, _content, entry.Id, plainTextOnly: true)) { Icon = ClipboardVisuals.Text, RequestedShortcut = CopyPlain });
 
         if (entry.Kind == ClipboardEntryKind.Image && !string.IsNullOrWhiteSpace(entry.ImagePath) && File.Exists(entry.ImagePath))
         {
@@ -172,10 +191,10 @@ internal sealed partial class ClipboardHistoryPage : DynamicListPage
         }
 
         items.Add(new Separator());
-        items.Add(new CommandContextItem(new RenameEntryPage(_store, entry.Id, entry.DisplayName))  { Icon = ClipboardVisuals.Rename, RequestedShortcut = Rename });
-        items.Add(new CommandContextItem(new PinEntryCommand(_store, entry.Id, !entry.IsPinned))    { Icon = ClipboardVisuals.Pin,    RequestedShortcut = Pin   });
+        items.Add(new CommandContextItem(new RenameEntryPage(_store, entry.Id, entry.DisplayName)) { Icon = ClipboardVisuals.Rename, RequestedShortcut = Rename });
+        items.Add(new CommandContextItem(new PinEntryCommand(_store, entry.Id, !entry.IsPinned)) { Icon = ClipboardVisuals.Pin, RequestedShortcut = Pin });
         items.Add(new Separator());
-        items.Add(new CommandContextItem(new DeleteEntryCommand(_store, entry.Id))                  { Icon = ClipboardVisuals.Delete, RequestedShortcut = Delete, IsCritical = true });
+        items.Add(new CommandContextItem(new DeleteEntryCommand(_store, entry.Id)) { Icon = ClipboardVisuals.Delete, RequestedShortcut = Delete, IsCritical = true });
 
         return [.. items];
     }

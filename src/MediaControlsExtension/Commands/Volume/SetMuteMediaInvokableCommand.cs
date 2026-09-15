@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 // 
 // Copyright (c) Jiří Polášek. All rights reserved.
 // 
@@ -38,7 +38,7 @@ internal sealed partial class SetMuteMediaInvokableCommand : AsyncInvokableComma
         {
             Logger.LogError(ex);
         }
-        
+
         return this._yetAnotherHelper.GetMediaCommandResult(Strings.Toast_CantChangeVolume!);
     }
 }

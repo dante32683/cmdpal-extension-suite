@@ -22,17 +22,17 @@ internal sealed partial class WatcherDashboardPage : ListPage
 
     public WatcherDashboardPage()
     {
-        Id    = "com.local.nputools.organize.watcher";
+        Id = "com.local.nputools.organize.watcher";
         Title = "Screenshot Watcher";
-        Name  = "Watcher";
-        Icon  = OrganizeVisuals.Watcher;
+        Name = "Watcher";
+        Icon = OrganizeVisuals.Watcher;
     }
 
     public override IListItem[] GetItems()
     {
         bool keeperInstalled = File.Exists(KeeperPath);
-        int? keeperPid       = FindKeeperPid();
-        bool running         = keeperPid.HasValue;
+        int? keeperPid = FindKeeperPid();
+        bool running = keeperPid.HasValue;
 
         if (!keeperInstalled)
         {
@@ -71,11 +71,11 @@ internal sealed partial class WatcherDashboardPage : ListPage
         {
             items.Add(new ListItem(new NoOpCommand())
             {
-                Title    = $"Renamed: {state.Processed}   Skipped: {state.Skipped}   Errors: {state.Errors}",
+                Title = $"Renamed: {state.Processed}   Skipped: {state.Skipped}   Errors: {state.Errors}",
                 Subtitle = state.LastProcessedPath is not null
                     ? $"Last: {Path.GetFileName(state.LastProcessedPath)}"
                     : "No files renamed yet.",
-                Tags     = [OrganizeVisuals.MutedTag("stats")],
+                Tags = [OrganizeVisuals.MutedTag("stats")],
             });
 
             if (state.LastError is not null)
@@ -83,8 +83,8 @@ internal sealed partial class WatcherDashboardPage : ListPage
                 items.Add(new ListItem(new NoOpCommand())
                 {
                     Title = state.LastError,
-                    Icon  = OrganizeVisuals.Warning,
-                    Tags  = [OrganizeVisuals.MutedTag("last error")],
+                    Icon = OrganizeVisuals.Warning,
+                    Tags = [OrganizeVisuals.MutedTag("last error")],
                 });
             }
         }
@@ -158,12 +158,12 @@ internal sealed partial class WatcherDashboardPage : ListPage
 
     private sealed class WatcherState
     {
-        [JsonPropertyName("processed")]         public int     Processed         { get; set; }
-        [JsonPropertyName("skipped")]           public int     Skipped           { get; set; }
-        [JsonPropertyName("errors")]            public int     Errors            { get; set; }
-        [JsonPropertyName("watchFolder")]       public string? WatchFolder       { get; set; }
+        [JsonPropertyName("processed")] public int Processed { get; set; }
+        [JsonPropertyName("skipped")] public int Skipped { get; set; }
+        [JsonPropertyName("errors")] public int Errors { get; set; }
+        [JsonPropertyName("watchFolder")] public string? WatchFolder { get; set; }
         [JsonPropertyName("lastProcessedPath")] public string? LastProcessedPath { get; set; }
-        [JsonPropertyName("lastError")]         public string? LastError         { get; set; }
+        [JsonPropertyName("lastError")] public string? LastError { get; set; }
     }
 
     [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]

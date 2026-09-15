@@ -85,9 +85,9 @@ internal sealed class StateStore
     {
         SupportDir = supportDir;
         Directory.CreateDirectory(supportDir);
-        ConfigPath   = Path.Combine(supportDir, "config.json");
-        StatePath    = Path.Combine(supportDir, "state.json");
-        LogPath      = Path.Combine(supportDir, "organize.log");
+        ConfigPath = Path.Combine(supportDir, "config.json");
+        StatePath = Path.Combine(supportDir, "state.json");
+        LogPath = Path.Combine(supportDir, "organize.log");
         StopFlagPath = Path.Combine(supportDir, "stop.flag");
     }
 

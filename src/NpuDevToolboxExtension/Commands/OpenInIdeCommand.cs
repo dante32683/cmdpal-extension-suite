@@ -31,7 +31,8 @@ internal sealed partial class OpenInIdeCommand : InvokableCommand
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"OpenInIdeCommand: {ex.GetType().Name}: {ex.Message}");
+            Debug.WriteLine($"OpenInIdeCommand: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not open this workspace in the selected IDE.");
         }
 
         return CommandResult.Dismiss();
@@ -41,18 +42,19 @@ internal sealed partial class OpenInIdeCommand : InvokableCommand
     {
         string exe = s.PreferredIde switch
         {
-            IdeChoice.VSCode    => "code",
-            IdeChoice.Cursor    => "cursor",
-            IdeChoice.Windsurf  => "windsurf",
+            IdeChoice.VSCode => "code",
+            IdeChoice.Cursor => "cursor",
+            IdeChoice.Windsurf => "windsurf",
             IdeChoice.Custom when !string.IsNullOrWhiteSpace(s.CustomIdeExe) => s.CustomIdeExe,
-            _                   => "code",
+            _ => "code",
         };
 
-        Process.Start(new ProcessStartInfo
+        var startInfo = new ProcessStartInfo
         {
             FileName = exe,
-            Arguments = $"\"{_path}\"",
             UseShellExecute = true,
-        });
+        };
+        startInfo.ArgumentList.Add(_path);
+        Process.Start(startInfo);
     }
 }

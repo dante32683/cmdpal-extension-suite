@@ -42,7 +42,11 @@ internal sealed partial class MediaControlsExtensionPage : ListPage, IDisposable
         this.Icon = Icons.MainIcon;
         this.Title = Strings.Name!;
         this.Name = Strings.Open!;
-        this.Id = "com.dziad.mediacontrolsextension";
+        // Keep the original ID on the dock band so existing pins continue to resolve.
+        // The ordinary page needs a distinct ID or CmdPal treats it as a duplicate band.
+        this.Id = this._isBandPage
+            ? "com.dziad.mediacontrolsextension"
+            : "com.dziad.mediacontrolsextension.page";
         this.PlaceholderText = Strings.SearchPlaceholder!;
 
         this._mediaService.Initialized += this.MediaServiceOnInitialized;

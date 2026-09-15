@@ -22,14 +22,14 @@ internal sealed partial class RewriteResultPage : ListPage
 
     public RewriteResultPage(string inputText, TextRewriteMode mode, TextRewriteService service, string? customInstruction = null)
     {
-        _inputText         = inputText;
-        _mode              = mode;
-        _service           = service;
+        _inputText = inputText;
+        _mode = mode;
+        _service = service;
         _customInstruction = customInstruction;
-        Id    = $"com.local.nputools.texttools.result.{mode.ToString().ToLowerInvariant()}";
+        Id = $"com.local.nputools.texttools.result.{mode.ToString().ToLowerInvariant()}";
         Title = $"Result — {TextRewriteService.ModeLabel(mode)}";
-        Name  = "Result";
-        Icon  = TextToolsVisuals.Check;
+        Name = "Result";
+        Icon = TextToolsVisuals.Check;
         IsLoading = true;
     }
 
@@ -69,7 +69,7 @@ internal sealed partial class RewriteResultPage : ListPage
             ];
         }
 
-        string result  = _result!;
+        string result = _result!;
         string preview = result.Length > 200 ? result[..200] + "…" : result;
 
         return

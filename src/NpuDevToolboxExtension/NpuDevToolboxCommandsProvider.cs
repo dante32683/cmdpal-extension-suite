@@ -16,9 +16,9 @@ internal sealed partial class NpuDevToolboxCommandsProvider : CommandProvider
 
     public NpuDevToolboxCommandsProvider()
     {
-        Id          = "com.local.nputools.devtoolbox";
+        Id = "com.local.nputools.devtoolbox";
         DisplayName = "NPU Dev Toolbox";
-        Icon        = DevToolboxVisuals.Toolbox;
+        Icon = DevToolboxVisuals.Toolbox;
 
         _settingsManager = new DevToolboxSettingsManager(_settingsStore);
         Settings = _settingsManager.Settings;

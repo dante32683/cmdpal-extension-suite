@@ -8,7 +8,7 @@ namespace NpuTools.TextTools.Interop;
 internal static partial class ClipboardHelper
 {
     private const uint CF_UNICODETEXT = 13;
-    private const uint GMEM_MOVEABLE  = 0x0002;
+    private const uint GMEM_MOVEABLE = 0x0002;
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

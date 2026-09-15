@@ -15,8 +15,8 @@ internal sealed partial class CopyImageToClipboardCommand : InvokableCommand
     public CopyImageToClipboardCommand(string path)
     {
         _path = path;
-        Name  = "Copy Image";
-        Icon  = OrganizeVisuals.Copy;
+        Name = "Copy Image";
+        Icon = OrganizeVisuals.Copy;
     }
 
     public override CommandResult Invoke()
@@ -30,7 +30,7 @@ internal sealed partial class CopyImageToClipboardCommand : InvokableCommand
         try
         {
             var file = await StorageFile.GetFileFromPathAsync(_path);
-            var dp   = new DataPackage();
+            var dp = new DataPackage();
             dp.SetBitmap(RandomAccessStreamReference.CreateFromFile(file));
             Clipboard.SetContent(dp);
         }

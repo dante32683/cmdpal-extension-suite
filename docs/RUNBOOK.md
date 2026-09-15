@@ -13,6 +13,19 @@ GitHub Actions cross-builds the extension projects for both `win-x64` and `win-a
 
 ## Solution Build
 
+Run the complete non-deploying repository gate before considering a change done:
+
+```powershell
+.\scripts\check.ps1
+```
+
+The gate restores with transitive vulnerability auditing, verifies formatting,
+repository/package identities, UX conventions, and documentation links, then builds
+with warnings treated as errors and runs the isolated x64 unit suite. It does not
+register packages, start or stop extensions, or write to production application
+data. Gate builds use `.artifacts/check/`, so registered `bin/` outputs may remain
+locked by running extensions.
+
 Build every project in the monorepo:
 
 ```powershell
@@ -62,9 +75,7 @@ Reload Command Palette extensions
 > **Do NOT call `Remove-AppxPackage` before re-registering during normal development.**
 > `Add-AppxPackage -Register` at the same version updates the registration in place and preserves the PowerToys host's settings record for that extension. Calling `Remove-AppxPackage` first causes the host to forget the extension's settings, resetting all user-configured values to defaults even though the JSON backup files survive on disk. The only time `Remove-AppxPackage` is needed is when the package **Name**, **Publisher**, or **Version** in `Package.appxmanifest` changes (see §Identity Change below).
 
-## Refresh Existing Local Registrations (one-time migration only)
-
-> **This script is a one-time migration tool. Do NOT run it during normal development — it calls `Remove-AppxPackage` on every extension, which wipes the PowerToys host's settings record for each one and resets all user settings to defaults.**
+## Refresh Existing Local Registrations
 
 After moving projects or consolidating old repos into this monorepo, refresh local package registrations from the monorepo paths:
 
@@ -78,7 +89,10 @@ After verifying Command Palette loads the monorepo registrations, move the old s
 .\scripts\Refresh-ExtensionRegistrations.ps1 -MoveOldFoldersToRecycleBin
 ```
 
-The script stops extension processes, removes matching app packages for the current user, registers the `src\...\AppxManifest.xml` files produced by the x64 Debug build, and optionally recycles:
+The script stops extension processes and registers the `src\...\AppxManifest.xml`
+files produced by the x64 Debug build. It keeps registrations that already point at
+those outputs. If an install path moved, it unregisters with
+`-PreserveApplicationData` before registering the new path. It optionally recycles:
 
 - `C:\Portable\ActionCenterExtension`
 - `C:\Portable\SimpleAnalyticsExtension`

@@ -18,21 +18,27 @@ namespace NpuTools.Clipboard.Pages;
 // on/off control is always discoverable; this page only manages the rule list.
 internal sealed partial class SecretPatternsPage : ContentPage
 {
+    private readonly ClipboardSettingsStore _settings;
+
     public SecretPatternsPage(ClipboardSettingsStore settings)
     {
+        _settings = settings;
         Id = "com.local.nputools.clipboard.secret-patterns";
         Title = "Secret Patterns";
         Name = "Secret Patterns";
         Icon = ClipboardVisuals.Settings;
     }
 
-    public override IContent[] GetContent() => [new SecretPatternsForm(settings: new ClipboardSettingsStore())];
+    public override IContent[] GetContent() => [new SecretPatternsForm(_settings)];
 }
 
 internal sealed partial class SecretPatternsForm : FormContent
 {
+    private readonly ClipboardSettingsStore _settings;
+
     public SecretPatternsForm(ClipboardSettingsStore settings)
     {
+        _settings = settings;
         TemplateJson = BuildTemplateJson(settings.Current.SecretPatterns);
     }
 
@@ -40,7 +46,7 @@ internal sealed partial class SecretPatternsForm : FormContent
     {
         string raw = JsonNode.Parse(payload)?["patterns"]?.ToString() ?? string.Empty;
         var parsed = SecretPatternsParser.ParseLines(raw);
-        new ClipboardSettingsStore().Update(s => s.SecretPatterns = parsed.Patterns);
+        _settings.Update(s => s.SecretPatterns = parsed.Patterns);
         string message = parsed.InvalidCount == 0
             ? $"Saved {parsed.Patterns.Count} pattern{(parsed.Patterns.Count == 1 ? "" : "s")}."
             : $"Saved {parsed.Patterns.Count} pattern{(parsed.Patterns.Count == 1 ? "" : "s")}. {parsed.InvalidCount} line{(parsed.InvalidCount == 1 ? "" : "s")} skipped (invalid regex or format).";

@@ -33,13 +33,13 @@ internal sealed partial class NpuClipboardCommandsProvider : CommandProvider
                 Icon = ClipboardVisuals.Clipboard,
                 MoreCommands =
                 [
-                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(5), "Last 5 Minutes")) { IsCritical = true },
-                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(15), "Last 15 Minutes")) { IsCritical = true },
-                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(30), "Last 30 Minutes")) { IsCritical = true },
-                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromHours(1), "Last Hour")) { IsCritical = true },
-                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromHours(24), "Last 24 Hours")) { IsCritical = true },
+                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(5), "Last 5 Minutes")) { RequestedShortcut = KeyChords.DeleteRecent5, IsCritical = true },
+                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(15), "Last 15 Minutes")) { RequestedShortcut = KeyChords.DeleteRecent15, IsCritical = true },
+                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromMinutes(30), "Last 30 Minutes")) { RequestedShortcut = KeyChords.DeleteRecent30, IsCritical = true },
+                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromHours(1), "Last Hour")) { RequestedShortcut = KeyChords.DeleteRecent60, IsCritical = true },
+                    new CommandContextItem(new Commands.DeleteByWindowCommand(_store, TimeSpan.FromHours(24), "Last 24 Hours")) { RequestedShortcut = KeyChords.DeleteRecentDay, IsCritical = true },
                     new Separator(),
-                    new CommandContextItem(new DeleteAllPage(_store)) { Icon = ClipboardVisuals.Delete, IsCritical = true },
+                    new CommandContextItem(new DeleteAllPage(_store)) { Icon = ClipboardVisuals.Delete, RequestedShortcut = KeyChords.Delete, IsCritical = true },
                 ],
             },
             new CommandItem(new AskClipboardPage(_store, _settings, _content, _ask))

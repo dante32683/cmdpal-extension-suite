@@ -18,9 +18,9 @@ internal sealed class PendingRewriteStore
     {
         lock (_lock)
         {
-            _input  = input;
+            _input = input;
             _result = result;
-            _mode   = mode;
+            _mode = mode;
         }
     }
 
@@ -37,7 +37,7 @@ internal sealed class PendingRewriteStore
     {
         lock (_lock)
         {
-            _input  = null;
+            _input = null;
             _result = null;
         }
     }

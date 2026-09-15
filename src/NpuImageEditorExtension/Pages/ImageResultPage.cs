@@ -29,16 +29,16 @@ internal sealed partial class ImageResultPage : ListPage
         string path,
         ImageEditorSettingsManager settings)
     {
-        _operation   = operation;
+        _operation = operation;
         _scaleFactor = scaleFactor;
-        _path        = path;
-        _settings    = settings;
-        _isText      = operation == ImageOperation.Ocr;
+        _path = path;
+        _settings = settings;
+        _isText = operation == ImageOperation.Ocr;
 
-        Id    = $"com.local.nputools.imageeditor.result.{operation.ToString().ToLowerInvariant()}.{scaleFactor}";
+        Id = $"com.local.nputools.imageeditor.result.{operation.ToString().ToLowerInvariant()}.{scaleFactor}";
         Title = $"Result: {ImageInputPage.OperationLabel(operation, scaleFactor)}";
-        Name  = "Result";
-        Icon  = ImageEditorVisuals.Check;
+        Name = "Result";
+        Icon = ImageEditorVisuals.Check;
         IsLoading = true;
     }
 
@@ -129,9 +129,9 @@ internal sealed partial class ImageResultPage : ListPage
             _result = _operation switch
             {
                 ImageOperation.RemoveBackground => await ImageEditorService.RemoveBackgroundAsync(_path),
-                ImageOperation.SuperResolution  => await ImageEditorService.SuperResolutionAsync(_path, _scaleFactor),
-                ImageOperation.Ocr              => await ImageEditorService.RunOcrAsync(_path),
-                _                               => throw new ArgumentOutOfRangeException(nameof(_operation)),
+                ImageOperation.SuperResolution => await ImageEditorService.SuperResolutionAsync(_path, _scaleFactor),
+                ImageOperation.Ocr => await ImageEditorService.RunOcrAsync(_path),
+                _ => throw new ArgumentOutOfRangeException(nameof(_operation)),
             };
 
             ApplyAutoActions(_result);

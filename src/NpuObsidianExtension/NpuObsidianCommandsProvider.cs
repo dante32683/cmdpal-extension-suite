@@ -28,7 +28,7 @@ internal sealed partial class NpuObsidianCommandsProvider : CommandProvider
         _settingsManager = new ObsidianSettingsManager(_settingsStore);
         Settings = _settingsManager.Settings;
 
-        _indexStore.EnsureLoaded();
+        _indexStore.BeginLoad();
 
         _commands =
         [

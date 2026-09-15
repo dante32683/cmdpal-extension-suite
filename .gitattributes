@@ -2,16 +2,17 @@
 # whole-file diffs driven by the local core.autocrlf setting.
 * text=auto
 
-# Sources and docs are LF in the repository; git checks them out with the
-# platform's native endings.
-*.cs        text diff=csharp
-*.csproj    text
-*.sln       text
-*.md        text
-*.json      text
-*.xml       text
-*.yml       text
-*.appxmanifest text
+# Sources and docs use LF; PowerShell scripts use Windows-native CRLF.
+*.cs        text eol=lf diff=csharp
+*.csproj    text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+*.sln       text eol=lf
+*.md        text eol=lf
+*.json      text eol=lf
+*.xml       text eol=lf
+*.yml       text eol=lf
+*.appxmanifest text eol=lf
 
 # Scripts Windows tooling reads directly.
 *.ps1       text eol=crlf

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 // 
 // Copyright (c) Jiří Polášek. All rights reserved.
 // 
@@ -87,7 +87,7 @@ internal sealed partial class CoalescingAsyncLoader<TArg, TResult> : IDisposable
         this._cts?.Cancel();
         this._cts?.Dispose();
         this.DisposeResult(this._currentResult);
-    
+
         this._onResultChanged = null; // or make it nullable and set to null
         this._onResultDispose = null;
     }

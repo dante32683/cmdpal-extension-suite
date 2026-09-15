@@ -20,15 +20,15 @@ internal sealed partial class ScreenshotSearchPage : DynamicListPage
 
     public ScreenshotSearchPage(ScreenshotIndexService indexService, ScreenshotScannerService scanner)
     {
-        _indexService   = indexService;
-        _scanner        = scanner;
-        Id              = "com.local.nputools.organize.search";
-        Title           = "Search Screenshots";
-        Name            = "Search";
-        Icon            = OrganizeVisuals.Search;
+        _indexService = indexService;
+        _scanner = scanner;
+        Id = "com.local.nputools.organize.search";
+        Title = "Search Screenshots";
+        Name = "Search";
+        Icon = OrganizeVisuals.Search;
         PlaceholderText = "Search by content or description…";
-        ShowDetails     = true;
-        _items          = BuildItems(string.Empty);
+        ShowDetails = true;
+        _items = BuildItems(string.Empty);
     }
 
     public override void UpdateSearchText(string oldSearch, string newSearch)
@@ -88,26 +88,26 @@ internal sealed partial class ScreenshotSearchPage : DynamicListPage
         {
             items[0] = new ListItem(new NoOpCommand())
             {
-                Title    = "Recent screenshots",
+                Title = "Recent screenshots",
                 Subtitle = headerSubtitle,
-                Icon     = OrganizeVisuals.Search,
+                Icon = OrganizeVisuals.Search,
             };
         }
 
         for (int i = 0; i < entries.Count; i++)
         {
             ScreenshotIndexEntry entry = entries[i];
-            string name    = Path.GetFileName(entry.FilePath);
+            string name = Path.GetFileName(entry.FilePath);
             string preview = entry.Description.Length > 120
                 ? entry.Description[..120] + "…"
                 : entry.Description;
             items[i + offset] = new ListItem(new OpenFileCommand(entry.FilePath))
             {
-                Title    = name,
+                Title = name,
                 Subtitle = BuildSubtitle(entry, preview),
-                Icon     = ImageIcon(entry.FilePath) ?? OrganizeVisuals.File,
-                Details  = BuildDetails(entry, name),
-                Tags     = [OrganizeVisuals.MutedTag("open")],
+                Icon = ImageIcon(entry.FilePath) ?? OrganizeVisuals.File,
+                Details = BuildDetails(entry, name),
+                Tags = [OrganizeVisuals.MutedTag("open")],
                 MoreCommands =
                 [
                     new CommandContextItem(new CopyImageToClipboardCommand(entry.FilePath)) { RequestedShortcut = CopyImage },

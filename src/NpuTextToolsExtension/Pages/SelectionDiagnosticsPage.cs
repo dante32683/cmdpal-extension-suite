@@ -18,19 +18,19 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
 
     public SelectionDiagnosticsPage(CaptureDiagnosticsStore diag, PendingRewriteStore pending, TextRewriteService service)
     {
-        _diag    = diag;
+        _diag = diag;
         _pending = pending;
         _service = service;
-        Id    = "com.local.nputools.texttools.diagnostics";
+        Id = "com.local.nputools.texttools.diagnostics";
         Title = "Selection Diagnostics";
-        Name  = "Diagnostics";
-        Icon  = TextToolsVisuals.Hub;
+        Name = "Diagnostics";
+        Icon = TextToolsVisuals.Hub;
     }
 
     public override IListItem[] GetItems()
     {
         var items = new List<IListItem>();
-        var last  = _diag.GetLast();
+        var last = _diag.GetLast();
 
         if (last.HasValue)
         {
@@ -45,21 +45,21 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
                         : captured ?? string.Empty;
                     items.Add(new ListItem(new NoOpCommand())
                     {
-                        Title    = "Last capture: success",
+                        Title = "Last capture: success",
                         Subtitle = $"{timeStr} — \"{preview}\"",
-                        Icon     = TextToolsVisuals.Check,
-                        Tags     = [TextToolsVisuals.StatusTag("ok")],
+                        Icon = TextToolsVisuals.Check,
+                        Tags = [TextToolsVisuals.StatusTag("ok")],
                     });
                     break;
 
                 case CaptureStatus.NoTextCaptured:
                     items.Add(new ListItem(new NoOpCommand())
                     {
-                        Title    = "Last capture: no text captured",
+                        Title = "Last capture: no text captured",
                         Subtitle = timeStr,
-                        Icon     = TextToolsVisuals.Phi,
-                        Tags     = [TextToolsVisuals.CriticalTag("failed")],
-                        Details  = TipsDetails("No text was captured",
+                        Icon = TextToolsVisuals.Phi,
+                        Tags = [TextToolsVisuals.CriticalTag("failed")],
+                        Details = TipsDetails("No text was captured",
                             "Select text before opening Command Palette.",
                             "Make sure the text field is active (click into it first).",
                             "Some apps block clipboard access (e.g. password managers, games).",
@@ -71,11 +71,11 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
                 case CaptureStatus.EmptyRewrite:
                     items.Add(new ListItem(new NoOpCommand())
                     {
-                        Title    = "Last rewrite: empty result",
+                        Title = "Last rewrite: empty result",
                         Subtitle = timeStr,
-                        Icon     = TextToolsVisuals.Phi,
-                        Tags     = [TextToolsVisuals.CriticalTag("failed")],
-                        Details  = TipsDetails("Phi returned an empty result",
+                        Icon = TextToolsVisuals.Phi,
+                        Tags = [TextToolsVisuals.CriticalTag("failed")],
+                        Details = TipsDetails("Phi returned an empty result",
                             "Try selecting more text — very short snippets may be skipped.",
                             "Ensure the Phi Silica model is available on this device.",
                             "Try a different rewrite mode."),
@@ -85,10 +85,10 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
                 case CaptureStatus.Error:
                     items.Add(new ListItem(new NoOpCommand())
                     {
-                        Title    = "Last capture: error",
+                        Title = "Last capture: error",
                         Subtitle = $"{timeStr} — {reason ?? "unknown error"}",
-                        Icon     = TextToolsVisuals.Phi,
-                        Tags     = [TextToolsVisuals.CriticalTag("error")],
+                        Icon = TextToolsVisuals.Phi,
+                        Tags = [TextToolsVisuals.CriticalTag("error")],
                     });
                     break;
             }
@@ -97,26 +97,26 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
         {
             items.Add(new ListItem(new NoOpCommand())
             {
-                Title    = "No capture attempt recorded yet",
+                Title = "No capture attempt recorded yet",
                 Subtitle = "Use Quick Rewrite with selected text to see diagnostics",
-                Icon     = TextToolsVisuals.Phi,
+                Icon = TextToolsVisuals.Phi,
             });
         }
 
         items.Add(new ListItem(new SelectionRewriteCommand(TextRewriteMode.FixGrammar, _service, _pending))
         {
-            Title    = "Run Test Capture: Fix Grammar",
+            Title = "Run Test Capture: Fix Grammar",
             Subtitle = "Select text before running, then check above for result",
-            Icon     = TextToolsVisuals.Phi,
-            Tags     = [TextToolsVisuals.MutedTag("test capture")],
+            Icon = TextToolsVisuals.Phi,
+            Tags = [TextToolsVisuals.MutedTag("test capture")],
         });
 
         items.Add(new ListItem(new NoOpCommand())
         {
-            Title    = "How selection capture works",
+            Title = "How selection capture works",
             Subtitle = "CP dismisses → previous app regains focus → Ctrl+C sent → clipboard polled",
-            Icon     = TextToolsVisuals.Hub,
-            Details  = TipsDetails("How it works",
+            Icon = TextToolsVisuals.Hub,
+            Details = TipsDetails("How it works",
                 "1. You select text in any app, then open Command Palette.",
                 "2. When you pick a Quick Rewrite mode, CP dismisses itself.",
                 "3. The extension waits 200 ms for the previous app to regain focus.",
@@ -127,10 +127,10 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
 
         items.Add(new ListItem(new NoOpCommand())
         {
-            Title    = "Known limitations",
+            Title = "Known limitations",
             Subtitle = "Apps that block Ctrl+C, elevated processes, RDP sessions",
-            Icon     = TextToolsVisuals.Hub,
-            Details  = TipsDetails("Known limitations",
+            Icon = TextToolsVisuals.Hub,
+            Details = TipsDetails("Known limitations",
                 "Elevated apps (Run as Administrator) block simulated key input.",
                 "RDP sessions may intercept Ctrl+C before it reaches the remote app.",
                 "Apps with custom clipboard handling (e.g. terminals) may not respond.",
@@ -145,6 +145,6 @@ internal sealed partial class SelectionDiagnosticsPage : ListPage
         new()
         {
             Title = title,
-            Body  = string.Join("\n\n", tips),
+            Body = string.Join("\n\n", tips),
         };
 }

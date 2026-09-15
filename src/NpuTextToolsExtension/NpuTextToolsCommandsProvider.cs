@@ -15,10 +15,10 @@ internal sealed partial class NpuTextToolsCommandsProvider : CommandProvider
 
     public NpuTextToolsCommandsProvider()
     {
-        Id          = "com.local.nputools.texttools";
+        Id = "com.local.nputools.texttools";
         DisplayName = "NPU Text Tools";
-        Icon        = TextToolsVisuals.Pen;
-        Settings    = _settingsManager.Settings;
+        Icon = TextToolsVisuals.Pen;
+        Settings = _settingsManager.Settings;
 
         _commands =
         [

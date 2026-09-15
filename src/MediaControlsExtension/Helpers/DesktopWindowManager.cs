@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 // 
 // Copyright (c) Jiří Polášek. All rights reserved.
 // 
@@ -9,8 +9,8 @@ internal static class DesktopWindowManager
 {
     public static bool SwitchToDesktopAppWindowUsingAppId(string appId, string? title = null)
     {
-       var apps = WindowManager.GetAllWindowsForAppId(appId);
-       return BringWindowToFront(apps, title);
+        var apps = WindowManager.GetAllWindowsForAppId(appId);
+        return BringWindowToFront(apps, title);
     }
 
     public static bool SwitchToDesktopAppWindow(string appPath, string? title = null)
