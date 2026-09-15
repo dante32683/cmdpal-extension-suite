@@ -70,7 +70,23 @@ internal sealed partial class SearchObsidianNotesPage : DynamicListPage
         // Prefer the persistent index for rich body + backlink search; fall back to live scan.
         var notes = _indexStore.IsIndexed
             ? _indexStore.GetSearchableNotes(settings.VaultPath, _metadata)
-            : _store.GetAll();
+            : _store.GetSnapshot(() =>
+            {
+                _items = BuildItems(SearchText?.Trim() ?? string.Empty);
+                RaiseItemsChanged(_items.Length);
+            });
+        if (notes.Count == 0 && !_indexStore.IsIndexed && !_store.IsSnapshotReady)
+        {
+            return
+            [
+                new ListItem(new NoOpCommand())
+                {
+                    Title = "Loading vault…",
+                    Subtitle = "Refreshing Markdown notes in the background",
+                    Icon = ObsidianVisuals.Index,
+                },
+            ];
+        }
 
         int maxResults = string.IsNullOrWhiteSpace(query) ? settings.MaxRecentNotes : settings.MaxSearchResults;
         var results = _search.Search(notes, query, maxResults);

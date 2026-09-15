@@ -19,8 +19,6 @@ internal sealed partial class BatchResultPage : ListPage
     private readonly int _scaleFactor;
     private readonly IReadOnlyList<string> _paths;
     private readonly ImageEditorSettingsManager _settings;
-    private readonly CancellationTokenSource _cts = new();
-
     private int _started;
     private BatchProgress _progress;
     private BatchSummary? _summary;
@@ -32,15 +30,15 @@ internal sealed partial class BatchResultPage : ListPage
         IReadOnlyList<string> paths,
         ImageEditorSettingsManager settings)
     {
-        _operation   = operation;
+        _operation = operation;
         _scaleFactor = scaleFactor;
-        _paths       = paths;
-        _settings    = settings;
+        _paths = paths;
+        _settings = settings;
 
-        Id    = $"com.local.nputools.imageeditor.batchresult.{operation.ToString().ToLowerInvariant()}.{scaleFactor}";
+        Id = $"com.local.nputools.imageeditor.batchresult.{operation.ToString().ToLowerInvariant()}.{scaleFactor}";
         Title = $"Batch: {ImageInputPage.OperationLabel(operation, scaleFactor)}";
-        Name  = "Result";
-        Icon  = ImageEditorVisuals.RunBatch;
+        Name = "Result";
+        Icon = ImageEditorVisuals.RunBatch;
         IsLoading = true;
     }
 
@@ -102,9 +100,9 @@ internal sealed partial class BatchResultPage : ListPage
             if (r.Success) continue;
             items.Add(new ListItem(new CopyTextCommand(r.Error ?? "Unknown error"))
             {
-                Title    = Path.GetFileName(r.Path),
+                Title = Path.GetFileName(r.Path),
                 Subtitle = r.Error ?? "Unknown error",
-                Icon     = ImageEditorVisuals.Error,
+                Icon = ImageEditorVisuals.Error,
             });
         }
 
@@ -113,6 +111,7 @@ internal sealed partial class BatchResultPage : ListPage
 
     private async Task RunBatchAsync()
     {
+        using var cts = new CancellationTokenSource();
         try
         {
             var progress = new Progress<BatchProgress>(p =>
@@ -122,7 +121,7 @@ internal sealed partial class BatchResultPage : ListPage
             });
 
             _summary = await ImageEditorService.BatchProcessAsync(
-                _paths, _operation, _scaleFactor, progress, _cts.Token);
+                _paths, _operation, _scaleFactor, progress, cts.Token);
         }
         catch (OperationCanceledException)
         {
@@ -135,7 +134,6 @@ internal sealed partial class BatchResultPage : ListPage
         finally
         {
             IsLoading = false;
-            _cts.Dispose();
             RaiseItemsChanged();
         }
     }

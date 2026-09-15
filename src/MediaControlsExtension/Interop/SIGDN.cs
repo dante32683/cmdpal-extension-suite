@@ -1,4 +1,4 @@
-﻿namespace JPSoftworks.MediaControlsExtension.Interop;
+namespace JPSoftworks.MediaControlsExtension.Interop;
 
 enum SIGDN : uint
 {                                                 // lower word (& with 0xFFFF)

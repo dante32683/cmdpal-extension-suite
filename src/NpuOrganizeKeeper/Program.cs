@@ -27,8 +27,8 @@ try
 {
     return mode switch
     {
-        "watch"       => await RunWatchAsync(store).ConfigureAwait(false),
-        "status"      => RunStatus(store),
+        "watch" => await RunWatchAsync(store).ConfigureAwait(false),
+        "status" => RunStatus(store),
         "process-one" => args.Length < 2
             ? Error("Usage: NpuOrganizeKeeper.exe process-one <imagePath>")
             : await RunProcessOneAsync(store, args[1]).ConfigureAwait(false),
@@ -108,7 +108,7 @@ static async Task<int> RunWatchAsync(StateStore store)
 static int RunStatus(StateStore store)
 {
     var state = store.LoadState();
-    var cfg   = store.TryLoadConfig();
+    var cfg = store.TryLoadConfig();
     var payload = new
     {
         supportDir = store.SupportDir,
@@ -128,7 +128,7 @@ static async Task<int> RunProcessOneAsync(StateStore store, string imagePath)
         return 1;
     }
 
-    var cfg  = GetOrCreateConfig(store);
+    var cfg = GetOrCreateConfig(store);
     var info = new FileInfo(imagePath);
 
     if (cfg.SkipOnBattery && !PowerStatus.IsOnAcPower())
@@ -160,18 +160,19 @@ static async Task<int> RunProcessOneAsync(StateStore store, string imagePath)
         slug = SlugGenerator.BuildFallbackSlug($"{imagePath}:{info.CreationTimeUtc.Ticks}");
 
     DateTime captureLocal = info.CreationTime > DateTime.MinValue ? info.CreationTime : info.LastWriteTime;
-    string   baseFilename = SlugGenerator.BuildTargetFilename(slug, info.Extension, captureLocal);
+    string baseFilename = SlugGenerator.BuildTargetFilename(slug, info.Extension, captureLocal);
 
     string directory = Path.GetDirectoryName(imagePath)!;
     string destination = Path.Combine(directory, baseFilename);
     if (!string.Equals(destination, imagePath, StringComparison.OrdinalIgnoreCase))
     {
         var existing = new HashSet<string>(Directory.EnumerateFiles(directory)
-            .Select(Path.GetFileName), StringComparer.OrdinalIgnoreCase);
+            .Select(Path.GetFileName)
+            .OfType<string>(), StringComparer.OrdinalIgnoreCase);
         string finalName = SlugGenerator.ResolveCollision(baseFilename, name => existing.Contains(name));
         destination = Path.Combine(directory, finalName);
         File.Move(imagePath, destination);
-        new OrganizeIndexStore().UpdatePath(imagePath, destination, description);
+        OrganizeIndexStore.UpdatePath(imagePath, destination, description);
     }
 
     store.UpdateState(st =>
@@ -205,7 +206,7 @@ static async Task<string> DescribeImageAsync(string imagePath)
 {
     using Microsoft.Graphics.Imaging.ImageBuffer imageBuffer = await LoadImageBufferAsync(imagePath).ConfigureAwait(false);
     var generator = await Microsoft.Windows.AI.Imaging.ImageDescriptionGenerator.CreateAsync();
-    var response  = await generator.DescribeAsync(
+    var response = await generator.DescribeAsync(
         imageBuffer,
         Microsoft.Windows.AI.Imaging.ImageDescriptionKind.BriefDescription,
         new Microsoft.Windows.AI.ContentSafety.ContentFilterOptions());

@@ -11,22 +11,22 @@ public partial class SimpleAnalyticsExtensionCommandsProvider : CommandProvider
 
     public SimpleAnalyticsExtensionCommandsProvider()
     {
-        Id          = "com.dziad.simpleanalyticsextension";
+        Id = "com.dziad.simpleanalyticsextension";
         DisplayName = "Simple Analytics";
-        Icon        = ProviderIcon;
+        Icon = ProviderIcon;
 
         var battery = new BatteryService();
         var network = new NetworkService();
-        var cpu     = new CpuService();
+        var cpu = new CpuService();
 
         _commands = [
             new CommandItem(new SimpleAnalyticsExtensionPage(battery, network, cpu)) { Title = DisplayName, Subtitle = "Battery, Wi-Fi, and CPU dock analytics", Icon = Icon },
         ];
 
         _bands = [
-            new CommandItem(new BatteryDockPage(battery)) { Title = "Battery", Icon = BatteryDockPage.AddBandIcon },
-            new CommandItem(new WifiDockPage(network)) { Title = "Wi-Fi", Icon = WifiDockPage.AddBandIcon },
-            new CommandItem(new CpuDockPage(cpu)) { Title = "CPU", Icon = CpuDockPage.AddBandIcon },
+            new CommandItem(new BatteryDockPage(battery)) { Title = "Battery", Subtitle = "Charge level and power status", Icon = BatteryDockPage.AddBandIcon },
+            new CommandItem(new WifiDockPage(network)) { Title = "Wi-Fi", Subtitle = "Connection and network throughput", Icon = WifiDockPage.AddBandIcon },
+            new CommandItem(new CpuDockPage(cpu)) { Title = "CPU", Subtitle = "Processor usage and load", Icon = CpuDockPage.AddBandIcon },
         ];
     }
 

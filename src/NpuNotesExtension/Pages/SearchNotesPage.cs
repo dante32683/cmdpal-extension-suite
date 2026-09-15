@@ -49,7 +49,23 @@ internal sealed partial class SearchNotesPage : DynamicListPage
         _pendingSemanticQuery = string.Empty;
 
         var settings = _settings.Current;
-        var notes = _store.GetAll();
+        var notes = _store.GetSnapshot(() =>
+        {
+            _items = BuildItems(SearchText?.Trim() ?? string.Empty);
+            RaiseItemsChanged(_items.Length);
+        });
+        if (notes.Count == 0 && !_store.IsSnapshotReady)
+        {
+            return
+            [
+                new ListItem(new NoOpCommand())
+                {
+                    Title = "Loading notes…",
+                    Subtitle = "Refreshing the notes folder in the background",
+                    Icon = NotesVisuals.Refresh,
+                },
+            ];
+        }
         var results = _search.Search(notes, query, string.IsNullOrWhiteSpace(query) ? settings.MaxRecentNotes : settings.MaxSearchResults);
 
         if (!string.IsNullOrWhiteSpace(query) && results.Count < 3)

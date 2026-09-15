@@ -1,4 +1,4 @@
-﻿namespace JPSoftworks.MediaControlsExtension.Interop;
+namespace JPSoftworks.MediaControlsExtension.Interop;
 
 [Flags]
 enum SICHINT : uint

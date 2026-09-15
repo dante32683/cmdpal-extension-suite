@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //
 // Copyright (c) Jiří Polášek. All rights reserved.
 //
@@ -25,7 +25,7 @@ internal sealed class ToggleRepeatMop : MediaSessionOp
         var currentRepeatMode = session.GetPlaybackInfo().AutoRepeatMode;
         var nextRepeatMode = currentRepeatMode switch
         {
-            MediaPlaybackAutoRepeatMode.None =>  MediaPlaybackAutoRepeatMode.Track,
+            MediaPlaybackAutoRepeatMode.None => MediaPlaybackAutoRepeatMode.Track,
             MediaPlaybackAutoRepeatMode.Track => MediaPlaybackAutoRepeatMode.List,
             MediaPlaybackAutoRepeatMode.List => MediaPlaybackAutoRepeatMode.None,
             { } unknown => unknown,

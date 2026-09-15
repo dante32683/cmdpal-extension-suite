@@ -23,7 +23,6 @@ namespace NpuOrganizeKeeper;
 internal sealed class ScreenshotWatcher : IDisposable
 {
     private readonly StateStore _store;
-    private readonly OrganizeIndexStore _index = new();
     private readonly Func<KeeperConfig> _readConfig;
     private readonly ConcurrentDictionary<string, PendingFile> _pending = new(StringComparer.OrdinalIgnoreCase);
     private FileSystemWatcher? _fsw;
@@ -69,14 +68,14 @@ internal sealed class ScreenshotWatcher : IDisposable
         _fsw = new FileSystemWatcher(watchedDir)
         {
             IncludeSubdirectories = false,
-            EnableRaisingEvents   = true,
-            NotifyFilter          = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.CreationTime,
+            EnableRaisingEvents = true,
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.CreationTime,
         };
         _fsw.Created += (_, e) => Enqueue(e.FullPath);
         _fsw.Changed += (_, e) => Enqueue(e.FullPath);
         _fsw.Renamed += (_, e) => Enqueue(e.FullPath);
 
-        _cts       = new CancellationTokenSource();
+        _cts = new CancellationTokenSource();
         _processor = Task.Run(() => ProcessLoopAsync(_cts.Token));
 
         _store.AppendLog($"watch  start  folder={watchedDir}  debounce={cfg.DebounceMs}ms  battery-skip={cfg.SkipOnBattery}");
@@ -112,9 +111,9 @@ internal sealed class ScreenshotWatcher : IDisposable
 
     private void Enqueue(string fullPath)
     {
-        var cfg      = _readConfig();
+        var cfg = _readConfig();
         var basename = Path.GetFileName(fullPath);
-        var ext      = SlugGenerator.NormalizeExtension(Path.GetExtension(basename));
+        var ext = SlugGenerator.NormalizeExtension(Path.GetExtension(basename));
 
         if (cfg.FileExtensions.Count > 0 &&
             !cfg.FileExtensions.Any(e => string.Equals(SlugGenerator.NormalizeExtension(e), ext, StringComparison.Ordinal)))
@@ -223,30 +222,30 @@ internal sealed class ScreenshotWatcher : IDisposable
             string confidence;
             if (!string.IsNullOrEmpty(description))
             {
-                slug       = SlugGenerator.Slugify(description, cfg.MaxSlugTokens);
+                slug = SlugGenerator.Slugify(description, cfg.MaxSlugTokens);
                 confidence = "ai";
             }
             else
             {
-                slug       = string.Empty;
+                slug = string.Empty;
                 confidence = "fallback";
             }
 
             if (slug.Length == 0)
             {
-                slug       = SlugGenerator.BuildFallbackSlug($"{fullPath}:{info.CreationTimeUtc.Ticks}");
+                slug = SlugGenerator.BuildFallbackSlug($"{fullPath}:{info.CreationTimeUtc.Ticks}");
                 confidence = "fallback";
             }
 
             DateTime captureLocal = info.CreationTime > DateTime.MinValue ? info.CreationTime : info.LastWriteTime;
-            string baseFilename   = SlugGenerator.BuildTargetFilename(slug, info.Extension, captureLocal);
+            string baseFilename = SlugGenerator.BuildTargetFilename(slug, info.Extension, captureLocal);
 
             var existing = new HashSet<string>(
                 Directory.EnumerateFiles(Path.GetDirectoryName(fullPath)!).Select(p => Path.GetFileName(p).ToLowerInvariant()),
                 StringComparer.Ordinal);
 
             string finalBasename = SlugGenerator.ResolveCollision(baseFilename, n => existing.Contains(n.ToLowerInvariant()));
-            string destPath      = Path.Combine(Path.GetDirectoryName(fullPath)!, finalBasename);
+            string destPath = Path.Combine(Path.GetDirectoryName(fullPath)!, finalBasename);
 
             if (string.Equals(destPath, fullPath, StringComparison.OrdinalIgnoreCase))
             {
@@ -270,7 +269,7 @@ internal sealed class ScreenshotWatcher : IDisposable
                 return;
             }
 
-            _index.UpdatePath(fullPath, destPath, description);
+            OrganizeIndexStore.UpdatePath(fullPath, destPath, description);
 
             _store.UpdateState(st =>
             {
@@ -308,7 +307,7 @@ internal sealed class ScreenshotWatcher : IDisposable
 
         using var imageBuffer = ImageBuffer.CreateForSoftwareBitmap(bitmap);
         var generator = await ImageDescriptionGenerator.CreateAsync();
-        var response  = await generator.DescribeAsync(imageBuffer, ImageDescriptionKind.BriefDescription, new ContentFilterOptions());
+        var response = await generator.DescribeAsync(imageBuffer, ImageDescriptionKind.BriefDescription, new ContentFilterOptions());
         return (response?.Description ?? string.Empty).Trim();
     }
 

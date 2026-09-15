@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.DevToolbox.Services;
@@ -20,12 +21,20 @@ internal sealed partial class OpenInExplorerCommand : InvokableCommand
     public override CommandResult Invoke()
     {
         _recents.Add(_path);
-        Process.Start(new ProcessStartInfo
+        try
         {
-            FileName = "explorer.exe",
-            Arguments = $"\"{_path}\"",
-            UseShellExecute = false,
-        });
-        return CommandResult.Dismiss();
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                ArgumentList = { _path },
+                UseShellExecute = false,
+            });
+            return CommandResult.Dismiss();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Explorer launch failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandResult.ShowToast("Could not open this workspace in Explorer.");
+        }
     }
 }
