@@ -49,8 +49,10 @@ internal sealed partial class BrowseNotesPage : DynamicListPage
             return BuildCategoryItems();
 
         var notes = _category is null || string.Equals(_category, "all", StringComparison.OrdinalIgnoreCase)
-            ? _store.GetAll()
-            : _store.GetByCategory(_category);
+            ? _store.GetSnapshot(RefreshItems)
+            : _store.GetSnapshotByCategory(_category, RefreshItems);
+        if (notes.Count == 0 && !_store.IsSnapshotReady)
+            return LoadingItems();
         if (!string.IsNullOrWhiteSpace(query))
         {
             notes = notes
@@ -81,7 +83,9 @@ internal sealed partial class BrowseNotesPage : DynamicListPage
 
     private IListItem[] BuildCategoryItems()
     {
-        var notes = _store.GetAll();
+        var notes = _store.GetSnapshot(RefreshItems);
+        if (notes.Count == 0 && !_store.IsSnapshotReady)
+            return LoadingItems();
         var counts = notes.GroupBy(n => n.Category, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
         var items = new List<IListItem>
         {
@@ -109,4 +113,20 @@ internal sealed partial class BrowseNotesPage : DynamicListPage
     }
 
     private static string TitleCase(string value) => CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value);
+
+    private static IListItem[] LoadingItems() =>
+    [
+        new ListItem(new NoOpCommand())
+        {
+            Title = "Loading notes…",
+            Subtitle = "Refreshing the notes folder in the background",
+            Icon = NotesVisuals.Refresh,
+        },
+    ];
+
+    private void RefreshItems()
+    {
+        _items = BuildItems(SearchText?.Trim() ?? string.Empty);
+        RaiseItemsChanged(_items.Length);
+    }
 }

@@ -1,3 +1,6 @@
+using System;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using NpuTools.DevToolbox.Commands;
@@ -20,7 +23,7 @@ internal sealed partial class WorkspaceActionsPage : ListPage
         _recents = recents;
         _ai = ai;
         _isRecent = isRecent;
-        Id = "com.local.nputools.devtoolbox.workspace";
+        Id = $"com.local.nputools.devtoolbox.workspace.{StableId(path)}";
         Title = System.IO.Path.GetFileName(path.TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar)) ?? path;
         Name = "Open";
         Icon = DevToolboxVisuals.Workspace;
@@ -86,20 +89,26 @@ internal sealed partial class WorkspaceActionsPage : ListPage
     private static string TerminalLabel(Models.TerminalChoice choice) => choice switch
     {
         Models.TerminalChoice.WindowsTerminal => "Windows Terminal",
-        Models.TerminalChoice.PowerShell      => "PowerShell",
-        Models.TerminalChoice.Cmd             => "Command Prompt",
-        Models.TerminalChoice.Custom          => "Custom terminal",
-        _                                     => "Terminal",
+        Models.TerminalChoice.PowerShell => "PowerShell",
+        Models.TerminalChoice.Cmd => "Command Prompt",
+        Models.TerminalChoice.Custom => "Custom terminal",
+        _ => "Terminal",
     };
 
     private static string IdeLabel(Models.IdeChoice choice) => choice switch
     {
-        Models.IdeChoice.VSCode    => "VS Code",
-        Models.IdeChoice.Cursor    => "Cursor",
-        Models.IdeChoice.Windsurf  => "Windsurf",
-        Models.IdeChoice.Custom    => "Custom IDE",
-        _                          => "IDE",
+        Models.IdeChoice.VSCode => "VS Code",
+        Models.IdeChoice.Cursor => "Cursor",
+        Models.IdeChoice.Windsurf => "Windsurf",
+        Models.IdeChoice.Custom => "Custom IDE",
+        _ => "IDE",
     };
+
+    private static string StableId(string path)
+    {
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(System.IO.Path.GetFullPath(path).ToUpperInvariant()));
+        return Convert.ToHexString(hash, 0, 8).ToLowerInvariant();
+    }
 
     internal sealed partial class RemoveRecentCommand : InvokableCommand
     {

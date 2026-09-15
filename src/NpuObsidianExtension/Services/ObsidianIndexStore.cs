@@ -16,6 +16,7 @@ internal sealed partial class ObsidianIndexStore
 {
     private readonly object _lock = new();
     private List<ObsidianIndexEntry> _entries = [];
+    private Task<List<ObsidianIndexEntry>>? _loadTask;
     private bool _loaded;
 
     public bool IsIndexed
@@ -28,15 +29,32 @@ internal sealed partial class ObsidianIndexStore
         get { lock (_lock) { return _entries.Count; } }
     }
 
-    public void EnsureLoaded()
+    // Provider startup must not synchronously deserialize a potentially large vault index.
+    // Readers continue using the live-vault snapshot until this background load completes.
+    public void BeginLoad()
     {
+        Task<List<ObsidianIndexEntry>> loadTask;
         lock (_lock)
         {
             if (_loaded)
                 return;
-            _loaded = true;
-            _entries = LoadFromDisk();
+            loadTask = _loadTask ??= Task.Run(LoadFromDisk);
         }
+
+        _ = CompleteLoadAsync(loadTask);
+    }
+
+    public void EnsureLoaded()
+    {
+        Task<List<ObsidianIndexEntry>> loadTask;
+        lock (_lock)
+        {
+            if (_loaded)
+                return;
+            loadTask = _loadTask ??= Task.Run(LoadFromDisk);
+        }
+
+        CompleteLoad(loadTask.GetAwaiter().GetResult(), loadTask);
     }
 
     public IReadOnlyList<ObsidianIndexEntry> GetAll()
@@ -289,6 +307,27 @@ internal sealed partial class ObsidianIndexStore
         {
             Debug.WriteLine($"ObsidianIndexStore.Load failed: {ex.GetType().Name}: {ex.Message}");
             return [];
+        }
+    }
+
+    private async Task CompleteLoadAsync(Task<List<ObsidianIndexEntry>> loadTask)
+    {
+        var entries = await loadTask.ConfigureAwait(false);
+        CompleteLoad(entries, loadTask);
+    }
+
+    private void CompleteLoad(List<ObsidianIndexEntry> entries, Task<List<ObsidianIndexEntry>> loadTask)
+    {
+        lock (_lock)
+        {
+            if (!_loaded)
+            {
+                _entries = entries;
+                _loaded = true;
+            }
+
+            if (ReferenceEquals(_loadTask, loadTask))
+                _loadTask = null;
         }
     }
 

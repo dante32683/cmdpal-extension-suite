@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 // 
 // Copyright (c) Jiří Polášek. All rights reserved.
 // 
@@ -26,7 +26,8 @@ internal sealed record EmptyAppInfo : IAppInfo
     public string? IconPath => null;
 };
 
-internal interface IAppInfo {
+internal interface IAppInfo
+{
     string DisplayName { get; }
     string AppId { get; }
     string? IconPath { get; }

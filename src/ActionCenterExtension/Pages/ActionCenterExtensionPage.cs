@@ -1,4 +1,4 @@
-﻿using ActionCenterExtension.Pages;
+using ActionCenterExtension.Pages;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 

@@ -21,7 +21,7 @@ public sealed partial class MediaControlsExtensionCommandsProvider : CommandProv
 
     public MediaControlsExtensionCommandsProvider()
     {
-        this.Id = "com.dziad.mediacontrolsextension";
+        this.Id = "com.dziad.mediacontrolsextension.provider";
         this.DisplayName = "Media Controls Dock";
         this.Icon = Icons.Music;
         this.Settings = this._settingsManager.Settings;
@@ -35,7 +35,7 @@ public sealed partial class MediaControlsExtensionCommandsProvider : CommandProv
         this._mediaControlsPageItem = new(mediaControlsExtensionPage) { Title = this.DisplayName, Subtitle = "Playback controls, now playing info, and volume", Icon = this.Icon };
         this._nowPlayingItem = new NowPlayingListItem(this._mediaService, this._settingsManager, this._yetAnotherHelper, false);
         var mediaControlsBand = new MediaControlsExtensionPage(this._mediaService, this._settingsManager, this._yetAnotherHelper, true);
-        this._bands = [new CommandItem(mediaControlsBand) { Title = "Media Controls Dock", Icon = this.Icon }];
+        this._bands = [new CommandItem(mediaControlsBand) { Title = "Media Controls Dock", Subtitle = "Playback, track, session, and volume controls", Icon = this.Icon }];
         this.UpdateTopLevelCommands();
 
         _ = Task.Run(this.InitializeMediaServiceSafe);

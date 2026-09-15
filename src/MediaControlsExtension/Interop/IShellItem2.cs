@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
 namespace JPSoftworks.MediaControlsExtension.Interop;
@@ -44,7 +44,7 @@ internal interface IShellItem2 : IShellItem
 
     void Update(IBindCtx pbc);
 
-    void GetProperty(ref PROPERTYKEY key, [In] [Out] PropVariant pv);
+    void GetProperty(ref PROPERTYKEY key, [In][Out] PropVariant pv);
 
     Guid GetCLSID(ref PROPERTYKEY key);
 

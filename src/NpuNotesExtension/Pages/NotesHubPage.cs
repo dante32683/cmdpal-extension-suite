@@ -29,7 +29,7 @@ internal sealed partial class NotesHubPage : ListPage
     public override IListItem[] GetItems()
     {
         var settings = _settings.Current;
-        var notes = _store.GetAll();
+        var notes = _store.GetSnapshot(() => RaiseItemsChanged());
         var pinned = notes.Where(n => n.IsPinned).OrderBy(n => n.PinOrder ?? int.MaxValue).Take(settings.MaxRecentNotes).ToList();
         var recent = notes.Where(n => !n.IsPinned).OrderByDescending(n => n.LastOpenedUtc ?? n.UpdatedUtc).Take(settings.MaxRecentNotes).ToList();
 
@@ -70,7 +70,16 @@ internal sealed partial class NotesHubPage : ListPage
         AddSection(items, "Pinned Notes", pinned);
         AddSection(items, "Recent Notes", recent);
 
-        if (notes.Count == 0)
+        if (notes.Count == 0 && !_store.IsSnapshotReady)
+        {
+            items.Add(new ListItem(new NoOpCommand())
+            {
+                Title = "Loading notes…",
+                Subtitle = "Refreshing the notes folder in the background",
+                Icon = NotesVisuals.Refresh,
+            });
+        }
+        else if (notes.Count == 0)
         {
             items.Add(new ListItem(new NoOpCommand())
             {

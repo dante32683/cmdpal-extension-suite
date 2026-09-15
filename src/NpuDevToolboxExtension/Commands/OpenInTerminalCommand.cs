@@ -30,10 +30,18 @@ internal sealed partial class OpenInTerminalCommand : InvokableCommand
         {
             Launch(s);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Fallback to cmd.exe which is always available
-            LaunchCmd();
+            Debug.WriteLine($"Preferred terminal launch failed: {ex.GetType().Name}: {ex.Message}");
+            try
+            {
+                LaunchCmd();
+            }
+            catch (Exception fallbackEx)
+            {
+                Debug.WriteLine($"Terminal fallback failed: {fallbackEx.GetType().Name}: {fallbackEx.Message}");
+                return CommandResult.ShowToast("Could not open a terminal for this workspace.");
+            }
         }
 
         return CommandResult.Dismiss();
@@ -50,12 +58,14 @@ internal sealed partial class OpenInTerminalCommand : InvokableCommand
                 LaunchPowerShell();
                 break;
             case TerminalChoice.Custom when !string.IsNullOrWhiteSpace(s.CustomTerminalExe):
-                Process.Start(new ProcessStartInfo
+                var customStartInfo = new ProcessStartInfo
                 {
                     FileName = s.CustomTerminalExe,
-                    Arguments = $"\"{_path}\"",
+                    WorkingDirectory = _path,
                     UseShellExecute = true,
-                });
+                };
+                customStartInfo.ArgumentList.Add(_path);
+                Process.Start(customStartInfo);
                 break;
             default:
                 LaunchCmd();
@@ -65,16 +75,20 @@ internal sealed partial class OpenInTerminalCommand : InvokableCommand
 
     private void LaunchWindowsTerminal(string profile)
     {
-        string args = string.IsNullOrWhiteSpace(profile)
-            ? $"-d \"{_path}\""
-            : $"new-tab -p \"{profile}\" -d \"{_path}\"";
-
-        Process.Start(new ProcessStartInfo
+        var startInfo = new ProcessStartInfo
         {
             FileName = "wt.exe",
-            Arguments = args,
             UseShellExecute = true,
-        });
+        };
+        if (!string.IsNullOrWhiteSpace(profile))
+        {
+            startInfo.ArgumentList.Add("new-tab");
+            startInfo.ArgumentList.Add("-p");
+            startInfo.ArgumentList.Add(profile);
+        }
+        startInfo.ArgumentList.Add("-d");
+        startInfo.ArgumentList.Add(_path);
+        Process.Start(startInfo);
     }
 
     private void LaunchPowerShell()
@@ -87,7 +101,8 @@ internal sealed partial class OpenInTerminalCommand : InvokableCommand
         Process.Start(new ProcessStartInfo
         {
             FileName = exe,
-            Arguments = $"-NoExit -Command \"Set-Location '{_path.Replace("'", "''")}' \"",
+            Arguments = "-NoExit",
+            WorkingDirectory = _path,
             UseShellExecute = false,
         });
     }
@@ -97,7 +112,8 @@ internal sealed partial class OpenInTerminalCommand : InvokableCommand
         Process.Start(new ProcessStartInfo
         {
             FileName = "cmd.exe",
-            Arguments = $"/K \"cd /d \"{_path}\"\"",
+            Arguments = "/K",
+            WorkingDirectory = _path,
             UseShellExecute = false,
         });
     }

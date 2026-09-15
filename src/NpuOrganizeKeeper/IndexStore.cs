@@ -20,7 +20,7 @@ internal sealed class OrganizeIndexStore
         WriteIndented = false,
     };
 
-    public void UpdatePath(string oldPath, string newPath, string description)
+    public static void UpdatePath(string oldPath, string newPath, string description)
     {
         using var mutex = new Mutex(false, MutexName());
         try { mutex.WaitOne(); } catch (AbandonedMutexException) { }

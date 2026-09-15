@@ -73,7 +73,7 @@ internal sealed partial class SummarizeNotePage : ListPage
                 Tags = [ObsidianVisuals.StatusTag("Phi summary")],
                 MoreCommands =
                 [
-                    new CommandContextItem(new CopySummaryCommand(_summary)) { Icon = ObsidianVisuals.Copy },
+                    new CommandContextItem(new CopySummaryCommand(_summary)) { Icon = ObsidianVisuals.Copy, RequestedShortcut = KeyChords.CopySummary },
                 ],
             },
         ];

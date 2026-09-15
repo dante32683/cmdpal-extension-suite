@@ -292,8 +292,8 @@ internal sealed partial class RebuildNotesIndexCommand : InvokableCommand
 
     public override CommandResult Invoke()
     {
-        var entries = _store.GetAll();
-        return CommandResult.ShowToast($"Index rebuilt — {entries.Count} note(s) found.");
+        _ = Task.Run(() => _store.GetAll());
+        return CommandResult.ShowToast("Rebuilding notes index…");
     }
 }
 
