@@ -1,6 +1,6 @@
 # Agent Orientation
 
-This is the root guidance for AI agents working in this repository. `CLAUDE.md` and `.github/copilot-instructions.md` point here. A nearer `AGENTS.md`, if one is added later, overrides this file for its subtree.
+This is the root guidance for AI agents working in this repository. `.github/copilot-instructions.md` points here. A nearer `AGENTS.md`, if one is added later, overrides this file for its subtree.
 
 ## Start here
 
