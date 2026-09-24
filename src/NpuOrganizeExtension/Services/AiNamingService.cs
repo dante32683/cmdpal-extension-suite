@@ -183,7 +183,7 @@ internal static partial class AiNamingService
         }
 
         using var imageBuffer = ImageBuffer.CreateForSoftwareBitmap(bitmap);
-        var generator = await ImageDescriptionGenerator.CreateAsync();
+        using var generator = await ImageDescriptionGenerator.CreateAsync();
         var response = await generator.DescribeAsync(imageBuffer, ImageDescriptionKind.BriefDescription, new ContentFilterOptions());
         return (response?.Description ?? string.Empty).Trim();
     }
