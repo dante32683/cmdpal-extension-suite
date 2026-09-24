@@ -205,7 +205,7 @@ static KeeperConfig GetOrCreateConfig(StateStore store)
 static async Task<string> DescribeImageAsync(string imagePath)
 {
     using Microsoft.Graphics.Imaging.ImageBuffer imageBuffer = await LoadImageBufferAsync(imagePath).ConfigureAwait(false);
-    var generator = await Microsoft.Windows.AI.Imaging.ImageDescriptionGenerator.CreateAsync();
+    using var generator = await Microsoft.Windows.AI.Imaging.ImageDescriptionGenerator.CreateAsync();
     var response = await generator.DescribeAsync(
         imageBuffer,
         Microsoft.Windows.AI.Imaging.ImageDescriptionKind.BriefDescription,

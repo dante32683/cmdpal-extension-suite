@@ -8,6 +8,13 @@ No known implementation defects are currently open. Host-only AI and COM behavio
 still requires the manual acceptance described in `RUNBOOK.md`; that boundary is a
 verification limitation, not an unconfirmed bug.
 
+## Resolved on 2026-09-24
+
+- Organize (extension and keeper) and Image Editor now dispose each
+  `ImageDescriptionGenerator` and `ImageScaler` session. Undisposed sessions kept
+  `WorkloadsSessionHost` processes and loaded models (about 2.7 GB) alive for days
+  behind the long-running Organize Keeper.
+
 ## Resolved in the 2026-09-15 clipboard performance audit
 
 - Clipboard History no longer constructs the full retained history, eager details,

@@ -80,7 +80,7 @@ internal sealed class ImageEditorService
         var decoder = await BitmapDecoder.CreateAsync(inStream);
         var bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
-        var scaler = await ImageScaler.CreateAsync();
+        using var scaler = await ImageScaler.CreateAsync();
         int newW = bitmap.PixelWidth * scaleFactor;
         int newH = bitmap.PixelHeight * scaleFactor;
         var scaled = scaler.ScaleSoftwareBitmap(bitmap, newW, newH);
