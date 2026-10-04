@@ -28,7 +28,7 @@ internal sealed partial class VirtualDesktopPage : ListPage, IDisposable
         Icon = DesktopIcon;
 
         _last = _reader.Read();
-        _item = new ListItem(new NoOpCommand()) { Title = _last.Name, Subtitle = Describe(_last) };
+        _item = new ListItem(new NoOpCommand()) { Title = DockLabel.PadToCenter(_last.Name) };
 
         _timer = new Timer(Refresh, null, PollInterval, PollInterval);
     }
@@ -48,14 +48,11 @@ internal sealed partial class VirtualDesktopPage : ListPage, IDisposable
             }
 
             _last = info;
-            _item.Title = info.Name;
-            _item.Subtitle = Describe(info);
+            _item.Title = DockLabel.PadToCenter(info.Name);
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Virtual desktop band refresh failed: {ex}");
         }
     }
-
-    private static string Describe(VirtualDesktopInfo info) => $"Desktop {info.Index} of {info.Count}";
 }
