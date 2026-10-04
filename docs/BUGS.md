@@ -8,6 +8,13 @@ No known implementation defects are currently open. Host-only AI and COM behavio
 still requires the manual acceptance described in `RUNBOOK.md`; that boundary is a
 verification limitation, not an unconfirmed bug.
 
+## Resolved on 2026-10-03
+
+- Media Controls showed no app icon for classic desktop players such as Spotify. Windows
+  reports them as a bare executable name (`Spotify.exe`), but the Start menu apps folder is
+  keyed by the full exe path, so the lookup missed. `DesktopAppHelper` now falls back to the
+  running process with that name to find the exe path.
+
 ## Resolved on 2026-09-24
 
 - Organize (extension and keeper) and Image Editor now dispose each
