@@ -211,6 +211,7 @@ The Command Palette host writes a rolling log at:
 ```
 
 `{date}` is the day the host process started, not today's date. A host left running past midnight keeps writing to the older file, so pick the file by last write time.
+
 Read the tail in PowerShell:
 
 ```powershell
