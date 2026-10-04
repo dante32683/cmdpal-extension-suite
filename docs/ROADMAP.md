@@ -13,6 +13,7 @@ Status: in progress
 ## Implemented Extensions
 
 - Action Center: Quick Settings dock button with settings-controlled toggle reset.
+- Action Center: Virtual Desktop dock band showing the active desktop name.
 - Time Date Dock: individually addable configurable time and date dock buttons that open Notification Center.
 - Media Controls Dock: media playback controls with compact dock subtitle suppression and native glyph controls.
 - Simple Analytics: individually addable battery, Wi-Fi/network, and CPU dock/status views.

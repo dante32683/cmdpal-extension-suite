@@ -16,7 +16,7 @@ The repo-level docs are the authoritative standards for all extensions in this w
 
 ## Current Extension Projects
 
-- `src/ActionCenterExtension` - Quick Settings / Action Center dock extension.
+- `src/ActionCenterExtension` - Quick Settings / Virtual Desktop dock extension.
 - `src/TimeDateDockExtension` - configurable time/date dock buttons that open Notification Center.
 - `src/MediaControlsExtension` - media playback dock controls with compact dock fixes.
 - `src/SimpleAnalyticsExtension` - battery, Wi-Fi, CPU, and lightweight system analytics dock extension.
