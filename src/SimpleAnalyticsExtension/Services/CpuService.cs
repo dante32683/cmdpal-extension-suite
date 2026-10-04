@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace SimpleAnalyticsExtension;
@@ -55,7 +56,10 @@ internal sealed class CpuService
                 _cpuAvailable = true;
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"CPU sample failed: {ex}");
+        }
     }
 
     public double GetCpuPercent()

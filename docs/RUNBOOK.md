@@ -210,18 +210,20 @@ The Command Palette host writes a rolling log at:
 %LocalAppData%\Microsoft\PowerToys\CmdPal\Logs\{version}\Log_{date}.log
 ```
 
+`{date}` is the day the host process started, not today's date. A host left running past midnight keeps writing to the older file, so pick the file by last write time.
+
 Read the tail in PowerShell:
 
 ```powershell
-$log = "$env:LOCALAPPDATA\Microsoft\PowerToys\CmdPal\Logs"
-$latest = Get-ChildItem $log | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-Get-Content "$($latest.FullName)\Log_$(Get-Date -Format 'yyyy-MM-dd').log" | Select-Object -Last 60
+$logFile = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\PowerToys\CmdPal\Logs" -Recurse -Filter 'Log_*.log' |
+    Sort-Object LastWriteTime -Descending | Select-Object -First 1
+Get-Content $logFile.FullName | Select-Object -Last 60
 ```
 
 Or grep for extension-specific lines:
 
 ```powershell
-Get-Content $logFile | Select-String -Pattern "(NpuOrganize|error|Started|Loaded)" | Select-Object -Last 30
+Get-Content $logFile.FullName | Select-String -Pattern "(NpuOrganize|error|Started|Loaded)" | Select-Object -Last 30
 ```
 
 ### Key patterns to look for
