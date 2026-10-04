@@ -69,6 +69,8 @@
     <Compile Include="..\NpuObsidianExtension\Services\ObsidianMarkdownParser.cs" Link="Obsidian\ObsidianMarkdownParser.cs" />
     <Compile Include="..\NpuObsidianExtension\Services\ObsidianSearchService.cs" Link="Obsidian\ObsidianSearchService.cs" />
     <Compile Include="..\NpuObsidianExtension\Services\ObsidianUriService.cs" Link="Obsidian\ObsidianUriService.cs" />
+    <!-- ActionCenter: registry-backed virtual desktop reader (no WinRT/MSIX dependencies) -->
+    <Compile Include="..\ActionCenterExtension\Services\VirtualDesktopReader.cs" Link="ActionCenter\VirtualDesktopReader.cs" />
     <!-- Awake: JSON serialization types (no WinRT/MSIX dependencies) -->
     <Compile Include="..\NpuAwakeExtension\Models\AwakeModels.cs" Link="Awake\AwakeModels.cs" />
     <Compile Include="..\NpuAwakeExtension\Services\AwakeTime.cs" Link="Awake\AwakeTime.cs" />

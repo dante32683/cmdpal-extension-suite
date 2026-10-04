@@ -1,13 +1,16 @@
+using System;
 using ActionCenterExtension.Bands;
+using ActionCenterExtension.Services;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
 namespace ActionCenterExtension;
 
-public partial class ActionCenterExtensionCommandsProvider : CommandProvider
+public sealed partial class ActionCenterExtensionCommandsProvider : CommandProvider
 {
-    private static readonly IconInfo ProviderIcon = new("\uE713");
+    private static readonly IconInfo ProviderIcon = new("");
     private readonly SettingsManager _settingsManager = new();
+    private readonly VirtualDesktopPage _virtualDesktopPage = new(new VirtualDesktopReader());
     private readonly ICommandItem[] _commands;
     private readonly ICommandItem[] _dockBands;
 
@@ -23,10 +26,24 @@ public partial class ActionCenterExtensionCommandsProvider : CommandProvider
         ];
 
         var quickSettings = new QuickSettingsCommand(_settingsManager);
-        _dockBands = [new CommandItem(quickSettings) { Title = "Quick Settings", Icon = quickSettings.Icon }];
+        _dockBands = [
+            new CommandItem(quickSettings) { Title = "Quick Settings", Icon = quickSettings.Icon },
+            new CommandItem(_virtualDesktopPage)
+            {
+                Title = "Virtual Desktop",
+                Subtitle = "Name of the active virtual desktop",
+                Icon = VirtualDesktopPage.AddBandIcon,
+            },
+        ];
     }
 
     public override ICommandItem[] TopLevelCommands() => _commands;
 
     public override ICommandItem[]? GetDockBands() => _dockBands;
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        _virtualDesktopPage.Dispose();
+    }
 }
