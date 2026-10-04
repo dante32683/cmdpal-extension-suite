@@ -32,7 +32,7 @@ Each extension process provides the commands, pages, services, and package metad
 
 ### Dock Extensions
 
-- **ActionCenterExtension** — Quick Settings dock button. Uses `SendInput` (Win+A) and the state-toggle workaround for Command Palette focus behavior.
+- **ActionCenterExtension** — Quick Settings dock button and a Virtual Desktop dock band (active desktop name, read from the per-user Explorer `VirtualDesktops` registry key; undocumented but stable since Windows 10). Quick Settings uses `SendInput` (Win+A) and the state-toggle workaround for Command Palette focus behavior.
 - **TimeDateDockExtension** — Individually addable time and date dock buttons. Opens Notification Center on click.
 - **MediaControlsExtension** — Media playback dock controls with now-playing info, volume, and per-session switching.
 - **SimpleAnalyticsExtension** — Battery, Wi-Fi/network, and CPU dock/status analytics with settings-controlled visibility.
