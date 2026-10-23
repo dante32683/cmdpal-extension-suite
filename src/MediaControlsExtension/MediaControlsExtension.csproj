@@ -20,8 +20,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 
 		<AssemblyName>MediaControlsExtension</AssemblyName>
-		<Company>A Lone Developer</Company>
-		<Copyright>(c) Jiri Polasek. Local dock fixes by A Lone Developer.</Copyright>
+		<Company>Dante Martin</Company>
+		<Copyright>(c) Jiri Polasek. Modifications (c) 2026 Dante Martin.</Copyright>
 		<NeutralLanguage>en-US</NeutralLanguage>
 		<Product>Media Controls Dock Command Palette</Product>
 		<AssemblyTitle>Media Controls Dock Command Palette</AssemblyTitle>

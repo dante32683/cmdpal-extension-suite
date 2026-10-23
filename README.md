@@ -23,3 +23,7 @@ It checks formatting, package and provider identities, Command Palette UX conven
 - `references/` — ignored upstream checkouts used to verify Command Palette SDK patterns
 
 Each packaged extension keeps a unique package identity, app-extension ID, COM class ID, and provider ID. See [Architecture](docs/ARCHITECTURE.md) before adding or copying a project.
+
+## Third-party code
+
+`src/MediaControlsExtension` is a modified port of [Media Controls Extension](https://github.com/jiripolasek/MediaControlsExtension) by Jiří Polášek. That folder stays under the Apache License 2.0; see its `LICENSE.txt` and `NOTICE.md`. The rest of the repository is under the MIT license in `LICENSE`.
