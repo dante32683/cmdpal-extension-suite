@@ -2,22 +2,24 @@
 
 Feature-level completion status across all planned extensions. Source of truth for "what's left."
 
+All extensions are local, sideloaded builds at package version 0.0.1.0. None are published to the Microsoft Store or WinGet. "Complete" below means the planned feature set is implemented, not released.
+
 ## Summary
 
-| Extension | Status | % Complete |
+| Extension | Status | Planned features done |
 |---|---|---:|
-| ActionCenterExtension | Shipped | 100% |
-| TimeDateDockExtension | Shipped | 100% |
-| MediaControlsExtension | Shipped | 100% |
-| SimpleAnalyticsExtension | Shipped | 100% |
-| NpuAwakeExtension | Shipped | 100% |
-| NpuOrganizeExtension | Shipped | 100% |
-| NpuImageEditorExtension | Clipboard input shipped | ~99% |
-| NpuTextToolsExtension | All planned features shipped | 100% |
-| NpuClipboardExtension | Secret-pattern filtering shipped | ~99% |
-| NpuNotesExtension | All planned features shipped | ~95% |
-| NpuObsidianExtension | All planned features shipped | 100% |
-| NpuDevToolboxExtension | All planned features shipped | ~98% |
+| ActionCenterExtension | Feature-complete | 100% |
+| TimeDateDockExtension | Feature-complete | 100% |
+| MediaControlsExtension | Feature-complete | 100% |
+| SimpleAnalyticsExtension | Feature-complete | 100% |
+| NpuAwakeExtension | Feature-complete | 100% |
+| NpuOrganizeExtension | Feature-complete | 100% |
+| NpuImageEditorExtension | Clipboard input implemented | ~99% |
+| NpuTextToolsExtension | All planned features implemented | 100% |
+| NpuClipboardExtension | Secret-pattern filtering implemented | ~99% |
+| NpuNotesExtension | All planned features implemented | ~95% |
+| NpuObsidianExtension | All planned features implemented | 100% |
+| NpuDevToolboxExtension | All planned features implemented | ~98% |
 
 ---
 
@@ -36,7 +38,7 @@ All four dock extensions are complete. No planned work remaining.
 
 ## NPU Awake — 100%
 
-All priority features from the migration plan are shipped.
+All priority features from the migration plan are implemented.
 
 | Feature | Status |
 |---|---|
@@ -54,7 +56,7 @@ All priority features from the migration plan are shipped.
 
 ## NPU Organize — 100%
 
-All P0 features shipped. Screenshot search with relevance ranking and context actions added beyond original scope.
+All P0 features implemented. Screenshot search with relevance ranking and context actions added beyond original scope.
 
 | Feature | Status |
 |---|---|
@@ -75,7 +77,7 @@ All P0 features shipped. Screenshot search with relevance ranking and context ac
 
 ## NPU Image Editor — ~99%
 
-All planned features shipped. ImageForegroundExtractor for automatic background removal, 2×/4×/8× super resolution, image browser, and settings system.
+All planned features implemented. ImageForegroundExtractor for automatic background removal, 2×/4×/8× super resolution, image browser, and settings system.
 
 | Feature | Status |
 |---|---|
@@ -94,7 +96,7 @@ All planned features shipped. ImageForegroundExtractor for automatic background 
 
 ## NPU Text Tools — 100%
 
-All planned features shipped. Pending review, selection diagnostics, and quick mode default setting complete the set.
+All planned features implemented. Pending review, selection diagnostics, and quick mode default setting complete the set.
 
 | Feature | Status |
 |---|---|
@@ -145,7 +147,7 @@ The reliability and security issues found in the July 2026 audit are resolved; s
 
 ## NPU Obsidian — 100%
 
-M4 shipped. All planned features complete. Vault index, AI summarization, Find Related Notes, Smart Capture, delete/rename/move all implemented.
+M4 implemented. All planned features complete. Vault index, AI summarization, Find Related Notes, Smart Capture, delete/rename/move all implemented.
 
 | Feature | Status |
 |---|---|
@@ -169,7 +171,7 @@ M4 shipped. All planned features complete. Vault index, AI summarization, Find R
 
 ## NPU Notes — ~95%
 
-All planned features shipped. AI cleanup, rename, move, find related, and semantic fallback all implemented.
+All planned features implemented. AI cleanup, rename, move, find related, and semantic fallback all implemented.
 
 Implementation guide: `docs/NPU_NOTES_EXTENSION_GUIDE.md`.
 
@@ -198,7 +200,7 @@ Future: AppContentIndexer semantic index, RAG Q&A over notes, inline editor help
 
 ## NPU Dev Toolbox — ~98%
 
-All planned features shipped. Workspace detection, Explorer/Terminal/IDE launch, recent workspaces, settings, WT profile selection, and AI commit message generation.
+All planned features implemented. Workspace detection, Explorer/Terminal/IDE launch, recent workspaces, settings, WT profile selection, and AI commit message generation.
 
 | Feature | Status |
 |---|---|

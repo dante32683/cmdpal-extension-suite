@@ -29,11 +29,11 @@ $modeInstruction = switch ($Mode) {
 }
 
 $fullPrompt = @"
-You are acting as a bounded Gemini side helper for Codex on a local software project.
+You are acting as a bounded Gemini side helper for the primary agent on a local software project.
 
 Rules:
 - $modeInstruction
-- Codex is the primary implementer and verifier.
+- The primary agent is the implementer and verifier.
 - Do not invent facts. If uncertain, say so.
 - Prefer concise, concrete output.
 - When discussing code, include file paths and line numbers when relevant.

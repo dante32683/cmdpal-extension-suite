@@ -171,17 +171,17 @@ Publish artifacts are per extension. GitHub releases should attach one MSIX/arti
 
 Imported histories:
 
-- `imported/action-center` tag points at the old ActionCenter repo head that was merged into this monorepo as history.
+- The old ActionCenter repository history was merged into this monorepo.
 - Simple Analytics had no `.git` repository at migration time, so only its files and docs were imported.
 
 ## Starting A New AI Agent Session
 
-The monorepo has a `CLAUDE.md` file at the repo root that Claude Code reads automatically at the start of every session. It points to the docs in the correct read order. Any AI agent that opens this repo will have that context injected before your first message.
+`AGENTS.md` at the repo root is the entry point for AI agents. It lists the docs in the correct read order.
 
 To get a fresh agent fully oriented, open a new chat in this working directory and say:
 
 ```
-Read the docs in the order specified in CLAUDE.md before we start.
+Read the docs in the order specified in AGENTS.md before we start.
 ```
 
 The agent will then read:
